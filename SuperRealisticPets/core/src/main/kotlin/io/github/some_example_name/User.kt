@@ -3,6 +3,7 @@ class User(val name: String, val agent: MessageAgent) {
     var turn: Int = 1
     val team = Team()
     val shop = Shop()
+    val shopController = ShopSystem()
 
     init {
         agent.setUser(this)
@@ -19,87 +20,15 @@ class User(val name: String, val agent: MessageAgent) {
     }
 
     fun toggleFreeze(pos: Int): Int {
-        val shopSlot = shop.getSlot(pos)
-        return if (shopSlot.item is Empty || shopSlot.item is Unarmed) {
-            -1
-        } else {
-            shop.toggleFreeze(pos)
-            0
-        }
+        return shopController.toggleFreeze(pos)
     }
 
     fun reroll(): Int {
-        return if (gold < 1) {
-            -1
-        } else {
-            gold--
-            shop.reroll()
-            0
-        }
+        return shopController.reroll()
     }
 
     fun buy(itemPos: Int, targetPos: Int): Int {
-        val shopSlot = shop.roster[itemPos]
-
-        if (shopSlot.item is Empty || shopSlot.item is Unarmed) {
-            return -1
-        }
-
-        if (gold < shopSlot.item.cost) {
-            return -1
-        }
-
-        return when (shopSlot.item) {
-            is Animal -> buyAnimalResponse(shopSlot, targetPos)
-            is Equipment -> buyFoodResponse(shopSlot, targetPos)
-            else -> -1
-        }
-    }
-
-    private fun buyAnimalResponse(shopSlot: ShopSlot, targetPos: Int): Int {
-        return when (val targetAnimal = team[targetPos]) {
-            is Empty -> buyToEmptyResponse(shopSlot, targetPos)
-            shopSlot.item::class -> buyToSameResponse(shopSlot, targetPos)
-            else -> buyDifferentAnimalResponse(shopSlot, targetPos)
-        }
-    }
-
-    private fun buyToEmptyResponse(shopSlot: ShopSlot, targetPos: Int): Int {
-        gold -= shopSlot.item.cost
-        shopSlot.buy()
-        team[targetPos] = shopSlot.item as Animal
-        agent.enqueueEvent(EventNames.FRIEND_SUMMONED_SHOP, targetPos)
-        agent.enqueueEvent(EventNames.FRIEND_BOUGHT, targetPos)
-        agent.enqueueEvent(EventNames.BUY, targetPos)
-        if ((shopSlot.item as Animal).tier == 1) {
-            agent.enqueueEvent(EventNames.BUY_T1_PET, targetPos)
-        }
-        return 0
-    }
-
-    private fun buyToSameResponse(shopSlot: ShopSlot, targetPos: Int): Int {
-        val targetUnit = team[targetPos]
-        val item = shopSlot.buy() as Animal
-        gold -= item.cost
-        targetUnit.increaseXp(1)
-        agent.enqueueEvent(EventNames.FRIEND_BOUGHT, targetPos)
-        agent.enqueueEvent(EventNames.BUY, targetPos)
-        if (item.tier == 1) {
-            agent.enqueueEvent(EventNames.BUY_T1_PET, targetPos)
-        }
-        return 0
-    }
-
-    private fun buyDifferentAnimalResponse(shopSlot: ShopSlot, targetPos: Int): Int {
-        if (!team.hasSummonSpace()) {
-            return -1
-        }
-        gold -= shopSlot.item.cost
-        team.summon(shopSlot.item as Animal, targetPos)
-        agent.enqueueEvent(EventNames.FRIEND_SUMMONED_SHOP, targetPos)
-        agent.enqueueEvent(EventNames.FRIEND_BOUGHT, targetPos)
-        agent.enqueueEvent(EventNames.BUY, targetPos)
-        return 0
+        return shopController.buy(itemPos, targetPos)
     }
 
     fun sell(pos: Int): Int {
