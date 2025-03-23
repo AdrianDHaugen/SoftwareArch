@@ -1,4 +1,4 @@
-class ShopSystem(private val agent: MessageAgent) {
+class ShopController(private val agent: MessageAgent) {
 
     init {
         agent.setShopper(this)
@@ -16,7 +16,7 @@ class ShopSystem(private val agent: MessageAgent) {
         agent.enqueueEvent(EventNames.START_TURN)
         agent.handleEvents()
     }
-    THIS SHOULD BE HANDLED AT THE GAME SYSTEM
+    THIS SHOULD BE HANDLED AT THE GAME CONTROLLER
     */
 
     fun toggleFreeze(pos: Int): Int {
@@ -30,7 +30,7 @@ class ShopSystem(private val agent: MessageAgent) {
 
     fun reroll(): Int {
         if (agent.gold < 1) return -1
-        agent.reroll()
+        agent.shop.reroll()
         return 0
     }
 
@@ -143,19 +143,6 @@ class ShopSystem(private val agent: MessageAgent) {
         shopSlot.buy()
         agent.enqueueEvent(EventNames.BUY_FOOD)
         agent.func[item.id]?.invoke(agent, Pair("team", targetPos), Pair("team", targetPos))
-        return 0
-    }
-
-    fun sell(pos: Int): Int {
-        val actor = Pair("team", pos)
-        val animal = agent.actor(actor)
-        if (animal is Empty) return -1
-
-        agent.enqueueEvent(EventNames.SELL, actor = actor, removed = animal)
-        agent.enqueueEvent(EventNames.FRIEND_SOLD, actor = actor)
-        agent.gold += animal.level
-        agent.team[pos] = Empty()
-        agent.handleEvents()
         return 0
     }
 
