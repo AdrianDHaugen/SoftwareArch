@@ -28,8 +28,10 @@ class Shop {
     fun toggleFreeze(pos: Int) {
         if (pos in frozenItems) {
             frozenItems.remove(pos)
+            slots[pos].toggleFreeze() // change the atribute 'isFreeze' at shop slot
         } else {
             frozenItems.add(pos)
+            slots[pos].toggleFreeze()
         }
     }
 
