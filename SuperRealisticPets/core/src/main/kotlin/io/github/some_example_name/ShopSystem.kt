@@ -4,6 +4,7 @@ class ShopSystem(private val agent: MessageAgent) {
         agent.setShopper(this)
     }
 
+    /*
     fun startTurn() {
         agent.loadBackup()
         agent.resetTempStats()
@@ -15,6 +16,8 @@ class ShopSystem(private val agent: MessageAgent) {
         agent.enqueueEvent(EventNames.START_TURN)
         agent.handleEvents()
     }
+    THIS SHOULD BE HANDLED AT THE GAME SYSTEM
+    */
 
     fun toggleFreeze(pos: Int): Int {
         val shopSlot = agent.shop[pos]
@@ -27,13 +30,12 @@ class ShopSystem(private val agent: MessageAgent) {
 
     fun reroll(): Int {
         if (agent.gold < 1) return -1
-        agent.gold--
-        agent.shop.reroll()
+        agent.reroll()
         return 0
     }
 
     fun buy(itemPos: Int, targetPos: Int): Int {
-        val shopSlot = agent.shop.roster[itemPos]
+        val shopSlot = agent.shop.slots[itemPos]
         if (shopSlot.item is Empty || shopSlot.item is Unarmed) {
             return -1
         }
