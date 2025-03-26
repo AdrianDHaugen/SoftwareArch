@@ -1,19 +1,21 @@
 package io.github.some_example_name.sprite
 
-import io.github.some_example_name.item.Item
+import io.github.some_example_name.GameUnit
+import io.github.some_example_name.Item
 
 open class Sprite(
-    val name: String,
+    override val name: String,
     var attack: Int,
     var health: Int,
     var tier: Int,
-    var item: Item? = null
-) {
-    open fun onTurnStart() {
+    var item: Item? = null,
+    override var cost: Int,
+): GameUnit {
+    override fun onTurnStart() {
         item?.onTurnStart(this)
     }
 
-    open fun onBattleStart() {
+    override fun onBattleStart() {
         item?.onBattleStart(this)
     }
 

@@ -1,3 +1,5 @@
+import io.github.some_example_name.Empty
+
 class User(val name: String) {
     var gold: Int = 10
     var turn: Int = 1
