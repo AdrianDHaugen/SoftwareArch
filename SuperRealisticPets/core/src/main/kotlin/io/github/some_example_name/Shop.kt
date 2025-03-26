@@ -1,3 +1,7 @@
+import io.github.some_example_name.Empty
+import io.github.some_example_name.Item
+import io.github.some_example_name.sprite.Sprite
+
 class Shop {
     private val slots: MutableList<ShopSlot> = mutableListOf()
     private val frozenItems: MutableSet<Int> = mutableSetOf()
@@ -57,11 +61,11 @@ class Shop {
         return ShopSlot(item)
     }
 
-    private fun generateRandomAnimal(): Animal {
-        return Animal("Animal ${(1..10).random()}", 1, 1, 3)  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
+    private fun generateRandomAnimal(): Sprite {
+        return Sprite("Animal ${(1..10).random()}", 1, 1, 3)  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
     }
 
-    private fun generateRandomEquipment(): Equipment {
-        return Equipment("Equipment ${(1..5).random()}", 1)  // Example random equipment
+    private fun generateRandomEquipment(): Item {
+        return Item("Equipment ${(1..5).random()}", 1)  // Example random equipment
     }
 }

@@ -1,4 +1,5 @@
-import io.github.some_example_name.item.Item
+import io.github.some_example_name.GameUnit
+import io.github.some_example_name.Item
 import io.github.some_example_name.sprite.Sprite
 
 class ShopController(private val agent: MessageAgent) {
