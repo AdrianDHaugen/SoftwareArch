@@ -1,7 +1,4 @@
-package io.github.some_example_name.sprite
-
-import io.github.some_example_name.GameUnit
-import io.github.some_example_name.Item
+package io.github.some_example_name
 
 open class Sprite(
     override val name: String,
@@ -17,6 +14,14 @@ open class Sprite(
 
     override fun onBattleStart() {
         item?.onBattleStart(this)
+    }
+
+    override fun toggleFreeze() {
+        TODO("Not yet implemented")
+    }
+
+    override fun buy(): Any {
+        TODO("Not yet implemented")
     }
 
     open fun attack(target: Sprite) {

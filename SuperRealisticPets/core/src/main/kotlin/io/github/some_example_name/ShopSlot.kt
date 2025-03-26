@@ -1,7 +1,6 @@
-import io.github.some_example_name.Empty
-import io.github.some_example_name.GameUnit
+package io.github.some_example_name
 
-class ShopSlot(var item: GameUnit, var isFrozen: Boolean = false) {
+class ShopSlot(var item: GameUnit, private var isFrozen: Boolean = false) {
 
     fun toggleFreeze() {
         isFrozen = !isFrozen
@@ -15,6 +14,6 @@ class ShopSlot(var item: GameUnit, var isFrozen: Boolean = false) {
     }
 
     override fun toString(): String {
-        return "ShopSlot(item=${item.name}, cost=${item.cost}, frozen=$isFrozen)"
+        return "io.github.some_example_name.ShopSlot(item=${item.name}, cost=${item.cost}, frozen=$isFrozen)"
     }
 }

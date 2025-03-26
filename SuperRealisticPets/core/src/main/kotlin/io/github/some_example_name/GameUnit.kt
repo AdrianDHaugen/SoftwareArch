@@ -6,4 +6,6 @@ interface GameUnit {
 
     fun onTurnStart() {}
     fun onBattleStart() {}
+    fun toggleFreeze()
+    abstract fun buy(): Any
 }

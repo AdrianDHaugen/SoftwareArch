@@ -8,4 +8,11 @@ open class Empty():GameUnit {
 
     override fun onTurnStart() {}
     override fun onBattleStart() {}
+    override fun toggleFreeze() {
+        TODO("Not yet implemented")
+    }
+
+    override fun buy(): Any {
+        TODO("Not yet implemented")
+    }
 }
