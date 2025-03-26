@@ -1,24 +1,17 @@
 import io.github.some_example_name.Empty
 
-class User(val name: String, val agent: MessageAgent) {
+class User(val name: String) {
     var gold: Int = 10
     var turn: Int = 1
     val team = Team()
     val shop = Shop()
-    val shopController = ShopController(agent)
+    val shopController = ShopController(this)
 
-    init {
-        agent.setUser(this)
-    }
 
     fun startTurn() {
-        agent.loadBackup()
-        agent.resetTempStats()
         turn++
         gold = 10
         shop.startTurn()
-        agent.enqueueEvent(EventNames.START_TURN)
-        agent.handleEvents()
     }
 
     fun toggleFreeze(pos: Int): Int {
@@ -34,15 +27,13 @@ class User(val name: String, val agent: MessageAgent) {
     }
 
     fun sell(pos: Int): Int {
-        val actor = team[pos]
-        if (actor is Empty) {
+        val sprite = team[pos]
+        if (sprite is Empty) {
             return -1
         }
-        agent.enqueueEvent(EventNames.SELL, pos, removed = actor)
-        agent.enqueueEvent(EventNames.FRIEND_SOLD, pos)
-        gold += actor.level
+
+        gold += sprite.level
         team[pos] = Empty()
-        agent.handleEvents()
         return 0
     }
 
@@ -65,15 +56,12 @@ class User(val name: String, val agent: MessageAgent) {
         }
 
         anim2.mergeStats(anim1)
-        anim1.xp = 0
+        //anim1.xp = 0
         team[rosterInit] = Empty()
 
-        agent.handleEvents()
         return 0
     }
 
     fun endTurn() {
-        agent.enqueueEvent(EventNames.END_TURN)
-        agent.handleEvents()
     }
 }

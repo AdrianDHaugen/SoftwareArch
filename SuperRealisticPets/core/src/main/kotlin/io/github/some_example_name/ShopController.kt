@@ -3,156 +3,102 @@ import io.github.some_example_name.Item
 import io.github.some_example_name.sprite.Sprite
 import io.github.some_example_name.Empty
 
-class ShopController(private val agent: MessageAgent) {
+const val ERROR_BUY_TO_EMPTY = -1
 
-    init {
-        agent.setShopper(this)
-    }
-
-    /*
-    fun startTurn() {
-        agent.loadBackup()
-        agent.resetTempStats()
-
-        agent.turn++
-        agent.gold = 10
-        agent.shop.startTurn()
-
-        agent.enqueueEvent(EventNames.START_TURN)
-        agent.handleEvents()
-    }
-    THIS SHOULD BE HANDLED AT THE GAME CONTROLLER
-    */
+class ShopController(private val player: Player) {
 
     fun toggleFreeze(pos: Int): Int {
-        val shopSlot = agent.shop[pos]
-        if (shopSlot.item is Empty || shopSlot.item) {
+        val shopSlot = player.shop.getSlot(pos)
+        if (shopSlot is Empty) {
             return -1
         }
-        agent.shop.toggleFreeze(pos)
+
+        player.shop.toggleFreeze(pos)
         return 0
     }
 
     fun reroll(): Int {
-        if (agent.gold < 1) return -1
-        agent.shop.reroll()
+        if (player.gold < 1) return -1
+        player.shop.reroll()
         return 0
     }
 
     fun buy(itemPos: Int, targetPos: Int): Int {
-        val shopSlot = agent.shop.slots[itemPos]
-        if (shopSlot.item is Empty || shopSlot.item) {
+        val shopSlot = player.shop.getSlot(itemPos)
+        if (shopSlot is Empty) {
             return -1
         }
-        if (agent.gold < shopSlot.item.cost) {
+        if (player.gold < shopSlot.item.cost) {
             return -1
         }
         return when (shopSlot.item) {
-            is Sprite -> buyAnimalResponse(shopSlot, targetPos)
-            is Item -> buyFoodResponse(shopSlot, targetPos)
+            is Sprite -> buySpriteResponse(shopSlot, targetPos)
+            is Item -> buyItemResponse(shopSlot, targetPos)
             else -> -1
         }
     }
 
-    private fun buyAnimalResponse(shopSlot: ShopSlot, targetPos: Int): Int {
+    private fun buySpriteResponse(shopSlot: ShopSlot, targetPos: Int): Int {
         return when {
-            agent.team.animals[targetPos] is Empty -> buyToEmptyResponse(shopSlot, targetPos)
-            shopSlot.item::class == agent.team[targetPos]::class -> buyToSameResponse(shopSlot, targetPos)
-            else -> buyDifferentAnimalResponse(shopSlot, targetPos)
-        }.also { agent.handleEvents() }
-    }
+            player.team.sprite[targetPos] is Empty -> buyToEmptyResponse(shopSlot, targetPos)
+            shopSlot.item::class == player.team[targetPos]::class -> buyToSameResponse(shopSlot, targetPos)
+            else -> buyDifferentSpriteResponse(shopSlot, targetPos)
+        } }
 
     private fun buyToEmptyResponse(shopSlot: ShopSlot, targetPos: Int): Int {
-        val target = Pair("team", targetPos)
-        val item = shopSlot.item as GameUnit
-
-        agent.gold -= item.cost
-        shopSlot.buy()
-        agent.team.animals[targetPos] = item
-
-        agent.enqueueEvent(EventNames.FRIEND_SUMMONED_SHOP, actor = target)
-        agent.enqueueEvent(EventNames.FRIEND_BOUGHT, actor = target)
-        agent.enqueueEvent(EventNames.BUY, actor = target)
-        if (item.tier == 1) {
-            agent.enqueueEvent(EventNames.BUY_T1_PET)
-        }
-        return 0
+        return ERROR_BUY_TO_EMPTY
     }
 
     private fun buyToSameResponse(shopSlot: ShopSlot, targetPos: Int): Int {
-        val targetUnit = agent.team[targetPos]
+        val targetUnit = player.team[targetPos]
         val target = Pair("team", targetPos)
         val item = shopSlot.buy() as GameUnit
 
-        agent.gold -= item.cost
+        player.gold -= item.cost
         targetUnit.increaseXp(1)
 
-        agent.enqueueEvent(EventNames.FRIEND_BOUGHT, actor = target)
-        agent.enqueueEvent(EventNames.BUY, actor = target)
-        if (item.tier == 1) {
-            agent.enqueueEvent(EventNames.BUY_T1_PET, actor = target)
-        }
         return 0
     }
 
-    private fun buyDifferentAnimalResponse(shopSlot: ShopSlot, targetPos: Int): Int {
-        if (!agent.team.hasSummonSpace) return -1
+    private fun buyDifferentSpriteResponse(shopSlot: ShopSlot, targetPos: Int): Int {
+        if (!player.team.hasSummonSpace) return -1
 
-        val actor = Pair("team", targetPos)
-        val animal = shopSlot.sprite as Sprite
-        agent.gold -= animal.cost
-        agent.team.summon(animal, targetPos)
+        val sprite = shopSlot.sprite as Sprite
+        player.gold -= sprite.cost
+        player.team.summon(sprite, targetPos)
 
-        agent.enqueueEvent(EventNames.FRIEND_SUMMONED_SHOP, actor = actor)
-        agent.enqueueEvent(EventNames.FRIEND_BOUGHT, actor = actor)
-        agent.enqueueEvent(EventNames.BUY, actor = actor)
-        if (animal.tier == 1) {
-            agent.enqueueEvent(EventNames.BUY_T1_PET, actor = actor)
-        }
         return 0
     }
 
-    private fun buyFoodResponse(shopSlot: ShopSlot, targetPos: Int): Int {
+    private fun buyItemResponse(shopSlot: ShopSlot, targetPos: Int): Int {
         return if ((shopSlot.item as Item).isTargeted) {
-            buyTargetedFood(shopSlot, targetPos)
+            buyTargetedItem(shopSlot, targetPos)
         } else {
-            buyNonTargetedFood(shopSlot, targetPos)
-        }.also { agent.handleEvents() }
+            buyNonTargetedItem(shopSlot, targetPos)
+        }
     }
 
-    private fun buyTargetedFood(shopSlot: ShopSlot, targetPos: Int): Int {
-        if (agent.team[targetPos] is Empty) return -1
+
+    private fun buyTargetedItem(shopSlot: ShopSlot, targetPos: Int): Int {
+        if (player.team[targetPos] is Empty) return -1
 
         val item = shopSlot.item as Item
         val actor = Pair("team", targetPos)
-        agent.gold -= item.cost
+        player.gold -= item.cost
         shopSlot.buy()
 
-        agent.enqueueEvent(EventNames.BUY_FOOD)
-        if (item.isHoldable) {
-            agent.team[targetPos].held = item
-        } else {
-            agent.func[item.id]?.invoke(agent, Pair("team", targetPos), Pair("team", targetPos))
-        }
-
-        agent.enqueueEvent(EventNames.EAT_FOOD, actor = actor)
-        agent.enqueueEvent(EventNames.FRIEND_EATS_FOOD, actor = actor)
         return 0
     }
 
-    private fun buyNonTargetedFood(shopSlot: ShopSlot, targetPos: Int): Int {
-        if (agent.team.size < 1) return -1
+    private fun buyNonTargetedItem(shopSlot: ShopSlot, targetPos: Int): Int {
+        if (player.team.size < 1) return -1
         val item = shopSlot.item
 
-        agent.gold -= item.cost
+        player.gold -= item.cost
         shopSlot.buy()
-        agent.enqueueEvent(EventNames.BUY_FOOD)
-        agent.func[item.id]?.invoke(agent, Pair("team", targetPos), Pair("team", targetPos))
         return 0
     }
 
     fun endTurn() {
-        agent.enqueueEvent(EventNames.END_TURN)
-        agent.handleEvents()
     }
 }
