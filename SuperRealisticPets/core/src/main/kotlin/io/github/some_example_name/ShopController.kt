@@ -1,3 +1,6 @@
+import io.github.some_example_name.item.Item
+import io.github.some_example_name.sprite.Sprite
+
 class ShopController(private val agent: MessageAgent) {
 
     init {
@@ -21,7 +24,7 @@ class ShopController(private val agent: MessageAgent) {
 
     fun toggleFreeze(pos: Int): Int {
         val shopSlot = agent.shop[pos]
-        if (shopSlot.item is Empty || shopSlot.item is Unarmed) {
+        if (shopSlot.item is Empty || shopSlot.item) {
             return -1
         }
         agent.shop.toggleFreeze(pos)
@@ -36,15 +39,15 @@ class ShopController(private val agent: MessageAgent) {
 
     fun buy(itemPos: Int, targetPos: Int): Int {
         val shopSlot = agent.shop.slots[itemPos]
-        if (shopSlot.item is Empty || shopSlot.item is Unarmed) {
+        if (shopSlot.item is Empty || shopSlot.item) {
             return -1
         }
         if (agent.gold < shopSlot.item.cost) {
             return -1
         }
         return when (shopSlot.item) {
-            is Animal -> buyAnimalResponse(shopSlot, targetPos)
-            is Equipment -> buyFoodResponse(shopSlot, targetPos)
+            is Sprite -> buyAnimalResponse(shopSlot, targetPos)
+            is Item -> buyFoodResponse(shopSlot, targetPos)
             else -> -1
         }
     }
@@ -59,7 +62,7 @@ class ShopController(private val agent: MessageAgent) {
 
     private fun buyToEmptyResponse(shopSlot: ShopSlot, targetPos: Int): Int {
         val target = Pair("team", targetPos)
-        val item = shopSlot.item as Animal
+        val item = shopSlot.item as GameUnit
 
         agent.gold -= item.cost
         shopSlot.buy()
@@ -77,7 +80,7 @@ class ShopController(private val agent: MessageAgent) {
     private fun buyToSameResponse(shopSlot: ShopSlot, targetPos: Int): Int {
         val targetUnit = agent.team[targetPos]
         val target = Pair("team", targetPos)
-        val item = shopSlot.buy() as Animal
+        val item = shopSlot.buy() as GameUnit
 
         agent.gold -= item.cost
         targetUnit.increaseXp(1)
@@ -94,7 +97,7 @@ class ShopController(private val agent: MessageAgent) {
         if (!agent.team.hasSummonSpace) return -1
 
         val actor = Pair("team", targetPos)
-        val animal = shopSlot.item as Animal
+        val animal = shopSlot.sprite as Sprite
         agent.gold -= animal.cost
         agent.team.summon(animal, targetPos)
 
@@ -108,7 +111,7 @@ class ShopController(private val agent: MessageAgent) {
     }
 
     private fun buyFoodResponse(shopSlot: ShopSlot, targetPos: Int): Int {
-        return if ((shopSlot.item as Equipment).isTargeted) {
+        return if ((shopSlot.item as Item).isTargeted) {
             buyTargetedFood(shopSlot, targetPos)
         } else {
             buyNonTargetedFood(shopSlot, targetPos)
@@ -118,7 +121,7 @@ class ShopController(private val agent: MessageAgent) {
     private fun buyTargetedFood(shopSlot: ShopSlot, targetPos: Int): Int {
         if (agent.team[targetPos] is Empty) return -1
 
-        val item = shopSlot.item as Equipment
+        val item = shopSlot.item as Item
         val actor = Pair("team", targetPos)
         agent.gold -= item.cost
         shopSlot.buy()

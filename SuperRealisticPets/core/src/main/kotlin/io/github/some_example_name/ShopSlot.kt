@@ -1,4 +1,4 @@
-class ShopSlot(var item: GameItem, var isFrozen: Boolean = false) {
+class ShopSlot(var item: GameUnit, var isFrozen: Boolean = false) {
 
     fun toggleFreeze() {
         isFrozen = !isFrozen

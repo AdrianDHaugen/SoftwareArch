@@ -3,7 +3,7 @@ class User(val name: String, val agent: MessageAgent) {
     var turn: Int = 1
     val team = Team()
     val shop = Shop()
-    val shopController = ShopSystem()
+    val shopController = ShopController(agent)
 
     init {
         agent.setUser(this)
