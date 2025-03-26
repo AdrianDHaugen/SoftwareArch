@@ -1,4 +1,4 @@
-class Player(val name: String) {
+class User(val name: String) {
     var gold: Int = 10
     var turn: Int = 1
     val team = Team()
