@@ -37,7 +37,7 @@ class ShopController(private val player: Player) {
 
     private fun buySpriteResponse(gameUnit: GameUnit, targetPos: Int): Int {
         return when {
-            player.team.sprite[targetPos] is Empty -> buyToEmptyResponse(gameUnit, targetPos)
+            player.team[targetPos] is Empty -> buyToEmptyResponse(gameUnit, targetPos)
             gameUnit::class == player.team[targetPos]::class -> buyToSameResponse(gameUnit, targetPos)
             else -> buyDifferentSpriteResponse(gameUnit, targetPos)
         } }
@@ -52,13 +52,13 @@ class ShopController(private val player: Player) {
         val item = gameUnit.buy() as GameUnit
 
         player.gold -= item.cost
-        targetUnit.increaseXp(1)
+        //targetUnit.increaseXp(1)
 
         return 0
     }
 
     private fun buyDifferentSpriteResponse(gameUnit: GameUnit, targetPos: Int): Int {
-        if (!player.team.hasSummonSpace) return -1
+        if (!player.team.hasSummonSpace()) return -1
 
         val sprite = gameUnit as Sprite
         player.gold -= sprite.cost
@@ -68,11 +68,7 @@ class ShopController(private val player: Player) {
     }
 
     private fun buyItemResponse(gameUnit: GameUnit, targetPos: Int): Int {
-        return if ((gameUnit as Item).isTargeted) {
-            buyTargetedItem(gameUnit, targetPos)
-        } else {
-            buyNonTargetedItem(gameUnit, targetPos)
-        }
+        return buyTargetedItem(gameUnit, targetPos)
     }
 
 
@@ -88,10 +84,9 @@ class ShopController(private val player: Player) {
     }
 
     private fun buyNonTargetedItem(gameUnit: GameUnit, targetPos: Int): Int {
-        if (player.team.size < 1) return -1
-        val item = gameUnit
+        if (player.team.size() < 1) return -1
 
-        player.gold -= item.cost
+        player.gold -= gameUnit.cost
         gameUnit.buy()
         return 0
     }

@@ -12,7 +12,7 @@ open class Empty():GameUnit {
         TODO("Not yet implemented")
     }
 
-    override fun buy(): Any {
-        TODO("Not yet implemented")
+    override fun buy(): GameUnit {
+        return this
     }
 }

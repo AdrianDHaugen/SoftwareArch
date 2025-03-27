@@ -8,7 +8,7 @@ open class Item(
     open fun onBattleStart(holder: Sprite) {}
     open fun onAttack(holder: Sprite, target: Sprite) {}
     override fun toggleFreeze() { }
-    override fun buy(): Any {
+    override fun buy(): GameUnit {
         TODO("Not yet implemented")
     }
 }

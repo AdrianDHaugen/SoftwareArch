@@ -60,7 +60,7 @@ class Shop {
     }
 
     private fun generateRandomAnimal(): Sprite {
-        return Sprite("Animal ${(1..10).random()}", 1, 1, 3, null, 1)  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
+        return Sprite("Animal ${(1..10).random()}", 1, 1, 3, null, 1, 1)  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
     }
 
     private fun generateRandomEquipment(): Item {

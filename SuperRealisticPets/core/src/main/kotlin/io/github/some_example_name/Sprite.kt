@@ -6,6 +6,7 @@ open class Sprite(
     var health: Int,
     var tier: Int,
     var item: Item? = null,
+    var level: Int = 1,
     override var cost: Int,
 ): GameUnit {
     override fun onTurnStart() {
@@ -20,15 +21,19 @@ open class Sprite(
         TODO("Not yet implemented")
     }
 
-    override fun buy(): Any {
-        TODO("Not yet implemented")
-    }
 
     open fun attack(target: Sprite) {
         println("$name attacks ${target.name}!")
         target.health -= this.attack
         this.health -= target.attack
         item?.onAttack(this, target)
+    }
+
+    fun mergeStats(sprite1: Sprite, sprite2: Sprite) {
+        sprite1.attack += sprite2.attack
+        sprite1.health += sprite2.health
+        sprite1.tier += sprite2.tier
+        sprite1.level += sprite2.level
     }
 
     fun isAlive(): Boolean = health > 0

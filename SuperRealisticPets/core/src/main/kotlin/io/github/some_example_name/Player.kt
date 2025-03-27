@@ -5,7 +5,7 @@ class Player(val name: String) {
     var turn: Int = 1
     val team = Team()
     val shop = Shop()
-    val shopController = ShopController(this)
+    private val shopController = ShopController(this)
 
 
     fun startTurn() {
@@ -32,7 +32,10 @@ class Player(val name: String) {
             return -1
         }
 
-        gold += sprite.level
+        if (sprite is Sprite) {
+            gold += sprite.level
+        }
+
         team[pos] = Empty()
         return 0
     }
@@ -48,14 +51,16 @@ class Player(val name: String) {
     }
 
     fun combine(rosterInit: Int, rosterFinal: Int): Int {
-        val anim1 = team[rosterInit]
-        val anim2 = team[rosterFinal]
+        val sprite1 = team[rosterInit]
+        val sprite2 = team[rosterFinal]
 
-        if (anim1 is Empty || anim2 is Empty || anim1::class != anim2::class) {
+        if (sprite1 is Empty || sprite2 is Empty || sprite1::class != sprite2::class) {
             return -1
         }
 
-        anim2.mergeStats(anim1)
+        if (sprite1 is Sprite && sprite2 is Sprite) {
+            sprite1.mergeStats(sprite1, sprite2)
+        }
         //anim1.xp = 0
         team[rosterInit] = Empty()
 
