@@ -1,14 +1,57 @@
 package io.github.some_example_name
 
 open class Sprite(
-    override val name: String,
-    var attack: Int,
-    var health: Int,
-    var tier: Int,
-    var item: Item? = null,
-    var level: Int = 1,
-    override var cost: Int,
-): GameUnit {
+    name: String,
+    attack: Int,
+    health: Int,
+    tier: Int,
+    item: Item? = null,
+    level: Int = 1,
+    cost: Int,
+    isFrozen: Boolean = false
+) : GameUnit {
+
+    private var _name: String = name
+    override var name: String
+        get() = _name
+        set(value) { _name = value }
+
+    private var _attack: Int = attack
+    private var attack: Int
+        get() = _attack
+        set(value) { _attack = value }
+
+    private var _health: Int = health
+    private var health: Int
+        get() = _health
+        set(value) { _health = value }
+
+    private var _tier: Int = tier
+    private var tier: Int
+        get() = _tier
+        set(value) { _tier = value }
+
+    private var _item: Item? = item
+    private var item: Item?
+        get() = _item
+        set(value) { _item = value }
+
+    private var _level: Int = level
+    var level: Int
+        get() = _level
+        set(value) { _level = value }
+
+    private var _cost: Int = cost
+    override var cost: Int
+        get() = _cost
+        set(value) { _cost = value }
+
+    private var _isFrozen: Boolean = isFrozen
+    override var isFrozen: Boolean
+        get() = _isFrozen
+        set(value) { _isFrozen = value }
+
+
     override fun onTurnStart() {
         item?.onTurnStart(this)
     }
@@ -16,11 +59,6 @@ open class Sprite(
     override fun onBattleStart() {
         item?.onBattleStart(this)
     }
-
-    override fun toggleFreeze() {
-        TODO("Not yet implemented")
-    }
-
 
     open fun attack(target: Sprite) {
         println("$name attacks ${target.name}!")

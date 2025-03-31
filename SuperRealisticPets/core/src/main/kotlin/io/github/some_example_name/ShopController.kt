@@ -4,24 +4,44 @@ const val ERROR_BUY_TO_EMPTY = -1
 
 class ShopController(private val player: Player) {
 
+    init {
+        generateInitialShop()
+    }
+
     fun toggleFreeze(pos: Int): Int {
-        val shopSlot = player.shop.getSlot(pos)
-        if (shopSlot is Empty) {
+        if (pos !in player.shop.slots.indices || player.shop.slots[pos] is Empty) {
             return -1
         }
 
-        player.shop.toggleFreeze(pos)
+        if (pos in player.shop.frozenUnits) {
+            player.shop.frozenUnits.remove(pos)
+        } else {
+            player.shop.frozenUnits.add(pos)
+        }
+
+        player.shop.slots[pos].toggleFreeze()
         return 0
     }
 
     fun reroll(): Int {
         if (player.gold < 1) return -1
-        player.shop.reroll()
+
+        val newSlots = mutableListOf<GameUnit>()
+        for (i in player.shop.slots.indices) {
+            if (i in player.shop.frozenUnits) {
+                newSlots.add(player.shop.slots[i])  // Keep frozen items
+            } else {
+                newSlots.add(generateShopSlot())  // Replace others
+            }
+        }
+        player.shop.slots.clear()
+        player.shop.slots.addAll(newSlots)
+
         return 0
     }
 
     fun buy(itemPos: Int, targetPos: Int): Int {
-        val shopSlot = player.shop.getSlot(itemPos)
+        val shopSlot = player.shop.slots[itemPos]
         if (shopSlot is Empty) {
             return -1
         }
@@ -37,21 +57,19 @@ class ShopController(private val player: Player) {
 
     private fun buySpriteResponse(gameUnit: GameUnit, targetPos: Int): Int {
         return when {
-            player.team[targetPos] is Empty -> buyToEmptyResponse(gameUnit, targetPos)
-            gameUnit::class == player.team[targetPos]::class -> buyToSameResponse(gameUnit, targetPos)
+            player.team.teams[targetPos] is Empty -> buyToEmptyResponse()
+            gameUnit::class == player.team.teams[targetPos]::class -> buyToSameResponse(gameUnit, targetPos)
             else -> buyDifferentSpriteResponse(gameUnit, targetPos)
         } }
 
-    private fun buyToEmptyResponse(gameUnit: GameUnit, targetPos: Int): Int {
+    private fun buyToEmptyResponse(): Int {
         return ERROR_BUY_TO_EMPTY
     }
 
     private fun buyToSameResponse(gameUnit: GameUnit, targetPos: Int): Int {
-        val targetUnit = player.team[targetPos]
-        val target = Pair("team", targetPos)
-        val item = gameUnit.buy() as GameUnit
+        val targetUnit = player.team.teams[targetPos]
 
-        player.gold -= item.cost
+        player.gold -= gameUnit.cost
         //targetUnit.increaseXp(1)
 
         return 0
@@ -73,10 +91,9 @@ class ShopController(private val player: Player) {
 
 
     private fun buyTargetedItem(gameUnit: GameUnit, targetPos: Int): Int {
-        if (player.team[targetPos] is Empty) return -1
+        if (player.team.teams[targetPos] is Empty) return -1
 
         val item = gameUnit as Item
-        val actor = Pair("team", targetPos)
         player.gold -= item.cost
         gameUnit.buy()
 
@@ -89,6 +106,25 @@ class ShopController(private val player: Player) {
         player.gold -= gameUnit.cost
         gameUnit.buy()
         return 0
+    }
+
+    private fun generateInitialShop() {
+        player.shop.slots.clear()
+        repeat(5) { player.shop.slots.add(generateShopSlot()) }  // Assuming 5 shop slots
+    }
+
+    private fun generateShopSlot(): GameUnit {
+        // Generate a random item (Animal or Equipment)
+        val item = if ((0..1).random() == 0) generateRandomAnimal() else generateRandomEquipment()
+        return item
+    }
+
+    private fun generateRandomAnimal(): Sprite {
+        return Sprite("Animal ${(1..10).random()}", 1, 1, 3, null, 1, 1)  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
+    }
+
+    private fun generateRandomEquipment(): Item {
+        return Item("Equipment ${(1..5).random()}", 1)  // Example random equipment
     }
 
     fun endTurn() {
