@@ -1,22 +1,17 @@
-class User(val name: String, val agent: MessageAgent) {
+package io.github.some_example_name
+
+class Player(val name: String) {
     var gold: Int = 10
     var turn: Int = 1
     val team = Team()
     val shop = Shop()
-    val shopController = ShopSystem()
+    private val shopController = ShopController(this)
 
-    init {
-        agent.setUser(this)
-    }
 
     fun startTurn() {
-        agent.loadBackup()
-        agent.resetTempStats()
         turn++
         gold = 10
         shop.startTurn()
-        agent.enqueueEvent(EventNames.START_TURN)
-        agent.handleEvents()
     }
 
     fun toggleFreeze(pos: Int): Int {
@@ -32,15 +27,16 @@ class User(val name: String, val agent: MessageAgent) {
     }
 
     fun sell(pos: Int): Int {
-        val actor = team[pos]
-        if (actor is Empty) {
+        val sprite = team[pos]
+        if (sprite is Empty) {
             return -1
         }
-        agent.enqueueEvent(EventNames.SELL, pos, removed = actor)
-        agent.enqueueEvent(EventNames.FRIEND_SOLD, pos)
-        gold += actor.level
+
+        if (sprite is Sprite) {
+            gold += sprite.level
+        }
+
         team[pos] = Empty()
-        agent.handleEvents()
         return 0
     }
 
@@ -55,23 +51,22 @@ class User(val name: String, val agent: MessageAgent) {
     }
 
     fun combine(rosterInit: Int, rosterFinal: Int): Int {
-        val anim1 = team[rosterInit]
-        val anim2 = team[rosterFinal]
+        val sprite1 = team[rosterInit]
+        val sprite2 = team[rosterFinal]
 
-        if (anim1 is Empty || anim2 is Empty || anim1::class != anim2::class) {
+        if (sprite1 is Empty || sprite2 is Empty || sprite1::class != sprite2::class) {
             return -1
         }
 
-        anim2.mergeStats(anim1)
-        anim1.xp = 0
+        if (sprite1 is Sprite && sprite2 is Sprite) {
+            sprite1.mergeStats(sprite1, sprite2)
+        }
+        //anim1.xp = 0
         team[rosterInit] = Empty()
 
-        agent.handleEvents()
         return 0
     }
 
     fun endTurn() {
-        agent.enqueueEvent(EventNames.END_TURN)
-        agent.handleEvents()
     }
 }
