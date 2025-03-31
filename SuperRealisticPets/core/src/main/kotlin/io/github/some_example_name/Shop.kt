@@ -1,5 +1,7 @@
+package io.github.some_example_name
+
 class Shop {
-    private val slots: MutableList<ShopSlot> = mutableListOf()
+    private val slots: MutableList<GameUnit> = mutableListOf()
     private val frozenItems: MutableSet<Int> = mutableSetOf()
 
     init {
@@ -13,7 +15,7 @@ class Shop {
 
     fun reroll() {
         // Ensure frozen items remain in place
-        val newSlots = mutableListOf<ShopSlot>()
+        val newSlots = mutableListOf<GameUnit>()
         for (i in slots.indices) {
             if (i in frozenItems) {
                 newSlots.add(slots[i])  // Keep frozen items
@@ -35,14 +37,14 @@ class Shop {
         }
     }
 
-    fun getSlot(pos: Int): ShopSlot {
-        return slots.getOrNull(pos) ?: ShopSlot(Empty())
+    fun getSlot(pos: Int): GameUnit {
+        return slots[pos]
     }
 
-    fun buy(pos: Int): ShopSlot {
-        if (pos !in slots.indices) return ShopSlot(Empty()) // Invalid slot
+    fun buy(pos: Int): GameUnit {
+        if (pos !in slots.indices) return Empty()  // Invalid slot
         val item = slots[pos]
-        slots[pos] = ShopSlot(Empty())  // Remove item from shop after purchase
+        slots[pos] = Empty() // Remove item from shop after purchase
         return item
     }
 
@@ -51,17 +53,17 @@ class Shop {
         repeat(5) { slots.add(generateShopSlot()) }  // Assuming 5 shop slots
     }
 
-    private fun generateShopSlot(): ShopSlot {
+    private fun generateShopSlot(): GameUnit {
         // Generate a random item (Animal or Equipment)
         val item = if ((0..1).random() == 0) generateRandomAnimal() else generateRandomEquipment()
-        return ShopSlot(item)
+        return item
     }
 
-    private fun generateRandomAnimal(): Animal {
-        return Animal("Animal ${(1..10).random()}", 1, 1, 3)  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
+    private fun generateRandomAnimal(): Sprite {
+        return Sprite("Animal ${(1..10).random()}", 1, 1, 3, null, 1, 1)  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
     }
 
-    private fun generateRandomEquipment(): Equipment {
-        return Equipment("Equipment ${(1..5).random()}", 1)  // Example random equipment
+    private fun generateRandomEquipment(): Item {
+        return Item("Equipment ${(1..5).random()}", 1)  // Example random equipment
     }
 }
