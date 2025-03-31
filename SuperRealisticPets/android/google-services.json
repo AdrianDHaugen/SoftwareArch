@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "827121151362",
+    "project_id": "superrealisticpets",
+    "storage_bucket": "superrealisticpets.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:827121151362:android:1cb5071b13e5674c20f39b",
+        "android_client_info": {
+          "package_name": "io.github.some_example_name"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYW6g6CluTp8zwoDaFhhDvrz_anD61_8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
