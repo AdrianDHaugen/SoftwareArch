@@ -1,6 +1,4 @@
-package io.github.some_example_name.sprite
-
-import io.github.some_example_name.item.Item
+package io.github.some_example_name
 
 open class Sprite(
     val name: String,

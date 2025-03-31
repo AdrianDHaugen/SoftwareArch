@@ -1,6 +1,6 @@
-package io.github.some_example_name.item
+package io.github.some_example_name
 
-import io.github.some_example_name.sprite.Sprite
+import io.github.some_example_name.Sprite
 
 open class Item(
     val name: String
@@ -10,4 +10,4 @@ open class Item(
     open fun onAttack(holder: Sprite, target: Sprite) {}
 }
 
-}
+
