@@ -6,8 +6,4 @@ open class Empty():GameUnit {
     override val cost: Int = 100
     override var isFrozen: Boolean = false
 
-
-    override fun onTurnStart() {}
-    override fun onBattleStart() {}
-
 }

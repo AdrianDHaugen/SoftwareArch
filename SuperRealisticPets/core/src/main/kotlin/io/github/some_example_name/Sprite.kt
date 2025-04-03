@@ -8,8 +8,9 @@ open class Sprite(
     item: Item? = null,
     level: Int = 1,
     cost: Int,
-    isFrozen: Boolean = false
-) : GameUnit {
+    isFrozen: Boolean = false,
+    color : String
+) : ISprite {
 
     private var _name: String = name
     override var name: String
@@ -17,27 +18,27 @@ open class Sprite(
         set(value) { _name = value }
 
     private var _attack: Int = attack
-    private var attack: Int
+    override var attack: Int
         get() = _attack
         set(value) { _attack = value }
 
     private var _health: Int = health
-    private var health: Int
+    override var health: Int
         get() = _health
         set(value) { _health = value }
 
     private var _tier: Int = tier
-    private var tier: Int
+    override var tier: Int
         get() = _tier
         set(value) { _tier = value }
 
     private var _item: Item? = item
-    private var item: Item?
+    override var item: Item?
         get() = _item
         set(value) { _item = value }
 
     private var _level: Int = level
-    var level: Int
+    override var level: Int
         get() = _level
         set(value) { _level = value }
 
@@ -51,6 +52,11 @@ open class Sprite(
         get() = _isFrozen
         set(value) { _isFrozen = value }
 
+    private var _color: String = color
+    var color: String
+        get() = _color
+        set(value) { _color = value }
+
 
     override fun onTurnStart() {
         item?.onTurnStart(this)
@@ -60,19 +66,19 @@ open class Sprite(
         item?.onBattleStart(this)
     }
 
-    open fun attack(target: Sprite) {
+    override fun attack(target: Sprite) {
         println("$name attacks ${target.name}!")
         target.health -= this.attack
         this.health -= target.attack
         item?.onAttack(this, target)
     }
 
-    fun mergeStats(sprite1: Sprite, sprite2: Sprite) {
+    override fun mergeStats(sprite1: Sprite, sprite2: Sprite) {
         sprite1.attack += sprite2.attack
         sprite1.health += sprite2.health
         sprite1.tier += sprite2.tier
         sprite1.level += sprite2.level
     }
 
-    fun isAlive(): Boolean = health > 0
+    override fun isAlive(): Boolean = health > 0
 }

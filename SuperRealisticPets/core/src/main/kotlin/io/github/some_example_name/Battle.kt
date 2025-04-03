@@ -10,9 +10,9 @@ class Battle(
         playerA.team.teams.forEach { it.onBattleStart() }
         playerB.team.teams.forEach { it.onBattleStart() }
 
-        while (playerA.team.teams.any { it.isAlive() } && playerB.team.teams.any { it.isAlive() }) {
-            val a = playerA.team.teams.firstOrNull { it.isAlive() }
-            val b = playerB.team.teams.firstOrNull { it.isAlive() }
+        while (playerA.team.teams.filterIsInstance<Sprite>().any { it.isAlive() } && playerB.team.teams.filterIsInstance<Sprite>().any { it.isAlive() }) {
+            val a = playerA.team.teams.filterIsInstance<Sprite>().firstOrNull { it.isAlive() }
+            val b = playerB.team.teams.filterIsInstance<Sprite>().firstOrNull { it.isAlive() }
 
             if (a == null || b == null) break
 
@@ -25,16 +25,20 @@ class Battle(
 
         println("\n Battle result:")
         when {
-            playerA.team.teams.any { it.isAlive() } && playerB.team.teams.none { it.isAlive() } -> println("Team A wins!")
-            playerB.team.teams.any { it.isAlive() } && playerA.team.teams.none { it.isAlive() } -> println("Team B wins!")
+            playerA.team.teams.filterIsInstance<Sprite>().any { it.isAlive() } && playerB.team.teams.filterIsInstance<Sprite>().none { it.isAlive() } -> println("Team A wins!")
+            playerB.team.teams.filterIsInstance<Sprite>().any { it.isAlive() } && playerA.team.teams.filterIsInstance<Sprite>().none { it.isAlive() } -> println("Team B wins!")
             else -> println("Draw!")
         }
     }
 
-    private fun removeDead(team: MutableList<Sprite>) {
-        val dead = team.filter { !it.isAlive() }
-        dead.forEach {
-            println(" ${it.name} has fainted.")
+    private fun removeDead(team: MutableList<GameUnit>) {
+        team.filterIsInstance<Sprite>().forEach { sprite ->
+            if (sprite.health > 0) {
+                println("${sprite.name} is alive with ${sprite.health} health.")
+            } else {
+                team.remove(sprite)
+                println("${sprite.name} is dead.")
+            }
         }
     }
 }

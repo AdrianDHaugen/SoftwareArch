@@ -6,6 +6,7 @@ class ShopController(private val player: Player) {
 
     init {
         generateInitialShop()
+        generateEmptyTeamSlots()
     }
 
     fun toggleFreeze(pos: Int): Int {
@@ -108,9 +109,14 @@ class ShopController(private val player: Player) {
         return 0
     }
 
+    private fun generateEmptyTeamSlots() {
+        repeat(4) { player.team.teams.add(Empty()) }
+    }
+
     private fun generateInitialShop() {
         player.shop.slots.clear()
-        repeat(5) { player.shop.slots.add(generateShopSlot()) }  // Assuming 5 shop slots
+        repeat(5) { player.shop.slots.add(generateRandomAnimal()) }  // Assuming 5 shop slots
+        repeat(2) { player.shop.slots.add(generateRandomEquipment()) }
     }
 
     private fun generateShopSlot(): GameUnit {

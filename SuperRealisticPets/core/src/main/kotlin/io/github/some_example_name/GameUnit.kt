@@ -8,8 +8,4 @@ interface GameUnit {
     fun toggleFreeze() {
         isFrozen = !isFrozen
     }
-
-
-    fun onTurnStart() {}
-    fun onBattleStart() {}
 }
