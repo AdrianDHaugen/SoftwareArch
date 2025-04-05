@@ -1,5 +1,9 @@
 package io.github.some_example_name
 
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ItemList(val items: List<Item>)
 open class Sprite(
     name: String,
     attack: Int,
@@ -56,6 +60,8 @@ open class Sprite(
     var color: String
         get() = _color
         set(value) { _color = value }
+
+
 
 
     override fun onTurnStart() {

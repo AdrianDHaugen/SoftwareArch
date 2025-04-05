@@ -1,5 +1,8 @@
 package io.github.some_example_name
 
+import com.badlogic.gdx.utils.Json
+import kotlinx.serialization.decodeFromString
+
 const val ERROR_BUY_TO_EMPTY = -1
 
 class ShopController(private val player: Player) {
@@ -32,7 +35,7 @@ class ShopController(private val player: Player) {
             if (i in player.shop.frozenUnits) {
                 newSlots.add(player.shop.slots[i])  // Keep frozen items
             } else {
-                newSlots.add(generateShopSlot())  // Replace others
+                newSlots.add(generateShopSlot(i))  // Replace others
             }
         }
         player.shop.slots.clear()
@@ -115,22 +118,28 @@ class ShopController(private val player: Player) {
 
     private fun generateInitialShop() {
         player.shop.slots.clear()
-        repeat(5) { player.shop.slots.add(generateRandomAnimal()) }  // Assuming 5 shop slots
-        repeat(2) { player.shop.slots.add(generateRandomEquipment()) }
+        repeat(5) { player.shop.slots.add(generateRandomSprite()) }  // Assuming 5 shop slots
+        repeat(2) { player.shop.slots.add(generateRandomItem()) }
     }
 
-    private fun generateShopSlot(): GameUnit {
-        // Generate a random item (Animal or Equipment)
-        val item = if ((0..1).random() == 0) generateRandomAnimal() else generateRandomEquipment()
-        return item
+    private fun generateShopSlot(pos : Int): GameUnit {
+        return if (pos < 5) {
+            generateRandomSprite()
+        } else {
+            generateRandomItem()
+        }
     }
 
-    private fun generateRandomAnimal(): Sprite {
-        return Sprite("Animal ${(1..10).random()}", 1, 1, 3, null, 1, 1)  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
+    private fun generateRandomSprite(): Sprite {
+        return Sprite("Animal ${(1..10).random()}", 1, 1, 3, null, 1, 1, false, "base")  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
     }
 
-    private fun generateRandomEquipment(): Item {
-        return Item("Equipment ${(1..5).random()}", 1)  // Example random equipment
+    private fun generateRandomItem(): Item {
+        val itemList = Json.decodeFromString<ItemList>(items.json)
+
+        // Pick a random item
+        val randomItem = itemList.items.random()
+        return
     }
 
     fun endTurn() {
