@@ -17,10 +17,12 @@ open class Sprite(
         item?.onBattleStart(this)
     }
 
+
     override fun toggleFreeze() {
         TODO("Not yet implemented")
     }
 
+    open fun onFaint(allies: MutableList<Sprite>, enemies: MutableList<Sprite>) {}
 
     open fun attack(target: Sprite) {
         println("$name attacks ${target.name}!")
@@ -37,4 +39,13 @@ open class Sprite(
     }
 
     fun isAlive(): Boolean = health > 0
+
+    fun copy(): Sprite {
+        return Sprite(name, attack, health, tier, item, level ,cost)
+    }
 }
+
+
+
+
+

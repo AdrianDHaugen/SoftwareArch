@@ -1,6 +1,4 @@
-package io.github.some_example_name.game
-
-import io.github.some_example_name.Sprite
+package io.github.some_example_name
 
 class Battle(
     private val teamA: MutableList<Sprite>,
@@ -21,8 +19,8 @@ class Battle(
             println("\n ${a.name} vs ${b.name}")
             a.attack(b)
 
-            removeDead(teamA)
-            removeDead(teamB)
+            removeDead(teamA, teamB)
+            removeDead(teamB, teamA)
         }
 
         println("\n Battle result:")
@@ -33,10 +31,14 @@ class Battle(
         }
     }
 
-    private fun removeDead(team: MutableList<Sprite>) {
-        val dead = team.filter { !it.isAlive() }
+    private fun removeDead(team: MutableList<Sprite>, opponent: MutableList<Sprite>) {
+        val dead: List<Sprite> = team.filter { !it.isAlive() }
         dead.forEach {
             println(" ${it.name} has fainted.")
+            it.onFaint(team, opponent)
         }
+        team.removeAll(dead)
     }
+
+
 }
