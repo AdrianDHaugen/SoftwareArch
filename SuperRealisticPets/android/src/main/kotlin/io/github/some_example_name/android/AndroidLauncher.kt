@@ -1,6 +1,7 @@
 package io.github.some_example_name.android
 
 import android.os.Bundle
+import com.badlogic.gdx.Game
 
 import com.badlogic.gdx.backends.android.AndroidApplication
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
@@ -13,7 +14,7 @@ class AndroidLauncher : AndroidApplication() {
         super.onCreate(savedInstanceState)
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
-        initialize(Main(), AndroidApplicationConfiguration().apply {
+        initialize(GameManager(), AndroidApplicationConfiguration().apply {
             // Configure your application here.
             useImmersiveMode = true // Recommended, but not required.
         })
