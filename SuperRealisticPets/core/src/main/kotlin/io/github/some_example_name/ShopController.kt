@@ -1,27 +1,51 @@
 package io.github.some_example_name
 
+import com.badlogic.gdx.utils.Json
+import kotlinx.serialization.decodeFromString
+
 const val ERROR_BUY_TO_EMPTY = -1
 
 class ShopController(private val player: Player) {
 
+    init {
+        generateInitialShop()
+        generateEmptyTeamSlots()
+    }
+
     fun toggleFreeze(pos: Int): Int {
-        val shopSlot = player.shop.getSlot(pos)
-        if (shopSlot is Empty) {
+        if (pos !in player.shop.slots.indices || player.shop.slots[pos] is Empty) {
             return -1
         }
 
-        player.shop.toggleFreeze(pos)
+        if (pos in player.shop.frozenUnits) {
+            player.shop.frozenUnits.remove(pos)
+        } else {
+            player.shop.frozenUnits.add(pos)
+        }
+
+        player.shop.slots[pos].toggleFreeze()
         return 0
     }
 
     fun reroll(): Int {
         if (player.gold < 1) return -1
-        player.shop.reroll()
+
+        val newSlots = mutableListOf<GameUnit>()
+        for (i in player.shop.slots.indices) {
+            if (i in player.shop.frozenUnits) {
+                newSlots.add(player.shop.slots[i])  // Keep frozen items
+            } else {
+                newSlots.add(generateShopSlot(i))  // Replace others
+            }
+        }
+        player.shop.slots.clear()
+        player.shop.slots.addAll(newSlots)
+
         return 0
     }
 
     fun buy(itemPos: Int, targetPos: Int): Int {
-        val shopSlot = player.shop.getSlot(itemPos)
+        val shopSlot = player.shop.slots[itemPos]
         if (shopSlot is Empty) {
             return -1
         }
@@ -37,21 +61,19 @@ class ShopController(private val player: Player) {
 
     private fun buySpriteResponse(gameUnit: GameUnit, targetPos: Int): Int {
         return when {
-            player.team[targetPos] is Empty -> buyToEmptyResponse(gameUnit, targetPos)
-            gameUnit::class == player.team[targetPos]::class -> buyToSameResponse(gameUnit, targetPos)
+            player.team.teams[targetPos] is Empty -> buyToEmptyResponse()
+            gameUnit::class == player.team.teams[targetPos]::class -> buyToSameResponse(gameUnit, targetPos)
             else -> buyDifferentSpriteResponse(gameUnit, targetPos)
         } }
 
-    private fun buyToEmptyResponse(gameUnit: GameUnit, targetPos: Int): Int {
+    private fun buyToEmptyResponse(): Int {
         return ERROR_BUY_TO_EMPTY
     }
 
     private fun buyToSameResponse(gameUnit: GameUnit, targetPos: Int): Int {
-        val targetUnit = player.team[targetPos]
-        val target = Pair("team", targetPos)
-        val item = gameUnit.buy() as GameUnit
+        val targetUnit = player.team.teams[targetPos]
 
-        player.gold -= item.cost
+        player.gold -= gameUnit.cost
         //targetUnit.increaseXp(1)
 
         return 0
@@ -73,10 +95,9 @@ class ShopController(private val player: Player) {
 
 
     private fun buyTargetedItem(gameUnit: GameUnit, targetPos: Int): Int {
-        if (player.team[targetPos] is Empty) return -1
+        if (player.team.teams[targetPos] is Empty) return -1
 
         val item = gameUnit as Item
-        val actor = Pair("team", targetPos)
         player.gold -= item.cost
         gameUnit.buy()
 
@@ -89,6 +110,36 @@ class ShopController(private val player: Player) {
         player.gold -= gameUnit.cost
         gameUnit.buy()
         return 0
+    }
+
+    private fun generateEmptyTeamSlots() {
+        repeat(4) { player.team.teams.add(Empty()) }
+    }
+
+    private fun generateInitialShop() {
+        player.shop.slots.clear()
+        repeat(5) { player.shop.slots.add(generateRandomSprite()) }  // Assuming 5 shop slots
+        repeat(2) { player.shop.slots.add(generateRandomItem()) }
+    }
+
+    private fun generateShopSlot(pos : Int): GameUnit {
+        return if (pos < 5) {
+            generateRandomSprite()
+        } else {
+            generateRandomItem()
+        }
+    }
+
+    private fun generateRandomSprite(): Sprite {
+        return Sprite("Animal ${(1..10).random()}", 1, 1, 3, null, 1, 1, false, "base")  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
+    }
+
+    private fun generateRandomItem(): Item {
+        val itemList = Json.decodeFromString<ItemList>(items.json)
+
+        // Pick a random item
+        val randomItem = itemList.items.random()
+        return
     }
 
     fun endTurn() {
