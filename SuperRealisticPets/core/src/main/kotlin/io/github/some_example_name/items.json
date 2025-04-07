@@ -1,0 +1,42 @@
+[
+  {
+    "name": "hat",
+    "cost": 3,
+    "isFrozen": false
+  },
+  {
+    "name": "stick",
+    "cost": 3,
+    "isFrozen": false
+  },
+  {
+    "name": "bomb",
+    "cost": 3,
+    "isFrozen": false
+  },
+  {
+    "name": "fork",
+    "cost": 3,
+    "isFrozen": false
+  },
+  {
+    "name": "canvas",
+    "cost": 3,
+    "isFrozen": false
+  },
+  {
+    "name": "leash",
+    "cost": 3,
+    "isFrozen": false
+  },
+  {
+    "name": "chips",
+    "cost": 3,
+    "isFrozen": false
+  },
+  {
+    "name": "seeds",
+    "cost": 3,
+    "isFrozen": false
+  }
+]
