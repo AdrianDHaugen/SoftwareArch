@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 class Team {
@@ -24,3 +25,4 @@ class Team {
         return teams.size
     }
 }
+*/

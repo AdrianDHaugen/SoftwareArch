@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 open class Empty():GameUnit {
@@ -7,3 +8,4 @@ open class Empty():GameUnit {
     override var isFrozen: Boolean = false
 
 }
+*/

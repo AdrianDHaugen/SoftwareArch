@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 class Player {
@@ -31,3 +32,4 @@ class Player {
         get() = _shopController
         set(value) { _shopController = value }
 }
+*/

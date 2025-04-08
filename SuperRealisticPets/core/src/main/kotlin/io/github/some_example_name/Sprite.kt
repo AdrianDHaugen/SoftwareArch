@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 import kotlinx.serialization.Serializable
@@ -88,3 +89,4 @@ open class Sprite(
 
     override fun isAlive(): Boolean = health > 0
 }
+*/

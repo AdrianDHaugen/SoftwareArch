@@ -1,12 +1,9 @@
 package io.github.some_example_name.android
 
 import android.os.Bundle
-import com.badlogic.gdx.Game
-
 import com.badlogic.gdx.backends.android.AndroidApplication
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
 import com.google.firebase.FirebaseApp
-import io.github.some_example_name.Main
 
 /** Launches the Android application. */
 class AndroidLauncher : AndroidApplication() {

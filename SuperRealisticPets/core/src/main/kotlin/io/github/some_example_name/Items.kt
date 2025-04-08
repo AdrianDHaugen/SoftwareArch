@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 open class Item(
@@ -25,3 +26,4 @@ open class Item(
     open fun onBattleStart(holder: Sprite) {}
     open fun onAttack(holder: Sprite, target: Sprite) {}
 }
+*/

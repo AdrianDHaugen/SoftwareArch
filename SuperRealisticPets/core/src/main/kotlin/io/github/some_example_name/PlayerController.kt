@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 class PlayerController(private val player: Player) {
@@ -64,3 +65,4 @@ class PlayerController(private val player: Player) {
     fun endTurn() {
     }
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 interface GameUnit {
@@ -9,3 +10,4 @@ interface GameUnit {
         isFrozen = !isFrozen
     }
 }
+*/

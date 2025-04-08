@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 class Shop {
@@ -11,3 +12,4 @@ class Shop {
         get() = _frozenUnits
         set(value) { _frozenUnits = value }
 }
+*/

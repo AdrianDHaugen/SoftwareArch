@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 interface ISprite : GameUnit {
@@ -18,3 +19,4 @@ interface ISprite : GameUnit {
         fun mergeStats(sprite1: Sprite, sprite2: Sprite)
         fun isAlive(): Boolean
 }
+*/

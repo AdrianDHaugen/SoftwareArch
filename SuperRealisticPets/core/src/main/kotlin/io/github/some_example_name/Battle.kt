@@ -1,3 +1,4 @@
+/*
 package io.github.some_example_name
 
 class Battle(
@@ -7,8 +8,10 @@ class Battle(
 
     fun startBattle() {
         println(" Battle starts!")
-        playerA.team.teams.forEach { it.onBattleStart() }
-        playerB.team.teams.forEach { it.onBattleStart() }
+*/
+/*        playerA.team.teams.forEach { it.onBattleStart() }
+        playerB.team.teams.forEach { it.onBattleStart() }*//*
+
 
         while (playerA.team.teams.filterIsInstance<Sprite>().any { it.isAlive() } && playerB.team.teams.filterIsInstance<Sprite>().any { it.isAlive() }) {
             val a = playerA.team.teams.filterIsInstance<Sprite>().firstOrNull { it.isAlive() }
@@ -42,3 +45,4 @@ class Battle(
         }
     }
 }
+*/
