@@ -7,7 +7,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.Screen
+import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.viewport.FitViewport
 
 class MainMenuScreen(private val game: Main) : Screen {
@@ -25,25 +27,22 @@ class MainMenuScreen(private val game: Main) : Screen {
 
         // UI elements
         val titleLabel = Label("Super Realistic Pets", skin, "default")
-        val singlePlayerBtn = TextButton("Single Player", skin)
-        val multiPlayerBtn = TextButton("Multi Player", skin)
-        val settingsBtn = TextButton("Settings", skin)
+        val playBtn = TextButton("Play Game", skin)
+        val highScoreBtn = TextButton("High Score", skin)
+        val testGameBtn = TextButton("Test game", skin)
 
-        // Button click -> go to another screen
-        /*
-        singlePlayerBtn.addListener(object : ClickListener() {
-            override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent?, x: Float, y: Float) {
-                game.screen = TeamManagementScreen(game)
+        //Click to check game screen
+        testGameBtn.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                game.screen = GameScreen(game)
             }
-        })
-         */
+            })
 
         // Layout with table
-        table.add(titleLabel).colspan(3).pad(10f).row()
+        table.add(titleLabel).colspan(2).pad(10f).row()
         table.row().pad(10f)
-        table.add(singlePlayerBtn).width(150f).padRight(10f)
-        table.add(multiPlayerBtn).width(150f).padRight(10f)
-        table.add(settingsBtn).width(150f)
+        table.add(playBtn).width(150f).padRight(10f)
+        table.add(highScoreBtn).width(150f).padRight(10f)
     }
 
     override fun render(delta: Float) {
@@ -68,7 +67,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     }
 
     override fun hide() {
-        TODO("Not yet implemented")
+        Gdx.input.inputProcessor = null
     }
 
     override fun dispose() {
