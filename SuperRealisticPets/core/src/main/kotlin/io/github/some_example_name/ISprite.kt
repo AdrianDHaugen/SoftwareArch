@@ -1,5 +1,6 @@
 package io.github.some_example_name
 
+
 interface ISprite : GameUnit {
         // Define all properties that Sprite must provide
         override var name: String
