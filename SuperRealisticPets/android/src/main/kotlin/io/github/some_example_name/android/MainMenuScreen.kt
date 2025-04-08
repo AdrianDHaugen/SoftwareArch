@@ -6,69 +6,75 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.Screen
-import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.utils.viewport.FitViewport
 
 class MainMenuScreen(private val game: GameManager) : Screen {
-    private lateinit var stage: Stage
-    private lateinit var uiSkin: Skin
-    private lateinit var table: Table
+    private val stage = Stage(FitViewport(800f, 480f))
+    private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
     override fun show() {
-        // Initialize stage and skin
-        stage = Stage()
-        uiSkin = Skin(Gdx.files.internal("uiskin.json"))
+        // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
 
-        // Create a table and set it to fill the parent (screen)
-        table = Table()
-        table.debug = true
+        // Create a root table for layout
+        val table = Table()
         table.setFillParent(true)
         stage.addActor(table)
 
-        // Create a button that changes the screen to the game screen
-        val startButton = TextButton("Start Game", uiSkin)
-        startButton.addListener(object : ClickListener() {
-            override fun clicked(event: InputEvent, x: Float, y: Float) {
-                game.screen = GameScreen(game)  // Switch to the GameScreen
+        // UI elements
+        val titleLabel = Label("Super Realistic Pets", skin, "default")
+        val singlePlayerBtn = TextButton("Single Player", skin)
+        val multiPlayerBtn = TextButton("Multi Player", skin)
+        val settingsBtn = TextButton("Settings", skin)
+
+        // Button click -> go to another screen
+        /*
+        singlePlayerBtn.addListener(object : ClickListener() {
+            override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent?, x: Float, y: Float) {
+                game.screen = TeamManagementScreen(game)
             }
         })
-        // Add the button to the table
-        table.add(startButton).fillX().uniformX().pad(10f)
-        table.row()  // Move to the next row in the table
-        table.center()
+         */
+
+        // Layout with table
+        table.add(titleLabel).colspan(3).pad(10f).row()
+        table.row().pad(10f)
+        table.add(singlePlayerBtn).width(150f).padRight(10f)
+        table.add(multiPlayerBtn).width(150f).padRight(10f)
+        table.add(settingsBtn).width(150f)
     }
 
     override fun render(delta: Float) {
-        // Clear the screen with a color (optional)
-        Gdx.gl.glClearColor(0f, 1f, 0f, 1f)  // Green background
+        // Clear screen
+        Gdx.gl.glClearColor(0.192f, 0.341f, 0.659f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-        // Draw the stage (UI elements)
-        stage.act(Gdx.graphics.deltaTime)
+        // Update/draw stage
+        stage.act(delta)
         stage.draw()
     }
 
     override fun resize(width: Int, height: Int) {
-        // Initialize the stage if it wasn't done already in show()
-        if (!::stage.isInitialized) {
-            stage = Stage()
-        }
-
         stage.viewport.update(width, height, true)
     }
 
-    override fun hide() {
-        stage.dispose()
+    override fun pause() {
+        TODO("Not yet implemented")
     }
 
-    override fun pause() {}
+    override fun resume() {
+        TODO("Not yet implemented")
+    }
 
-    override fun resume() {}
+    override fun hide() {
+        TODO("Not yet implemented")
+    }
 
     override fun dispose() {
         stage.dispose()
-        uiSkin.dispose()
+        skin.dispose()
     }
 }
+
