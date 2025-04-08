@@ -7,7 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.Screen
 
-class GameScreen(private val game: GameManager) : Screen {
+class GameScreen(private val game: Main) : Screen {
     private lateinit var stage: Stage
     private lateinit var uiSkin: Skin
 

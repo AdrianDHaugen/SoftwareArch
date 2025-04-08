@@ -11,7 +11,7 @@ class AndroidLauncher : AndroidApplication() {
         super.onCreate(savedInstanceState)
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
-        initialize(GameManager(), AndroidApplicationConfiguration().apply {
+        initialize(Main(), AndroidApplicationConfiguration().apply {
             // Configure your application here.
             useImmersiveMode = true // Recommended, but not required.
         })

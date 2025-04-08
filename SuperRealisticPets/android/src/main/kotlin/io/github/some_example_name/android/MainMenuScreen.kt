@@ -10,14 +10,14 @@ import com.badlogic.gdx.Screen
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.viewport.FitViewport
 
-class MainMenuScreen(private val game: GameManager) : Screen {
+class MainMenuScreen(private val game: Main) : Screen {
     private val stage = Stage(FitViewport(800f, 480f))
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
     override fun show() {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
-
+        Gdx.app.log("DEBUG", "File exists? " + Gdx.files.internal("uiskin.json").exists())
         // Create a root table for layout
         val table = Table()
         table.setFillParent(true)
@@ -48,8 +48,7 @@ class MainMenuScreen(private val game: GameManager) : Screen {
 
     override fun render(delta: Float) {
         // Clear screen
-        Gdx.gl.glClearColor(0.192f, 0.341f, 0.659f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
 
         // Update/draw stage
         stage.act(delta)
