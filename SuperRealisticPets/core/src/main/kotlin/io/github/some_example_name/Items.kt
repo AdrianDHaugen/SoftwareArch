@@ -1,10 +1,6 @@
 package io.github.some_example_name
 
-open class Item(
-    name: String,
-    cost: Int,
-    isFrozen: Boolean = false
-) : GameUnit {
+class Item : GameUnit {
 
     private var _name: String = name
     override var name: String
@@ -21,7 +17,7 @@ open class Item(
         get() = _isFrozen
         set(value) { _isFrozen = value }
 
-    open fun onTurnStart(holder: Sprite) {}
-    open fun onBattleStart(holder: Sprite) {}
-    open fun onAttack(holder: Sprite, target: Sprite) {}
+    fun onTurnStart(holder: Sprite) {}
+    fun onBattleStart(holder: Sprite) {}
+    fun onAttack(holder: Sprite, target: Sprite) {}
 }

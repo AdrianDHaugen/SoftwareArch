@@ -1,15 +1,20 @@
 package io.github.some_example_name
 
-import com.badlogic.gdx.utils.Json
-import kotlinx.serialization.decodeFromString
-
 const val ERROR_BUY_TO_EMPTY = -1
+var spritesDB: List<Sprite> = emptyList()
+var itemsDB: List<Item> = emptyList()
 
 class ShopController(private val player: Player) {
 
     init {
+        parseGameUnits()
         generateInitialShop()
         generateEmptyTeamSlots()
+    }
+
+    private fun parseGameUnits() {
+        spritesDB = JsonParser().parseSprites()
+        itemsDB = JsonParser().parseItems()
     }
 
     fun toggleFreeze(pos: Int): Int {
@@ -99,7 +104,7 @@ class ShopController(private val player: Player) {
 
         val item = gameUnit as Item
         player.gold -= item.cost
-        gameUnit.buy()
+        //gameUnit.buy()
 
         return 0
     }
@@ -108,7 +113,7 @@ class ShopController(private val player: Player) {
         if (player.team.size() < 1) return -1
 
         player.gold -= gameUnit.cost
-        gameUnit.buy()
+        //gameUnit.buy()
         return 0
     }
 
@@ -131,15 +136,16 @@ class ShopController(private val player: Player) {
     }
 
     private fun generateRandomSprite(): Sprite {
-        return Sprite("Animal ${(1..10).random()}", 1, 1, 3, null, 1, 1, false, "base")  // Example random animal. Here we have to return the animal object. The values after comma are for health, attack and level
+        val sprite = spritesDB.random()
+
+        return sprite
     }
 
-    private fun generateRandomItem(): Item {
-        val itemList = Json.decodeFromString<ItemList>(items.json)
 
-        // Pick a random item
-        val randomItem = itemList.items.random()
-        return
+    private fun generateRandomItem(): Item {
+        val item = itemsDB.random()
+
+        return item
     }
 
     fun endTurn() {

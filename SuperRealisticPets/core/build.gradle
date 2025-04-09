@@ -2,10 +2,14 @@
 eclipse.project.name = appName + '-core'
 
 dependencies {
+  implementation 'com.beust:klaxon:5.5' // Replace with the latest version
+}
+
+
+dependencies {
   api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"

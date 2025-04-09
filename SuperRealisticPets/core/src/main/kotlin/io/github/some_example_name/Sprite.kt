@@ -1,20 +1,6 @@
 package io.github.some_example_name
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class ItemList(val items: List<Item>)
-open class Sprite(
-    name: String,
-    attack: Int,
-    health: Int,
-    tier: Int,
-    item: Item? = null,
-    level: Int = 1,
-    cost: Int,
-    isFrozen: Boolean = false,
-    color : String
-) : ISprite {
+class Sprite : ISprite {
 
     private var _name: String = name
     override var name: String
@@ -87,4 +73,9 @@ open class Sprite(
     }
 
     override fun isAlive(): Boolean = health > 0
+
+
+    //val fileContent = File("sprites.json").readText()
+
+
 }
