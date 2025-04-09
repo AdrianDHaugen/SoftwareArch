@@ -1,6 +1,6 @@
 package io.github.some_example_name
 
-const val ERROR_BUY_TO_EMPTY = -1
+const val ERROR_BUY_TO_OCCUPIED = -1
 var spritesDB: List<Sprite> = emptyList()
 var itemsDB: List<Item> = emptyList()
 
@@ -66,13 +66,21 @@ class ShopController(private val player: Player) {
 
     private fun buySpriteResponse(gameUnit: GameUnit, targetPos: Int): Int {
         return when {
-            player.team.teams[targetPos] is Empty -> buyToEmptyResponse()
+            player.team.teams[targetPos] is Empty -> buyToEmptyResponse(gameUnit, targetPos)
             gameUnit::class == player.team.teams[targetPos]::class -> buyToSameResponse(gameUnit, targetPos)
+            player.team.teams[targetPos] is Sprite -> buyToOccupiedSlotResponse()
             else -> buyDifferentSpriteResponse(gameUnit, targetPos)
         } }
 
-    private fun buyToEmptyResponse(): Int {
-        return ERROR_BUY_TO_EMPTY
+    private fun buyToEmptyResponse(gameUnit: GameUnit, targetPos: Int): Int {
+        player.team.teams[targetPos] = gameUnit
+        player.gold -= gameUnit.cost
+
+        return 1
+    }
+
+    private fun buyToOccupiedSlotResponse() : Int {
+        return ERROR_BUY_TO_OCCUPIED
     }
 
     private fun buyToSameResponse(gameUnit: GameUnit, targetPos: Int): Int {
@@ -95,7 +103,10 @@ class ShopController(private val player: Player) {
     }
 
     private fun buyItemResponse(gameUnit: GameUnit, targetPos: Int): Int {
-        return buyTargetedItem(gameUnit, targetPos)
+        return when {
+            player.team.teams[targetPos] is Sprite -> buyTargetedItem(gameUnit, targetPos)
+            else -> buyNonTargetedItem(gameUnit, targetPos)
+        }
     }
 
 
@@ -104,7 +115,8 @@ class ShopController(private val player: Player) {
 
         val item = gameUnit as Item
         player.gold -= item.cost
-        //gameUnit.buy()
+
+        TODO("player.team.teams[targetPos].item = item")
 
         return 0
     }
