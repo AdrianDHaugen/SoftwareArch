@@ -9,7 +9,6 @@ import com.badlogic.gdx.Screen
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.viewport.FitViewport
-import com.badlogic.gdx.Game
 
 class MainMenuScreen(private val game: Main) : Screen {
     private val stage = Stage(FitViewport(800f, 480f))
