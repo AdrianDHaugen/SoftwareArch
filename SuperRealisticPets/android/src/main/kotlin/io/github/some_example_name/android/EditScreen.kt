@@ -19,9 +19,17 @@ import com.badlogic.gdx.utils.viewport.FitViewport
 class EditScreen (private val game: Main) : Screen {
     private val stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()))
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
+
+    //Textures
+    private val statBackground = TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("statbackground.png"))))
+    private val heartIcon = Image(TextureRegion(Texture(Gdx.files.internal("heart.png"))))
+    private val currencyIcon = Image(TextureRegion(Texture(Gdx.files.internal("coin.png"))))
+    private val hourglassIcon = Image(TextureRegion(Texture(Gdx.files.internal("hourglass.png"))))
+    private val trophyIcon = Image(TextureRegion(Texture(Gdx.files.internal("trophy.png"))))
+
     override fun show() {
 
-        val boxSize = 230f
+        val boxSize = 200f
 
 
         // Input goes to our stage so buttons can be clicked
@@ -33,15 +41,55 @@ class EditScreen (private val game: Main) : Screen {
         root.setFillParent(true)
         stage.addActor(root)
 
-// === Title Table ===
-        val titleTable = Table()
-        titleTable.debug()
-        titleTable.top()
-        titleTable.setFillParent(true)
+// === Mini Table to hold heart + label ===
+        val miniTable = Table()
+        miniTable.left().top()
 
-        val titleLabel = Label("Battle Editor", skin, "default")
-        titleLabel.setFontScale(10f)
-        titleTable.add(titleLabel).expandX().center().padTop(20f) // center title horizontally
+        val fontScale = 4f
+        val spaceBetweenObjects = 15f
+        val iconSize = 100f
+
+        miniTable.add(currencyIcon).size(iconSize,iconSize).padLeft(spaceBetweenObjects)
+        val currencyLabel = Label("10 ", skin, "default")
+        currencyLabel.setFontScale(fontScale)
+        currencyLabel.style.background = statBackground
+        miniTable.add(currencyLabel).padLeft(spaceBetweenObjects)
+
+        miniTable.add(heartIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
+        val heartLabel = Label("10 ", skin, "default")
+        heartLabel.setFontScale(fontScale)
+        heartLabel.style.background = statBackground
+        miniTable.add(heartLabel).padLeft(spaceBetweenObjects)
+
+        miniTable.add(hourglassIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
+        val hourglassLabel = Label("10 ", skin, "default")
+        hourglassLabel.setFontScale(fontScale)
+        hourglassLabel.style.background = statBackground
+        miniTable.add(hourglassLabel).padLeft(spaceBetweenObjects)
+
+        miniTable.add(trophyIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
+        val trophyLabel = Label("10 ", skin, "default")
+        trophyLabel.setFontScale(fontScale)
+        trophyLabel.style.background = statBackground
+        miniTable.add(trophyLabel).padLeft(spaceBetweenObjects)
+
+
+
+
+
+
+
+// === Container to wrap miniTable ===
+        val container = Container(miniTable)
+        container.top().left().pad(20f) // Add padding/margin if needed
+
+// === Stats Table (root) ===
+        val statsTable = Table()
+        statsTable.setFillParent(true)
+        statsTable.top().left()
+        statsTable.debug()
+
+        statsTable.add(container).top().left()
 
 // === Button Table ===
         val buttonTable = Table()
@@ -139,7 +187,7 @@ class EditScreen (private val game: Main) : Screen {
         buttonTable.add(singlePlayerBtn).width(400f).height(400f).pad(30f)
 
 // Add tables to the stage
-        stage.addActor(titleTable)
+        stage.addActor(statsTable)
         stage.addActor(buttonTable)
         stage.addActor(unitTable)
         stage.addActor(itemTable)
