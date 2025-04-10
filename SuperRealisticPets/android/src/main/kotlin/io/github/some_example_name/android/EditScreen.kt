@@ -87,29 +87,29 @@ class EditScreen (private val game: Main) : Screen {
         val statsTable = Table()
         statsTable.setFillParent(true)
         statsTable.top().left()
-        statsTable.debug()
+        //statsTable.debug()
 
         statsTable.add(container).top().left()
 
 // === Button Table ===
         val buttonTable = Table()
-        buttonTable.debug()
+        //buttonTable.debug()
         buttonTable.bottom().right()
         buttonTable.setFillParent(true)
 
 // Load a sample texture
-        val unitTexture = Texture(Gdx.files.internal("uiskin.png")) // or from an atlas
+        val unitTexture = Texture(Gdx.files.internal("animalsprites/bird-1-base-nb.png")) // or from an atlas
         val unitDrawable = TextureRegionDrawable(TextureRegion(unitTexture))
 
 // === Unit Table ===
         val unitTable = Table()
-        unitTable.debug()
-        unitTable.setPosition(850f,600f)
+        //unitTable.debug()
+        unitTable.setPosition(850f,700f)
 
 // Create 4 unit boxes
         for (i in 1..5) {
             val box = Table()
-            box.debug()
+            //box.debug()
             box.background = skin.getDrawable("default-window") // Box style
 
             // Create an image using the unit sprite
@@ -122,21 +122,21 @@ class EditScreen (private val game: Main) : Screen {
         }
 
 // Place unitTable in a container for better control
-        val boxContainer = Container(unitTable)
-        boxContainer.setSize(320f, 320f)
-        boxContainer.setPosition(50f, 100f) // position it wherever you want
-        boxContainer.background = skin.getDrawable("default-window")
+        val itemContainer = Container(unitTable)
+        itemContainer.setSize(320f, 320f)
+        itemContainer.setPosition(50f, 120f) // position it wherever you want
+        itemContainer.background = skin.getDrawable("default-window")
 
 // Create table for items
         val itemTable = Table()
-        itemTable.debug()
-        itemTable.setPosition(1500f,200f)
+        //itemTable.debug()
+        itemTable.setPosition(1600f,200f)
         itemTable.pad(10f)
 
         // Create 4 unit boxes
         for (i in 1..2) {
             val box = Table()
-            box.debug()
+            //box.debug()
             box.background = skin.getDrawable("default-window") // Box style
 
             // Create an image using the unit sprite
@@ -149,20 +149,29 @@ class EditScreen (private val game: Main) : Screen {
         }
 
 // Place unitTable in a container for better control
-        val itemContainer = Container(unitTable)
-        itemContainer.setSize(320f, 320f)
-        itemContainer.setPosition(50f, 200f) // position it wherever you want
-        itemContainer.background = skin.getDrawable("default-window")
-        itemContainer.pad(20f)
+        val shopUnitContainer = Container(unitTable)
+        shopUnitContainer.setSize(320f, 320f)
+        shopUnitContainer.setPosition(50f, 200f) // position it wherever you want
+        shopUnitContainer.background = skin.getDrawable("default-window")
+        shopUnitContainer.pad(20f)
 
         val shopUnitTable = Table()
-        shopUnitTable.debug()
-        shopUnitTable.setPosition(600f,200f)
+        //shopUnitTable.debug()
+        shopUnitTable.setPosition(650f,200f)
+
+        val rerollBtn = TextButton("reroll", skin)
+        rerollBtn.label.setFontScale(2f)
+        rerollBtn.addListener(object : ClickListener() {
+            override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent?, x: Float, y: Float) {
+                TODO("Not yet implemented")
+            }
+        })
+        shopUnitTable.add(rerollBtn).width(boxSize).height(boxSize).pad(20f)
 
         // Create 4 unit boxes
         for (i in 1..4) {
             val box = Table()
-            box.debug()
+            //box.debug()
             box.background = skin.getDrawable("default-window") // Box style
 
             // Create an image using the unit sprite
@@ -177,14 +186,14 @@ class EditScreen (private val game: Main) : Screen {
 
 
 // Create button for starting the battle
-        val singlePlayerBtn = TextButton("Start Battle", skin)
-        singlePlayerBtn.label.setFontScale(4f)
-        singlePlayerBtn.addListener(object : ClickListener() {
+        val startBattleBtn = TextButton("Start Battle", skin)
+        startBattleBtn.label.setFontScale(4f)
+        startBattleBtn.addListener(object : ClickListener() {
             override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent?, x: Float, y: Float) {
-                game.screen = MainMenuScreen(game)
+                game.screen = GameScreen(game)
             }
         })
-        buttonTable.add(singlePlayerBtn).width(400f).height(400f).pad(30f)
+        buttonTable.add(startBattleBtn).width(400f).height(400f).pad(30f)
 
 // Add tables to the stage
         stage.addActor(statsTable)
