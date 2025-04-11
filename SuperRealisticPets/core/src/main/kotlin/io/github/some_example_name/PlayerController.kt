@@ -62,5 +62,6 @@ class PlayerController(private val player: Player) {
     }
 
     fun endTurn() {
+        player.shopController.endTurn()
     }
 }
