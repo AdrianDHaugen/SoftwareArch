@@ -76,6 +76,8 @@ class ShopController(private val player: Player) {
         player.team.teams[targetPos] = gameUnit
         player.gold -= gameUnit.cost
 
+        player.shop.slots[player.shop.slots.indexOf(gameUnit)] = Empty()
+
         return 1
     }
 
@@ -84,10 +86,14 @@ class ShopController(private val player: Player) {
     }
 
     private fun buyToSameResponse(gameUnit: GameUnit, targetPos: Int): Int {
-        val targetUnit = player.team.teams[targetPos]
+        val targetUnit = player.team.teams[targetPos] as Sprite
 
         player.gold -= gameUnit.cost
+        targetUnit.attack += 1
+        targetUnit.health += 1
+
         //targetUnit.increaseXp(1)
+        player.shop.slots[player.shop.slots.indexOf(gameUnit)] = Empty()
 
         return 0
     }
@@ -116,7 +122,10 @@ class ShopController(private val player: Player) {
         val item = gameUnit as Item
         player.gold -= item.cost
 
-        TODO("player.team.teams[targetPos].item = item")
+        val sprite = player.team.teams[targetPos] as Sprite
+        sprite.item = item
+
+        player.shop.slots[player.shop.slots.indexOf(gameUnit)] = Empty()
 
         return 0
     }
@@ -161,5 +170,6 @@ class ShopController(private val player: Player) {
     }
 
     fun endTurn() {
+        //player.team.teams.forEach { it.onTurnStart() }
     }
 }

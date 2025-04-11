@@ -48,6 +48,11 @@ class Sprite : ISprite {
         set(value) { _color = value }
 
 
+    override fun toString(): String {
+        return "Sprite(name='$name', attack=$attack, health=$health, tier=$tier, item=$item, level=$level, cost=$cost, isFrozen=$isFrozen, color='$color')"
+    }
+
+
 
 
     override fun onTurnStart() {
