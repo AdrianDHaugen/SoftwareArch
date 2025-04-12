@@ -1,0 +1,148 @@
+@startuml
+class io.github.some_example_name.models.Player {
+- String _name
++ String name
+- Int _gold
++ Int gold
+- Int _turn
++ Int turn
+-  _team
++ Team team
+-  _shop
++ Shop shop
+-  _shopController
++ ShopController shopController
+}
+
+class io.github.some_example_name.models.Sprite {
+- String _name
++ String name
+- Int _attack
++ Int attack
+- Int _health
++ Int health
+- Int _tier
++ Int tier
+- Item? _item
++ Item? item
+- Int _level
++ Int level
+- Int _cost
++ Int cost
+- Boolean _isFrozen
++ Boolean isFrozen
+- String _color
++ String color
+}
+
+class io.github.some_example_name.models.Team {
+- MutableList<GameUnit> _teams
++ MutableList<GameUnit> teams
++ void move(Int,Int,GameUnit)
++ Boolean hasSummonSpace()
++ void summon(Sprite,Int)
++ Int size()
+}
+
+
+class io.github.some_example_name.controller.BattleController {
++ void startBattle()
++ void attack(Sprite,Sprite)
+- void removeDead(MutableList<GameUnit>)
+}
+
+class io.github.some_example_name.models.Item {
+- String _name
++ String name
+- Int _cost
++ Int cost
+- Boolean _isFrozen
++ Boolean isFrozen
+}
+
+class io.github.some_example_name.models.Shop {
+- MutableList<GameUnit> _slots
++ MutableList<GameUnit> slots
+- MutableSet<Int> _frozenUnits
++ MutableSet<Int> frozenUnits
+}
+
+class io.github.some_example_name.models.Battle {
+-  _playerA
++ Player playerA
+-  _playerB
++ Player playerB
+}
+
+class io.github.some_example_name.controller.PlayerController {
++ void startTurn()
++ Int toggleFreeze(Int)
++ Int reroll()
++ Int buy(Int,Int)
++ Int sell(Int)
++ Int move(Int,Int)
++ Int combine(Int,Int)
++ void endTurn()
+}
+
+class io.github.some_example_name.models.Empty {
++ String name
++ Int cost
++ Boolean isFrozen
+}
+
+class io.github.some_example_name.utilities.JsonParser {
++ List<Sprite> parseSprites()
++ List<Item> parseItems()
++ void main()
+}
+
+interface io.github.some_example_name.interfaces.ISprite {
++ String name
++ Int attack
++ Int health
++ Int tier
++ Item? item
++ Int level
++ Int cost
++ Boolean isFrozen
+}
+
+class io.github.some_example_name.controller.ShopController {
+- void parseGameUnits()
++ Int toggleFreeze(Int)
++ Int reroll()
++ Int buy(Int,Int)
+- Int buySpriteResponse(GameUnit,Int)
+- Int buyToEmptyResponse(GameUnit,Int)
+- Int buyToOccupiedSlotResponse()
+- Int buyToSameResponse(GameUnit,Int)
+- Int buyItemResponse(GameUnit,Int)
+- Int buyTargetedItem(GameUnit,Int)
+- Int buyNonTargetedItem(GameUnit,Int)
+- void generateEmptyTeamSlots()
+- void generateInitialShop()
+- GameUnit generateShopSlot(Int)
+- Sprite generateRandomSprite()
+- Item generateRandomItem()
++ void endTurn()
+}
+
+interface io.github.some_example_name.interfaces.GameUnit {
++ Boolean isFrozen
++ String name
++ Int cost
++ void toggleFreeze()
+}
+
+
+class io.github.some_example_name.main.Main {
+}
+
+
+io.github.some_example_name.interfaces.ISprite <|.. io.github.some_example_name.models.Sprite
+io.github.some_example_name.interfaces.GameUnit <|.. io.github.some_example_name.models.Item
+io.github.some_example_name.interfaces.GameUnit <|.. io.github.some_example_name.models.Empty
+io.github.some_example_name.interfaces.GameUnit <|.. io.github.some_example_name.interfaces.ISprite
+com.badlogic.gdx.ApplicationAdapter <|-- io.github.some_example_name.main.Main
+@enduml
