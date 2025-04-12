@@ -1,4 +1,8 @@
-package io.github.some_example_name
+package io.github.some_example_name.controller
+
+import io.github.some_example_name.models.Empty
+import io.github.some_example_name.models.Player
+import io.github.some_example_name.models.Sprite
 
 class PlayerController(private val player: Player) {
 
@@ -39,8 +43,8 @@ class PlayerController(private val player: Player) {
             return -1
         }
         val movedAnimal = player.team.teams[rosterInit]
-        player.team.teams[rosterInit] = Empty()
-        player.team.move(rosterInit, rosterFinal, movedAnimal)
+        player.team.teams[rosterInit] = player.team.teams[rosterFinal]
+        player.team.teams[rosterFinal] = movedAnimal
         return 0
     }
 
@@ -53,7 +57,9 @@ class PlayerController(private val player: Player) {
         }
 
         if (sprite1 is Sprite && sprite2 is Sprite) {
-            sprite1.mergeStats(sprite1, sprite2)
+            player.team.teams[rosterFinal] = sprite1
+            sprite1.health++
+            sprite1.attack++
         }
         //anim1.xp = 0
         player.team.teams[rosterInit] = Empty()

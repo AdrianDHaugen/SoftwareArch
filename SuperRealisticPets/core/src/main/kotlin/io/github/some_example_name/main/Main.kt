@@ -1,6 +1,9 @@
-package io.github.some_example_name
+package io.github.some_example_name.main
 
 import com.badlogic.gdx.ApplicationAdapter
+import io.github.some_example_name.controller.BattleController
+import io.github.some_example_name.controller.PlayerController
+import io.github.some_example_name.models.Player
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms. */
 class Main : ApplicationAdapter()
@@ -21,7 +24,7 @@ fun main() {
     handleTurn("Player B", playerB, playerBController)
 
     // Start battle
-    val battle = Battle(playerA, playerB)
+    val battle = BattleController()
     battle.startBattle()
 }
 
@@ -33,7 +36,7 @@ fun handleTurn(name: String, player: Player, controller: PlayerController) {
 
         println("Team:")
         for (i in player.team.teams.indices) {
-            println(" ${player.team.teams[i].toString()}")
+            println(" ${player.team.teams[i]}")
         }
 
         println("Shop:")
@@ -48,6 +51,8 @@ fun handleTurn(name: String, player: Player, controller: PlayerController) {
         println("Enter 7 to sell an animal")
         println("Enter 8 to toggle freeze")
         println("Enter 9 to reroll")
+        println("Enter 10 to move")
+        println("Enter 11 to combine")
 
         val input = readlnOrNull()?.toIntOrNull()
 
@@ -69,23 +74,36 @@ fun handleTurn(name: String, player: Player, controller: PlayerController) {
             if (targetPos != null) {
                 controller.buy(input, targetPos)
             }
-        }
-        else if (input == 7) {
+        } else if (input == 7) {
             println("Choose a number between 0 to 3 to sell an animal")
             val targetPos = readlnOrNull()?.toIntOrNull()
             if (targetPos != null) {
                 controller.sell(targetPos)
             }
-        }
-        else if (input == 8) {
+        } else if (input == 8) {
             println("Choose a number between 0 to 5 to toggle freeze")
             val targetPos = readlnOrNull()?.toIntOrNull()
             if (targetPos != null) {
                 controller.toggleFreeze(targetPos)
             }
-        }
-        else if (input == 9) {
+        } else if (input == 9) {
             controller.reroll()
+        } else if (input == 10) {
+            println("Choose a number between 0 to 3 to move an animal")
+            val rosterInit = readlnOrNull()?.toIntOrNull()
+            println("Choose a number between 0 to 3 to place the animal")
+            val targetPos = readlnOrNull()?.toIntOrNull()
+            if (targetPos != null && rosterInit != null) {
+                controller.move(rosterInit, targetPos)
+            }
+        } else if (input == 11) {
+            println("Choose the first animal to combine")
+            val rosterInit = readlnOrNull()?.toIntOrNull()
+            println("Choose the second animal to combine")
+            val targetPos = readlnOrNull()?.toIntOrNull()
+            if (targetPos != null && rosterInit != null) {
+                controller.combine(rosterInit, targetPos)
+            }
         }
     }
 }

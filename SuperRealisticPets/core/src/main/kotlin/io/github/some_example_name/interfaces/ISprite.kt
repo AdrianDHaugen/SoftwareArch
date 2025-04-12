@@ -1,4 +1,6 @@
-package io.github.some_example_name
+package io.github.some_example_name.interfaces
+
+import io.github.some_example_name.models.Item
 
 
 interface ISprite : GameUnit {
@@ -12,10 +14,4 @@ interface ISprite : GameUnit {
         override var cost: Int
         override var isFrozen: Boolean
 
-        // Define all methods that Sprite must implement
-        fun onTurnStart()
-        fun onBattleStart()
-        fun attack(target: Sprite)
-        fun mergeStats(sprite1: Sprite, sprite2: Sprite)
-        fun isAlive(): Boolean
 }

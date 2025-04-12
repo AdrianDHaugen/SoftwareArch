@@ -1,4 +1,6 @@
-package io.github.some_example_name
+package io.github.some_example_name.models
+
+import io.github.some_example_name.interfaces.GameUnit
 
 class Team {
     private var _teams: MutableList<GameUnit> = mutableListOf()

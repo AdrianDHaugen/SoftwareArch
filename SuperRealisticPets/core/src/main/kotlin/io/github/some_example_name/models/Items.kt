@@ -1,4 +1,6 @@
-package io.github.some_example_name
+package io.github.some_example_name.models
+
+import io.github.some_example_name.interfaces.GameUnit
 
 class Item : GameUnit {
 
@@ -17,7 +19,4 @@ class Item : GameUnit {
         get() = _isFrozen
         set(value) { _isFrozen = value }
 
-    fun onTurnStart(holder: Sprite) {}
-    fun onBattleStart(holder: Sprite) {}
-    fun onAttack(holder: Sprite, target: Sprite) {}
 }

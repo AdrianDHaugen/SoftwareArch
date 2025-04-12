@@ -1,4 +1,6 @@
-package io.github.some_example_name
+package io.github.some_example_name.models
+
+import io.github.some_example_name.interfaces.GameUnit
 
 class Shop {
     private var _slots: MutableList<GameUnit> = mutableListOf()

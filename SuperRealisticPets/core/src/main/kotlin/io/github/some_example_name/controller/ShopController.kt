@@ -1,4 +1,11 @@
-package io.github.some_example_name
+package io.github.some_example_name.controller
+
+import io.github.some_example_name.interfaces.GameUnit
+import io.github.some_example_name.models.Empty
+import io.github.some_example_name.models.Item
+import io.github.some_example_name.models.Player
+import io.github.some_example_name.models.Sprite
+import io.github.some_example_name.utilities.JsonParser
 
 const val ERROR_BUY_TO_OCCUPIED = -1
 var spritesDB: List<Sprite> = emptyList()
@@ -69,7 +76,7 @@ class ShopController(private val player: Player) {
             player.team.teams[targetPos] is Empty -> buyToEmptyResponse(gameUnit, targetPos)
             gameUnit::class == player.team.teams[targetPos]::class -> buyToSameResponse(gameUnit, targetPos)
             player.team.teams[targetPos] is Sprite -> buyToOccupiedSlotResponse()
-            else -> buyDifferentSpriteResponse(gameUnit, targetPos)
+            else -> return -1
         } }
 
     private fun buyToEmptyResponse(gameUnit: GameUnit, targetPos: Int): Int {
@@ -98,16 +105,6 @@ class ShopController(private val player: Player) {
         return 0
     }
 
-    private fun buyDifferentSpriteResponse(gameUnit: GameUnit, targetPos: Int): Int {
-        if (!player.team.hasSummonSpace()) return -1
-
-        val sprite = gameUnit as Sprite
-        player.gold -= sprite.cost
-        player.team.summon(sprite, targetPos)
-
-        return 0
-    }
-
     private fun buyItemResponse(gameUnit: GameUnit, targetPos: Int): Int {
         return when {
             player.team.teams[targetPos] is Sprite -> buyTargetedItem(gameUnit, targetPos)
@@ -131,7 +128,7 @@ class ShopController(private val player: Player) {
     }
 
     private fun buyNonTargetedItem(gameUnit: GameUnit, targetPos: Int): Int {
-        if (player.team.size() < 1) return -1
+        if (player.team.teams.size < 1) return -1
 
         player.gold -= gameUnit.cost
         //gameUnit.buy()
