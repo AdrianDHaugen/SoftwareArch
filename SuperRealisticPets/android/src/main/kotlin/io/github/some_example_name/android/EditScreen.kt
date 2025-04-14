@@ -98,7 +98,7 @@ class EditScreen (private val game: Main) : Screen {
         buttonTable.setFillParent(true)
 
 // Load a sample texture
-        val unitTexture = Texture(Gdx.files.internal("animalsprites/bird-1-base-nb.png")) // or from an atlas
+        val unitTexture = Texture(Gdx.files.internal("bird-1-base-nb.PNG")) // or from an atlas
         val unitDrawable = TextureRegionDrawable(TextureRegion(unitTexture))
 
 // === Unit Table ===
