@@ -1,23 +1,22 @@
 package io.github.some_example_name.android
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Screen
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
-import com.badlogic.gdx.Screen
-import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.viewport.FitViewport
-import com.badlogic.gdx.Game
 
-class MainMenuScreen(private val game: Main) : Screen {
+class EditScreen (private val game: Main) : Screen {
     private val stage = Stage(FitViewport(800f, 480f))
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
-
     override fun show() {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
+        Gdx.app.log("DEBUG", "File exists? " + Gdx.files.internal("uiskin.json").exists())
         // Create a root table for layout
         val table = Table()
         table.setFillParent(true)
@@ -25,29 +24,21 @@ class MainMenuScreen(private val game: Main) : Screen {
 
         // UI elements
         val titleLabel = Label("Super Realistic Pets", skin, "default")
-        val singlePlayerBtn = TextButton("Single Player", skin)
-        val multiPlayerBtn = TextButton("Multi Player", skin)
-        val settingsBtn = TextButton("Settings", skin)
+        val singlePlayerBtn = TextButton("Single Pppppplayer", skin)
 
         // Button click -> go to another screen
         singlePlayerBtn.addListener(object : ClickListener() {
             override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent?, x: Float, y: Float) {
-                game.screen = EditScreen(game)
+                game.screen = MainMenuScreen(game)
             }
         })
 
-        multiPlayerBtn.addListener(object : ClickListener() {
-            override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent?, x: Float, y: Float) {
-                game.screen = GameScreen(game)
-            }
-        })
+
 
         // Layout with table
         table.add(titleLabel).colspan(3).pad(10f).row()
         table.row().pad(10f)
         table.add(singlePlayerBtn).width(150f).padRight(10f)
-        table.add(multiPlayerBtn).width(150f).padRight(10f)
-        table.add(settingsBtn).width(150f)
     }
 
     override fun render(delta: Float) {
@@ -77,4 +68,3 @@ class MainMenuScreen(private val game: Main) : Screen {
         skin.dispose()
     }
 }
-

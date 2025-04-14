@@ -9,16 +9,16 @@ import com.badlogic.gdx.Screen
 
 class GameScreen(private val game: Main) : Screen {
     private lateinit var stage: Stage
-    private lateinit var uiSkin: Skin
+    private lateinit var skin: Skin
 
     override fun show() {
         // Initialize the stage and skin
         stage = Stage()
-        uiSkin = Skin(Gdx.files.internal("uiskin.json"))
+        skin = Skin(Gdx.files.internal("uiskin.json"))
         Gdx.input.inputProcessor = stage
 
         // Create a label or other UI elements for the game screen
-        val label = Label("Game Started!", uiSkin)
+        val label = Label("Game Started!", skin)
         label.setPosition(100f, 100f)
         stage.addActor(label)
     }
@@ -37,15 +37,16 @@ class GameScreen(private val game: Main) : Screen {
         stage.viewport.update(width, height, true)
     }
 
-    override fun hide() {
-        stage.dispose()
-    }
-
     override fun pause() {}
 
     override fun resume() {}
 
+    override fun hide() {
+        Gdx.input.inputProcessor = null
+    }
+
     override fun dispose() {
         stage.dispose()
+        skin.dispose()
     }
 }
