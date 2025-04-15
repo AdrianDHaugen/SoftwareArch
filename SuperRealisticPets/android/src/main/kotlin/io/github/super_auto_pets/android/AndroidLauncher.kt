@@ -5,7 +5,6 @@ import android.os.Bundle
 import com.badlogic.gdx.backends.android.AndroidApplication
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
 import com.google.firebase.FirebaseApp
-import io.github.super_auto_pets.main.Main
 
 /** Launches the Android application. */
 class AndroidLauncher : AndroidApplication() {
