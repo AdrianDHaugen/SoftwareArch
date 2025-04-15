@@ -21,7 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 class GameScreen(private val game: Main) : Screen {
 
     private lateinit var stage: Stage
-    private lateinit var uiSkin: Skin
+    private lateinit var skin: Skin
 
     private lateinit var battleController: BattleController
 
@@ -38,7 +38,7 @@ class GameScreen(private val game: Main) : Screen {
 
     override fun show() {
         stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()))
-        uiSkin = Skin(Gdx.files.internal("uiskin.json"))
+        skin = Skin(Gdx.files.internal("uiskin.json"))
         Gdx.input.inputProcessor = stage
 
         // --- Background ---
@@ -55,8 +55,8 @@ class GameScreen(private val game: Main) : Screen {
         rootTable.setFillParent(true)
         stage.addActor(rootTable)
 
-        leftTeamTable = Table(uiSkin)
-        rightTeamTable = Table(uiSkin)
+        leftTeamTable = Table(skin)
+        rightTeamTable = Table(skin)
         rootTable.add(leftTeamTable).expand().left()
         rootTable.add(rightTeamTable).expand().right()
 
@@ -190,7 +190,7 @@ class GameScreen(private val game: Main) : Screen {
      *  - A label with "HP: X, ATK: Y"
      */
     private fun createPetTable(sprite: Sprite): Table {
-        val table = Table(uiSkin)
+        val table = Table(skin)
 
         // Load or pick the texture for the pet
         val textureFile = when (sprite.name) {
@@ -214,11 +214,11 @@ class GameScreen(private val game: Main) : Screen {
         swordImage.setSize(50f, 50f)
 
         // Create labels for HP and Attack
-        val hpLabel = Label("${sprite.health}", uiSkin)
-        val atkLabel = Label("${sprite.attack}", uiSkin)
+        val hpLabel = Label("${sprite.health}", skin)
+        val atkLabel = Label("${sprite.attack}", skin)
 
         // Create a horizontal row for stats
-        val statsRow = Table(uiSkin)
+        val statsRow = Table(skin)
         statsRow.add(swordImage).size(50f).padRight(5f)
         statsRow.add(atkLabel).padRight(15f)
         statsRow.add(heartImage).size(50f).padRight(5f)
@@ -283,6 +283,7 @@ class GameScreen(private val game: Main) : Screen {
     override fun resume() {}
     override fun dispose() {
         stage.dispose()
+        skin.dispose()
     }
 }
 
