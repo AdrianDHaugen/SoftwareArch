@@ -18,7 +18,6 @@ class MainMenuScreen(private val game: Main) : Screen {
     override fun show() {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
-        Gdx.app.log("DEBUG", "File exists? " + Gdx.files.internal("uiskin.json").exists())
         // Create a root table for layout
         val table = Table()
         table.setFillParent(true)
@@ -26,11 +25,16 @@ class MainMenuScreen(private val game: Main) : Screen {
 
         // UI elements
         val titleLabel = Label("Super Realistic Pets", skin, "default")
-        val singlePlayerBtn = TextButton("Play Game!", skin)
+        val singlePlayerBtn = TextButton("Single player", skin)
+        val multiPlayerBtn = TextButton("Multiplayer", skin)
 
         // Button click -> go to another screen
         singlePlayerBtn.addListener(object : ClickListener() {
-            override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent?, x: Float, y: Float) {
+            override fun clicked(
+                event: com.badlogic.gdx.scenes.scene2d.InputEvent?,
+                x: Float,
+                y: Float
+            ) {
                 game.screen = EditScreen(game)
             }
         })
@@ -38,7 +42,8 @@ class MainMenuScreen(private val game: Main) : Screen {
         // Layout with table
         table.add(titleLabel).colspan(3).pad(10f).row()
         table.row().pad(10f)
-        table.add(singlePlayerBtn).width(150f).padRight(10f)
+        table.add(singlePlayerBtn).width(300f).height(100f).padRight(10f)
+        table.add(multiPlayerBtn).width(300f).height(100f).padRight(10f)
     }
 
     override fun render(delta: Float) {
