@@ -1,5 +1,6 @@
 package io.github.super_auto_pets.utilities
 
+import com.badlogic.gdx.Gdx
 import com.beust.klaxon.Klaxon
 import io.github.super_auto_pets.controller.itemsDB
 import io.github.super_auto_pets.controller.spritesDB
@@ -9,8 +10,10 @@ import java.io.File
 
 class JsonParser {
     fun parseSprites(): List<Sprite> {
-        val file1 = "core\\src\\main\\kotlin\\io\\github\\super_auto_pets\\resources\\sprites.json"
-        val fileContent = File(file1).readText()
+        //val file1 = "core\\src\\main\\kotlin\\io\\github\\super_auto_pets\\resources\\sprites.json"
+        //val fileContent = File(file1).readText()
+        val fileContent = Gdx.files.internal("sprites.json").readString()
+
 
         spritesDB = Klaxon().parseArray<Sprite>(fileContent)!!
 
@@ -18,8 +21,9 @@ class JsonParser {
     }
 
     fun parseItems(): List<Item> {
-        val file2 = "core\\src\\main\\kotlin\\io\\github\\super_auto_pets\\resources\\items.json"
-        val fileContent = File(file2).readText()
+        //val file2 = "core\\src\\main\\kotlin\\io\\github\\super_auto_pets\\resources\\items.json"
+        //val fileContent = File(file2).readText()
+        val fileContent = Gdx.files.internal("items.json").readString()
 
         itemsDB = Klaxon().parseArray<Item>(fileContent)!!
 
