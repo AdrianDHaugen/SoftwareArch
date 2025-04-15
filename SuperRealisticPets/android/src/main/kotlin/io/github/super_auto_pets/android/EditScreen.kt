@@ -35,6 +35,13 @@ class EditScreen (private val game: Main) : Screen {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
         Gdx.app.log("DEBUG", "File exists? " + Gdx.files.internal("uiskin.json").exists())
+
+        // --- Background ---
+        val bgTexture = Texture(Gdx.files.internal("edit_bg.png"))
+        val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
+        bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
+        stage.addActor(bgImage)
+
         // Create a root table for layout
         // Main container
         val root = Table()
