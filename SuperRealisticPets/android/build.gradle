@@ -76,7 +76,7 @@ dependencies {
   implementation 'com.google.firebase:firebase-database'
 
   // Add Firestore SDK dependency
-  implementation 'com.google.firebase:firebase-firestore'
+  implementation 'com.google.firebase:firebase-firestore-ktx'
 
   natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-arm64-v8a"
   natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi-v7a"
