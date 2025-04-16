@@ -4,65 +4,52 @@ import io.github.super_auto_pets.interfaces.GameUnit
 import io.github.super_auto_pets.models.Battle
 import io.github.super_auto_pets.models.Sprite
 
-class BattleController(val battle: Battle = Battle() ) {
+class BattleController(val battle: Battle = Battle()) {
 
-    fun startBattle(): List<AttackEvent> {
-        // Store each attack in a list
-        val events = mutableListOf<AttackEvent>()
-
-        println("Battle starts!")
-
-        // This while loop finishes instantly, building up all attacks in 'events'.
-        while (battle.playerA.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
-            && battle.playerB.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }) {
-
-            val spriteA = battle.playerA.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
-            val spriteB = battle.playerB.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
-
-            if (spriteA == null || spriteB == null) break
-
-            val oldAHp = spriteA.health
-            val oldBHp = spriteB.health
-
-            // Attack: spriteA hits spriteB, spriteB hits spriteA
-            spriteB.health -= spriteA.attack
-            spriteA.health -= spriteB.attack
-
-            // Figure out who died
-            val diedList = mutableListOf<Sprite>()
-            if (spriteA.health <= 0) diedList.add(spriteA)
-            if (spriteB.health <= 0) diedList.add(spriteB)
-
-            removeDead(battle.playerA.team.teams)
-            removeDead(battle.playerB.team.teams)
-
-            // Record the event
-            val event = AttackEvent(
-                attacker = spriteA,
-                defender = spriteB,
-                oldAttackerHp = oldAHp,
-                oldDefenderHp = oldBHp,
-                newAttackerHp = spriteA.health,
-                newDefenderHp = spriteB.health,
-                diedSprites = diedList
-            )
-            events.add(event)
+    fun nextAttackStep(): AttackEvent? {
+        // Check if both teams still have living sprites.
+        val teamALive = battle.playerA.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
+        val teamBLive = battle.playerB.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
+        if (!teamALive || !teamBLive) {
+            println("Battle is over.")
+            return null
         }
 
-        // After the loop, figure out final result
-        println("Battle result:")
-        val aliveA = battle.playerA.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
-        val aliveB = battle.playerB.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
-        when {
-            aliveA && !aliveB -> println("Team A wins!")
-            aliveB && !aliveA -> println("Team B wins!")
-            else -> println("Draw!")
-        }
+        // Choose the left team’s front fighter as the last alive
+        // and the right team’s front fighter as the first alive.
+        val spriteA = battle.playerA.team.teams.filterIsInstance<Sprite>().lastOrNull { it.health > 0 }
+        val spriteB = battle.playerB.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
+        if (spriteA == null || spriteB == null) return null
 
-        return events
+        // Capture health before attack.
+        val oldAHp = spriteA.health
+        val oldBHp = spriteB.health
+
+        // Simulate the attack.
+        spriteB.health -= spriteA.attack
+        spriteA.health -= spriteB.attack
+
+        // Identify which sprites died in this round.
+        val diedList = mutableListOf<Sprite>()
+        if (spriteA.health <= 0) diedList.add(spriteA)
+        if (spriteB.health <= 0) diedList.add(spriteB)
+
+        // Remove dead sprites from each team.
+        removeDead(battle.playerA.team.teams)
+        removeDead(battle.playerB.team.teams)
+
+        // Create and return the AttackEvent for this step.
+        return AttackEvent(
+            attacker = spriteA,
+            defender = spriteB,
+            oldAttackerHp = oldAHp,
+            oldDefenderHp = oldBHp,
+            newAttackerHp = spriteA.health,
+            newDefenderHp = spriteB.health,
+            diedSprites = diedList
+        )
     }
 
-    // The old removeDead
     private fun removeDead(team: MutableList<GameUnit>) {
         val deadSprites = team.filterIsInstance<Sprite>().filter { it.health <= 0 }
         team.removeAll(deadSprites)
@@ -73,10 +60,10 @@ class BattleController(val battle: Battle = Battle() ) {
         }
     }
 
-    // You can keep this if you need to do a single Attack outside startBattle
     fun attack(sprite1: Sprite, sprite2: Sprite) {
         println("${sprite1.name} attacks ${sprite2.name}!")
         sprite2.health -= sprite1.attack
         sprite1.health -= sprite2.attack
     }
 }
+

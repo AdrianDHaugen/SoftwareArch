@@ -25,7 +25,7 @@ fun main() {
 
     // Start battle
     val battle = BattleController()
-    battle.startBattle()
+    battle.nextAttackStep()
 }
 
 fun handleTurn(name: String, player: Player, controller: PlayerController) {
