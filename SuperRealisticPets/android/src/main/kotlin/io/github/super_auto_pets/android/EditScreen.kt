@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Image
@@ -12,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.FitViewport
@@ -25,6 +27,7 @@ class EditScreen (private val game: Main) : Screen {
     private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
     private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
+    private val dragAndDrop = DragAndDrop()
 
     //Textures
     private val statBackground = TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("statbackground.png"))))
@@ -35,7 +38,7 @@ class EditScreen (private val game: Main) : Screen {
 
     override fun show() {
 
-        val boxSize = 200f
+        val boxSize = 150f
 
 
         // Input goes to our stage so buttons can be clicked
@@ -43,7 +46,7 @@ class EditScreen (private val game: Main) : Screen {
         Gdx.app.log("DEBUG", "File exists? " + Gdx.files.internal("uiskin.json").exists())
 
         // --- Background ---
-        val bgTexture = Texture(Gdx.files.internal("edit_bg.png"))
+        val bgTexture = Texture(Gdx.files.internal("editorbackground.png"))
         val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
@@ -54,7 +57,7 @@ class EditScreen (private val game: Main) : Screen {
         root.setFillParent(true)
         stage.addActor(root)
 
-// === Mini Table to hold heart + label ===
+// === Mini Table to hold stats ===
         val miniTable = Table()
         miniTable.left().top()
 
@@ -111,27 +114,61 @@ class EditScreen (private val game: Main) : Screen {
         buttonTable.setFillParent(true)
 
 // Load a sample texture
-        val unitTexture = Texture(Gdx.files.internal("bird-1-base-nb.PNG")) // or from an atlas
-        val unitDrawable = TextureRegionDrawable(TextureRegion(unitTexture))
+        val birdDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("bird-1-base-nb.PNG"))) // or from an atlas
+        val catDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("cat-1-base-nb.PNG")))
+        val emptyDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("empty.png")))
+
 
 // === Unit Table ===
         val unitTable = Table()
-        //unitTable.debug()
-        unitTable.setPosition(850f,700f)
+        unitTable.setPosition(850f, 490f)
 
 // Create 4 unit boxes
-        for (i in 1..5) {
+        for (i in 1..4) {
             val box = Table()
-            //box.debug()
-            box.background = skin.getDrawable("default-window") // Box style
+            box.background = skin.getDrawable("default-window")
 
-            // Create an image using the unit sprite
-            val unitImage = Image(unitDrawable)
-            unitImage.setScaling(Scaling.fit) // Scale to fit inside the box
-            box.add(unitImage).width(boxSize).height(boxSize).pad(10f)
+            // Important: Add a placeholder or empty container to make the drop area visible
+            // This gives the box initial content that can be replaced
+            val placeholder = Container<Image>(Image(emptyDrawable))
+            placeholder.background = skin.getDrawable("default-pane-noborder")
+            box.add(placeholder).width(boxSize - 20f).height(boxSize - 20f)
 
             // Add box to the row
             unitTable.add(box).width(boxSize).height(boxSize).padRight(20f)
+
+            // Drag target setup - IMPORTANT: target must be the box itself
+            dragAndDrop.addTarget(object : DragAndDrop.Target(box) {
+                override fun drag(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int): Boolean {
+                    // Add visual feedback during drag-over
+                    box.background = skin.getDrawable("default-select")
+                    Gdx.app.log("DEBUG","drag")
+                    return true
+                }
+
+                override fun drop(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int) {
+                    // Reset background
+                    box.background = skin.getDrawable("default-window")
+
+                    // Clear existing content
+                    box.clearChildren()
+
+                    // Extract the drawable from the payload
+                    val drawable = payload?.`object` as? TextureRegionDrawable
+                    Gdx.app.log("DEBUG","TEST DROP")
+                    if (drawable != null) {
+                        val newImage = Image(drawable)
+                        newImage.setScaling(Scaling.fit)
+                        box.add(newImage).width(boxSize - 20f).height(boxSize - 20f)
+                        Gdx.app.log("DEBUG","drawable = Null")
+                    }
+                }
+
+                override fun reset(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?) {
+                    // Reset background if drag is canceled
+                    box.background = skin.getDrawable("default-window")
+                }
+            })
         }
 
 // Place unitTable in a container for better control
@@ -143,7 +180,7 @@ class EditScreen (private val game: Main) : Screen {
 // Create table for items
         val itemTable = Table()
         //itemTable.debug()
-        itemTable.setPosition(1600f,200f)
+        itemTable.setPosition(1250f,240f)
         itemTable.pad(10f)
 
         // Create 4 unit boxes
@@ -153,7 +190,7 @@ class EditScreen (private val game: Main) : Screen {
             box.background = skin.getDrawable("default-window") // Box style
 
             // Create an image using the unit sprite
-            val unitImage = Image(unitDrawable)
+            val unitImage = Image(birdDrawable)
             unitImage.setScaling(Scaling.fit) // Scale to fit inside the box
             box.add(unitImage).width(boxSize).height(boxSize).pad(20f)
 
@@ -161,7 +198,7 @@ class EditScreen (private val game: Main) : Screen {
             itemTable.add(box).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
         }
 
-// Place unitTable in a container for better control
+        // Place shopUnitTable in a container for better control
         val shopUnitContainer = Container(unitTable)
         shopUnitContainer.setSize(320f, 320f)
         shopUnitContainer.setPosition(50f, 200f) // position it wherever you want
@@ -170,7 +207,7 @@ class EditScreen (private val game: Main) : Screen {
 
         val shopUnitTable = Table()
         //shopUnitTable.debug()
-        shopUnitTable.setPosition(650f,200f)
+        shopUnitTable.setPosition(500f,240f)
 
         val rerollBtn = TextButton("reroll", skin)
         rerollBtn.label.setFontScale(2f)
@@ -188,14 +225,36 @@ class EditScreen (private val game: Main) : Screen {
             box.background = skin.getDrawable("default-window") // Box style
 
             // Create an image using the unit sprite
-            val unitImage = Image(unitDrawable)
+            val unitImage = Image(birdDrawable)
             unitImage.setScaling(Scaling.fit) // Scale to fit inside the box
             box.add(unitImage).width(boxSize).height(boxSize).pad(20f)
 
             // Add box to the row
             shopUnitTable.add(box).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
-        }
 
+// In your shop unit boxes section:
+            dragAndDrop.addSource(object : DragAndDrop.Source(unitImage) {
+                override fun dragStart(event: InputEvent?, x: Float, y: Float, pointer: Int): DragAndDrop.Payload {
+                    val payload = DragAndDrop.Payload()
+                    val dragActor = Image(unitImage.drawable)
+                    dragActor.setSize(boxSize, boxSize)
+                    payload.dragActor = dragActor
+
+                    // Make sure to properly set the object
+                    payload.`object` = unitImage.drawable
+
+                    // Optional: Add visual feedback that item is being dragged
+                    unitImage.color.a = 0.5f
+                    Gdx.app.log("DEBUG", "TEST")
+                    return payload
+                }
+
+                override fun dragStop(event: InputEvent?, x: Float, y: Float, pointer: Int, payload: DragAndDrop.Payload?, target: DragAndDrop.Target?) {
+                    // Reset opacity after drag
+                    unitImage.color.a = 1f
+                }
+            })
+        }
 
 
 // Create button for starting the battle
