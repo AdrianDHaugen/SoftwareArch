@@ -4,7 +4,7 @@ import io.github.super_auto_pets.interfaces.GameUnit
 import io.github.super_auto_pets.models.Battle
 import io.github.super_auto_pets.models.Sprite
 
-class BattleController(private val battle: Battle = Battle() ) {
+class BattleController(var battle: Battle = Battle() ) {
 
     fun startBattle() {
         println(" Battle starts!")

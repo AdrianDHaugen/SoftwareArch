@@ -3,6 +3,7 @@ package io.github.super_auto_pets.main
 import com.badlogic.gdx.ApplicationAdapter
 import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.controller.PlayerController
+import io.github.super_auto_pets.models.Battle
 import io.github.super_auto_pets.models.Player
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms. */
@@ -23,9 +24,14 @@ fun main() {
     handleTurn("Player A", playerA, playerAController)
     handleTurn("Player B", playerB, playerBController)
 
+    val battle = Battle()
+    battle.playerA = playerA
+    battle.playerB = playerB
+
     // Start battle
-    val battle = BattleController()
-    battle.startBattle()
+    val battleController = BattleController()
+    battleController.battle = battle
+    battleController.startBattle()
 }
 
 fun handleTurn(name: String, player: Player, controller: PlayerController) {
@@ -36,12 +42,12 @@ fun handleTurn(name: String, player: Player, controller: PlayerController) {
 
         println("Team:")
         for (i in player.team.teams.indices) {
-            println(" ${player.team.teams[i]}")
+            println(" ${player.team.teams[i].toString()}")
         }
 
         println("Shop:")
         for (i in player.shop.slots.indices) {
-            println(" ${player.shop.slots[i].name}")
+            println(" ${player.shop.slots[i].toString()}")
         }
 
         println("Shop frozen: ${player.shop.frozenUnits}")
