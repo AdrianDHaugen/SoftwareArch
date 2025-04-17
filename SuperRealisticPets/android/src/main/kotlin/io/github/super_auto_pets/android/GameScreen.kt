@@ -19,6 +19,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
 import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
+import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.scenes.scene2d.Action
+
 
 class GameScreen(private val game: Main) : Screen {
 
@@ -140,19 +143,23 @@ class GameScreen(private val game: Main) : Screen {
         battleFieldTable.row()
     }
     //think this needs to be changed when connecting to the shop
+    private val texCache = mutableMapOf<String, Texture>()
+
     private fun createPetImage(sprite: Sprite): Image {
-        val textureFile = when (sprite.name) {
-            "cat" -> "cat-1-base-nb.PNG"
-            "dog" -> "dog-1-base-nb.PNG"
-            "bird"  -> "bird-1-base-nb.PNG"
+        val file = when (sprite.name) {
+            "cat"  -> "cat-1-base-nb.PNG"
+            "dog"  -> "dog-1-base-nb.PNG"
+            "bird" -> "bird-1-base-nb.PNG"
             "fish" -> "fish-1-base-nb.PNG"
-            else -> {"heart.png"}
+            else   -> "heart.png"
         }
-        val tex = Texture(Gdx.files.internal(textureFile))
-        val img = Image(TextureRegionDrawable(TextureRegion(tex)))
-        img.setSize(150f, 150f)
-        img.userObject = sprite
-        return img
+        val tex = texCache.getOrPut(file) {
+            Texture(Gdx.files.internal(file))
+        }
+        return Image(TextureRegionDrawable(TextureRegion(tex))).apply {
+            setSize(150f, 150f)
+            userObject = sprite
+        }
     }
 
     /**
@@ -160,39 +167,64 @@ class GameScreen(private val game: Main) : Screen {
      * Processes one battle step.
      */
     private fun performBattleStep() {
+        // 1) disable the button so user can’t spam clicks
+        nextAttackButton.isDisabled = true
+
+        // 2) run one combat step
         val event = battleController.nextAttackStep()
         if (event == null) {
+            // battle’s over, leave the button disabled
             println("Battle is over!")
-            nextAttackButton.isDisabled = true
             return
-            }
-        // Animate the attacker and defender.
+        }
+
+        // find the actors
         val attackerActor = findUIActorFor(event.attacker)
         val defenderActor = findUIActorFor(event.defender)
-        val attackerAction = Actions.sequence(
-            Actions.moveBy(100f, 0f, 0.25f),
-            Actions.sequence(
-                Actions.color(Color.RED, 0.3f),
-                Actions.color(Color.WHITE, 0.3f)
-            ),
-            Actions.moveBy(-100f, 0f, 0.25f)
-        )
-        val defenderAction = Actions.sequence(
-            Actions.moveBy(-100f, 0f, 0.25f),
-            Actions.sequence(
-                Actions.color(Color.RED, 0.3f),
-                Actions.color(Color.WHITE, 0.3f)
-            ),
-            Actions.moveBy(100f, 0f, 0.25f)
-        )
-        attackerActor?.addAction(attackerAction)
-        defenderActor?.addAction(defenderAction)
 
-        // After animations finish, update the UI.
+        // timing params
+        val moveDist = 100f
+        val moveDur  = 0.3f
+        val flashDur = 0.2f
+        val fadeDur  = 0.5f
+
+        // your wiggle + fade sequences
+        val atkSeq = Actions.sequence(
+            Actions.moveBy( moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.color( Color.RED,   flashDur, Interpolation.fade),
+            Actions.color( Color.WHITE, flashDur, Interpolation.fade),
+            Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine)
+        )
+        val defSeq = Actions.sequence(
+            Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.color( Color.RED,   flashDur, Interpolation.fade),
+            Actions.color( Color.WHITE, flashDur, Interpolation.fade),
+            Actions.moveBy( moveDist, 0f, moveDur, Interpolation.sine)
+        )
+
+        // wrap with fadeOut if that sprite died
+        fun wrapWithFade(base: com.badlogic.gdx.scenes.scene2d.Action, died: Boolean) =
+            if (died) Actions.sequence(base, Actions.fadeOut(fadeDur)) else base
+
+        attackerActor?.addAction(wrapWithFade(atkSeq, event.diedSprites.contains(event.attacker)))
+        defenderActor?.addAction(wrapWithFade(defSeq, event.diedSprites.contains(event.defender)))
+
+        // 3) after everything (wiggle + flash + fade) finish, rebuild UI and re‑enable if battle still goes on
+        val totalTime = moveDur*2 + flashDur*2 + fadeDur
         stage.addAction(
             Actions.sequence(
-                Actions.delay(1.0f),
-                Actions.run { refreshBattleFieldUI() }
+                Actions.delay(totalTime),
+                Actions.run {
+                    refreshBattleFieldUI()
+
+                    // only re‑enable if both sides still have a fighter
+                    val leftAlive = battleController.battle.playerA.team.teams
+                        .filterIsInstance<Sprite>().any { it.health > 0 }
+                    val rightAlive = battleController.battle.playerB.team.teams
+                        .filterIsInstance<Sprite>().any { it.health > 0 }
+
+                    nextAttackButton.isDisabled = !(leftAlive && rightAlive)
+                }
             )
         )
     }
