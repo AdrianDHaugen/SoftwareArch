@@ -39,6 +39,8 @@ class GameScreen(private val game: Main) : Screen {
     //For testing, should be removed
     private lateinit var battleController: BattleController
 
+    private val cellPositions = mutableListOf<Pair<Float,Float>>()
+
     // Nine-slot array for the battle field.
     private val battleFieldActors: MutableList<Image?> = MutableList(9) { null }
     private lateinit var battleFieldTable: Table
@@ -50,6 +52,16 @@ class GameScreen(private val game: Main) : Screen {
         stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()))
         skin = Skin(Gdx.files.internal("uiskin.json"))
         Gdx.input.inputProcessor = stage
+
+        // --- compute the 9 “slots” in a row ---
+        val cellW = stage.viewport.worldWidth / 9f
+        // pick a Y that centers your 150×150 images vertically:
+        val cellY = stage.viewport.worldHeight/2f - 75f
+        for (i in 0 until 9) {
+            // center each 150px image in its cell
+            val x = i*cellW + (cellW - 150f)/2
+            cellPositions.add(x to cellY)
+        }
 
         // Background
         val bgTexture = Texture(Gdx.files.internal("battle_bg.png"))
@@ -113,35 +125,33 @@ class GameScreen(private val game: Main) : Screen {
      * Slot 4 remains empty.
      */
     private fun refreshBattleFieldUI() {
-        for (i in 0 until 9) {
-            battleFieldActors[i] = null
-        }
+        // wipe out any old Images
+        battleFieldActors.forEach { it?.remove() }
+        battleFieldActors.clear()
 
-        val teamLeft = battleController.battle.playerA.team.teams.filterIsInstance<Sprite>()
-        for (i in teamLeft.indices) {
-            if (i > 3) break
-            val battleIndex = 3 - i
-            battleFieldActors[battleIndex] = createPetImage(teamLeft[i])
-        }
-
+        // pull from your controller exactly the same way…
+        val teamLeft  = battleController.battle.playerA.team.teams.filterIsInstance<Sprite>()
         val teamRight = battleController.battle.playerB.team.teams.filterIsInstance<Sprite>()
-        for (i in teamRight.indices) {
-            if (i > 3) break
-            val battleIndex = 5 + i
-            battleFieldActors[battleIndex] = createPetImage(teamRight[i])
-        }
 
-        battleFieldTable.clearChildren()
-        val cellWidth = stage.viewport.worldWidth / 9f
-        for (i in 0 until 9) {
-            if (battleFieldActors[i] != null) {
-                battleFieldTable.add(battleFieldActors[i]).size(150f, 150f).pad(10f)
+        // build a 9‑slot list of Sprites (or null)
+        val slots = MutableList<Sprite?>(9) { null }
+        teamLeft .take(4).forEachIndexed { i, s -> slots[3 - i] = s }
+        teamRight.take(4).forEachIndexed { i, s -> slots[5 + i] = s }
+
+        // now place each Sprite’s Image at the precalculated x,y
+        slots.forEachIndexed { idx, sprite ->
+            if (sprite != null) {
+                val img = createPetImage(sprite)
+                val (x,y) = cellPositions[idx]
+                img.setPosition(x, y)
+                stage.addActor(img)
+                battleFieldActors.add(img)
             } else {
-                battleFieldTable.add().width(cellWidth).height(220f).pad(10f)
+                battleFieldActors.add(null)
             }
         }
-        battleFieldTable.row()
     }
+
     //think this needs to be changed when connecting to the shop
     private val texCache = mutableMapOf<String, Texture>()
 
@@ -167,67 +177,103 @@ class GameScreen(private val game: Main) : Screen {
      * Processes one battle step.
      */
     private fun performBattleStep() {
-        // 1) disable the button so user can’t spam clicks
+        // 1) Disable the button to prevent spamming
         nextAttackButton.isDisabled = true
 
-        // 2) run one combat step
+        // 2) Process one battle step
         val event = battleController.nextAttackStep()
         if (event == null) {
-            // battle’s over, leave the button disabled
             println("Battle is over!")
             return
         }
 
-        // find the actors
+        // 3) Find UI actors for attacker/defender
         val attackerActor = findUIActorFor(event.attacker)
         val defenderActor = findUIActorFor(event.defender)
 
-        // timing params
+        // 4) Timing parameters
         val moveDist = 100f
         val moveDur  = 0.3f
         val flashDur = 0.2f
         val fadeDur  = 0.5f
 
-        // your wiggle + fade sequences
-        val atkSeq = Actions.sequence(
-            Actions.moveBy( moveDist, 0f, moveDur, Interpolation.sine),
-            Actions.color( Color.RED,   flashDur, Interpolation.fade),
-            Actions.color( Color.WHITE, flashDur, Interpolation.fade),
+        // 5) Build wiggle sequences
+        val baseSeq = Actions.sequence(
+            Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.color(Color.RED,   flashDur, Interpolation.fade),
+            Actions.color(Color.WHITE, flashDur, Interpolation.fade),
             Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine)
         )
-        val defSeq = Actions.sequence(
+        val revSeq = Actions.sequence(
             Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine),
-            Actions.color( Color.RED,   flashDur, Interpolation.fade),
-            Actions.color( Color.WHITE, flashDur, Interpolation.fade),
-            Actions.moveBy( moveDist, 0f, moveDur, Interpolation.sine)
+            Actions.color(Color.RED,   flashDur, Interpolation.fade),
+            Actions.color(Color.WHITE, flashDur, Interpolation.fade),
+            Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine)
         )
 
-        // wrap with fadeOut if that sprite died
-        fun wrapWithFade(base: com.badlogic.gdx.scenes.scene2d.Action, died: Boolean) =
-            if (died) Actions.sequence(base, Actions.fadeOut(fadeDur)) else base
+        // 6) Helper to append fade-out if the sprite died this round
+        fun wrapWithFade(seq: com.badlogic.gdx.scenes.scene2d.Action, died: Boolean) =
+            if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
 
-        attackerActor?.addAction(wrapWithFade(atkSeq, event.diedSprites.contains(event.attacker)))
-        defenderActor?.addAction(wrapWithFade(defSeq, event.diedSprites.contains(event.defender)))
+        // 7) Apply actions
+        attackerActor?.addAction(wrapWithFade(baseSeq, event.diedSprites.contains(event.attacker)))
+        defenderActor?.addAction(wrapWithFade(revSeq,  event.diedSprites.contains(event.defender)))
 
-        // 3) after everything (wiggle + flash + fade) finish, rebuild UI and re‑enable if battle still goes on
+        // 8) Schedule post-animation updates
         val totalTime = moveDur*2 + flashDur*2 + fadeDur
         stage.addAction(
             Actions.sequence(
                 Actions.delay(totalTime),
                 Actions.run {
-                    refreshBattleFieldUI()
+                    // 8a) Remove dead actors
+                    event.diedSprites.forEach { dead ->
+                        findUIActorFor(dead)?.remove()
+                    }
 
-                    // only re‑enable if both sides still have a fighter
+                    // 8b) Slide survivors into their new slots
+                    val moveTime = 0.5f
+                    // Left team: slots 3→2→1→0
+                    battleController.battle.playerA.team.teams
+                        .filterIsInstance<Sprite>()
+                        .take(4)
+                        .forEachIndexed { i, sprite ->
+                            val targetSlot = 3 - i
+                            findUIActorFor(sprite)?.addAction(
+                                Actions.moveTo(
+                                    cellPositions[targetSlot].first,
+                                    cellPositions[targetSlot].second,
+                                    moveTime,
+                                    Interpolation.sine
+                                )
+                            )
+                        }
+                    // Right team: slots 5→6→7→8
+                    battleController.battle.playerB.team.teams
+                        .filterIsInstance<Sprite>()
+                        .take(4)
+                        .forEachIndexed { i, sprite ->
+                            val targetSlot = 5 + i
+                            findUIActorFor(sprite)?.addAction(
+                                Actions.moveTo(
+                                    cellPositions[targetSlot].first,
+                                    cellPositions[targetSlot].second,
+                                    moveTime,
+                                    Interpolation.sine
+                                )
+                            )
+                        }
+
+                    // 8c) Re-enable button if the battle still has fighters
                     val leftAlive = battleController.battle.playerA.team.teams
                         .filterIsInstance<Sprite>().any { it.health > 0 }
                     val rightAlive = battleController.battle.playerB.team.teams
                         .filterIsInstance<Sprite>().any { it.health > 0 }
-
                     nextAttackButton.isDisabled = !(leftAlive && rightAlive)
                 }
             )
         )
     }
+
 
     /**
      * Finds the UI actor associated with a given sprite.
