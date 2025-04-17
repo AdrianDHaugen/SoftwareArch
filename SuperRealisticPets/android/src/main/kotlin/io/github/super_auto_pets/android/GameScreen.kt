@@ -6,12 +6,15 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
 import io.github.super_auto_pets.controller.BattleController
@@ -19,12 +22,21 @@ import io.github.super_auto_pets.models.Sprite
 
 class GameScreen(private val game: Main) : Screen {
 
+    /**
+    class GameScreen(
+}
+            private val game: Main,
+            private val battleController: BattleController
+        ) : Screen {
+    */
+
     private lateinit var stage: Stage
     private lateinit var skin: Skin
 
+    //For testing, should be removed
     private lateinit var battleController: BattleController
 
-    // We’ll continue to use the nine-slot array for your battle field.
+    // Nine-slot array for the battle field.
     private val battleFieldActors: MutableList<Image?> = MutableList(9) { null }
     private lateinit var battleFieldTable: Table
 
@@ -42,7 +54,7 @@ class GameScreen(private val game: Main) : Screen {
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
 
-        // Initialize battle scenario
+        // Initialize battle scenario, remove when connecting to shop stage
         battleController = createTestBattle()
 
         // Set up battle field table (9 fixed cells)
@@ -58,14 +70,14 @@ class GameScreen(private val game: Main) : Screen {
         // Populate initial UI based on the current model state.
         refreshBattleFieldUI()
 
-        // Add a Next Attack button (positioned at, say, the bottom center)
+        // Add a Next Attack button
         nextAttackButton = TextButton("Next Attack", skin)
         nextAttackButton.addListener(object : com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent, x: Float, y: Float) {
                 performBattleStep()
             }
         })
-        // Add the button to the stage (using a simple table for layout)
+        // Add the button to the stage
         val buttonTable = Table(skin)
         buttonTable.setFillParent(true)
         buttonTable.bottom().center()
@@ -127,12 +139,14 @@ class GameScreen(private val game: Main) : Screen {
         }
         battleFieldTable.row()
     }
-
+    //think this needs to be changed when connecting to the shop
     private fun createPetImage(sprite: Sprite): Image {
         val textureFile = when (sprite.name) {
             "cat" -> "cat-1-base-nb.PNG"
             "dog" -> "dog-1-base-nb.PNG"
-            else  -> "bird-1-base-nb.PNG"
+            "bird"  -> "bird-1-base-nb.PNG"
+            "fish" -> "fish-1-base-nb.PNG"
+            else -> {"heart.png"}
         }
         val tex = Texture(Gdx.files.internal(textureFile))
         val img = Image(TextureRegionDrawable(TextureRegion(tex)))
@@ -151,7 +165,7 @@ class GameScreen(private val game: Main) : Screen {
             println("Battle is over!")
             nextAttackButton.isDisabled = true
             return
-        }
+            }
         // Animate the attacker and defender.
         val attackerActor = findUIActorFor(event.attacker)
         val defenderActor = findUIActorFor(event.defender)
@@ -191,7 +205,7 @@ class GameScreen(private val game: Main) : Screen {
     }
 
     /**
-     * A minimal test scenario: each team gets up to four sprites.
+     * A minimal test scenario: each team gets up to four sprites. Remove
      */
     private fun createTestBattle(): BattleController {
         val bc = BattleController()
@@ -199,16 +213,16 @@ class GameScreen(private val game: Main) : Screen {
         // Team Left (playerA) – shop order is 0..3; assign in reverse.
         val catA = Sprite().apply { name = "cat"; health = 10; attack = 2 }
         val dogA = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val dogA2 = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val catA2 = Sprite().apply { name = "cat"; health = 5; attack = 2 }
-        bc.battle.playerA.team.teams.addAll(listOf(catA, dogA, dogA2, catA2))
+        val birdA = Sprite().apply { name = "bird"; health = 5; attack = 2 }
+        val fishA = Sprite().apply { name = "fish"; health = 5; attack = 2 }
+        bc.battle.playerA.team.teams.addAll(listOf(catA, dogA, birdA, fishA))
 
         // Team Right (playerB) – shop order 0..3; assignment is natural.
         val catB = Sprite().apply { name = "cat"; health = 10; attack = 3 }
         val dogB = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val dogB2 = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val catB2 = Sprite().apply { name = "cat"; health = 5; attack = 2 }
-        bc.battle.playerB.team.teams.addAll(listOf(catB, dogB, dogB2, catB2))
+        val birdB = Sprite().apply { name = "bird"; health = 5; attack = 2 }
+        val fishB = Sprite().apply { name = "fish"; health = 5; attack = 2 }
+        bc.battle.playerB.team.teams.addAll(listOf(catB, dogB, birdB, fishB))
 
         return bc
     }

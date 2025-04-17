@@ -17,7 +17,7 @@ class BattleController(val battle: Battle = Battle()) {
 
         // Choose the left team’s front fighter as the last alive
         // and the right team’s front fighter as the first alive.
-        val spriteA = battle.playerA.team.teams.filterIsInstance<Sprite>().lastOrNull { it.health > 0 }
+        val spriteA = battle.playerA.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
         val spriteB = battle.playerB.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
         if (spriteA == null || spriteB == null) return null
 
