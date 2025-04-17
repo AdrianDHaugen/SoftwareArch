@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.FitViewport
@@ -28,6 +29,10 @@ class EditScreen (private val game: Main) : Screen {
     private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
     private val dragAndDrop = DragAndDrop()
+    data class DragPayload(
+        val drawable: Drawable,
+        val sourceBox: Table
+    )
 
     //Textures
     private val statBackground = TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("statbackground.png"))))
@@ -146,6 +151,7 @@ class EditScreen (private val game: Main) : Screen {
                     return true
                 }
 
+                // Then in your target's drop method:
                 override fun drop(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int) {
                     // Reset background
                     box.background = skin.getDrawable("default-window")
@@ -153,14 +159,19 @@ class EditScreen (private val game: Main) : Screen {
                     // Clear existing content
                     box.clearChildren()
 
-                    // Extract the drawable from the payload
-                    val drawable = payload?.`object` as? TextureRegionDrawable
-                    Gdx.app.log("DEBUG","TEST DROP")
-                    if (drawable != null) {
-                        val newImage = Image(drawable)
+                    // Extract the payload
+                    val dragPayload = payload?.`object` as? DragPayload
+                    if (dragPayload != null) {
+                        // Create new image in target
+                        val newImage = Image(dragPayload.drawable)
                         newImage.setScaling(Scaling.fit)
                         box.add(newImage).width(boxSize - 20f).height(boxSize - 20f)
-                        Gdx.app.log("DEBUG","drawable = Null")
+
+                        // Clear the source box and add empty placeholder
+                        dragPayload.sourceBox.clearChildren()
+                        val placeholder = Container<Image>(Image(emptyDrawable))
+                        placeholder.background = skin.getDrawable("default-pane-noborder")
+                        dragPayload.sourceBox.add(placeholder).width(boxSize - 20f).height(boxSize - 20f)
                     }
                 }
 
@@ -240,12 +251,11 @@ class EditScreen (private val game: Main) : Screen {
                     dragActor.setSize(boxSize, boxSize)
                     payload.dragActor = dragActor
 
-                    // Make sure to properly set the object
-                    payload.`object` = unitImage.drawable
+                    // Create our custom payload with source information
+                    payload.`object` = DragPayload(unitImage.drawable, box)
 
-                    // Optional: Add visual feedback that item is being dragged
+                    // Visual feedback during drag
                     unitImage.color.a = 0.5f
-                    Gdx.app.log("DEBUG", "TEST")
                     return payload
                 }
 
