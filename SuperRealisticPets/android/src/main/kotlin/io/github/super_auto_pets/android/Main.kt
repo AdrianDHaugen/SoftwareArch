@@ -19,7 +19,7 @@ class Main : Game() {
     }
 
     override fun render() {
-        Gdx.gl.glClearColor(0.192f, 0.341f, 0.659f, 1f)
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         super.render()  // This renders the current screen
     }

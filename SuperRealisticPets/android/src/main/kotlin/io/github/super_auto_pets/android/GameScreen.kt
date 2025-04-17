@@ -33,8 +33,14 @@ class GameScreen(private val game: Main) : Screen {
         ) : Screen {
     */
 
-    private lateinit var stage: Stage
-    private lateinit var skin: Skin
+    companion object {
+        private const val VIRTUAL_WIDTH = 1920f
+        private const val VIRTUAL_HEIGHT = 1080f
+    }
+
+    private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+    private val stage = Stage(viewport)
+    private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
     //For testing, should be removed
     private lateinit var battleController: BattleController
@@ -49,8 +55,6 @@ class GameScreen(private val game: Main) : Screen {
     private lateinit var nextAttackButton: TextButton
 
     override fun show() {
-        stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()))
-        skin = Skin(Gdx.files.internal("uiskin.json"))
         Gdx.input.inputProcessor = stage
 
         // --- compute the 9 “slots” in a row ---
@@ -167,7 +171,7 @@ class GameScreen(private val game: Main) : Screen {
             Texture(Gdx.files.internal(file))
         }
         return Image(TextureRegionDrawable(TextureRegion(tex))).apply {
-            setSize(150f, 150f)
+            setSize(200f, 200f)
             userObject = sprite
         }
     }

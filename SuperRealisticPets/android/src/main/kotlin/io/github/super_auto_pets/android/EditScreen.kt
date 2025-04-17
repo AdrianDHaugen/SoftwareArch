@@ -17,7 +17,13 @@ import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.FitViewport
 
 class EditScreen (private val game: Main) : Screen {
-    private val stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()))
+    companion object {
+        private const val VIRTUAL_WIDTH = 1920f
+        private const val VIRTUAL_HEIGHT = 1080f
+    }
+
+    private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+    private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
     //Textures
