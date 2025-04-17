@@ -44,7 +44,10 @@ class EditScreen (private val game: Main) : Screen {
     // Load a sample texture
     val birdDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("bird-1-base-nb.PNG")))
     val catDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("cat-1-base-nb.PNG")))
+    val dogDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("dog-1-base-nb.PNG")))
     val emptyDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("empty.png")))
+
+    val animalTextures = listOf(birdDrawable, catDrawable,dogDrawable)
 
     // Create a target that allows unit boxes to receive dragged units
     private fun createUnitBoxTarget(box: Table, boxSize: Float, emptyDrawable: TextureRegionDrawable, skin: Skin): DragAndDrop.Target {
@@ -172,6 +175,40 @@ class EditScreen (private val game: Main) : Screen {
         }
     }
 
+    private fun rerollShop(shopTable: Table, boxSize: Float) {
+        shopTable.clearChildren()
+
+        repeat(4) { // or however many shop slots you want
+            val shopBox = Table()
+            shopBox.background = skin.getDrawable("default-window")
+
+            val animalDrawable = animalTextures.random()
+            val image = Image(animalDrawable)
+            image.setScaling(Scaling.fit)
+
+            shopBox.add(image).width(boxSize - 20f).height(boxSize - 20f)
+            shopTable.add(shopBox).width(boxSize).height(boxSize).padRight(20f)
+
+            // Register drag source for shop box
+            dragAndDrop.addSource(object : DragAndDrop.Source(image) {
+                override fun dragStart(event: InputEvent?, x: Float, y: Float, pointer: Int): DragAndDrop.Payload {
+                    val payload = DragAndDrop.Payload()
+                    val dragActor = Image(image.drawable)
+                    dragActor.setSize(boxSize, boxSize)
+                    payload.dragActor = dragActor
+                    payload.`object` = DragPayload(animalDrawable, shopBox)
+                    image.color.a = 0.5f
+                    return payload
+                }
+
+                override fun dragStop(event: InputEvent?, x: Float, y: Float, pointer: Int, payload: DragAndDrop.Payload?, target: DragAndDrop.Target?) {
+                    image.color.a = 1f
+                }
+            })
+        }
+    }
+
+
     override fun show() {
         val boxSize = 150f
 
@@ -297,17 +334,7 @@ class EditScreen (private val game: Main) : Screen {
 
         // Shop Unit Table
         val shopUnitTable = Table()
-        shopUnitTable.setPosition(500f, 240f)
-
-        // Reroll button
-        val rerollBtn = TextButton("reroll", skin)
-        rerollBtn.label.setFontScale(2f)
-        rerollBtn.addListener(object : ClickListener() {
-            override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                // TODO: Implement reroll functionality
-            }
-        })
-        shopUnitTable.add(rerollBtn).width(boxSize).height(boxSize).pad(20f)
+        shopUnitTable.setPosition(630f, 240f)
 
         // Create shop unit boxes
         for (i in 1..4) {
@@ -345,6 +372,19 @@ class EditScreen (private val game: Main) : Screen {
             })
         }
 
+        val rerollTable = Table()
+        rerollTable.setPosition(150f,230f)
+
+        // Reroll button
+        val rerollBtn = TextButton("reroll", skin)
+        rerollBtn.label.setFontScale(2f)
+        rerollBtn.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                rerollShop(shopUnitTable,boxSize)
+            }
+        })
+        rerollTable.add(rerollBtn).width(boxSize).height(boxSize).pad(30f)
+
         // Create button for starting the battle
         val startBattleBtn = TextButton("Start Battle", skin)
         startBattleBtn.label.setFontScale(4f)
@@ -361,6 +401,7 @@ class EditScreen (private val game: Main) : Screen {
         stage.addActor(unitTable)
         stage.addActor(itemTable)
         stage.addActor(shopUnitTable)
+        stage.addActor(rerollTable)
     }
 
     override fun render(delta: Float) {
