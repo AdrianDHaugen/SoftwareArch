@@ -36,12 +36,12 @@ fun handleTurn(name: String, player: Player, controller: PlayerController) {
 
         println("Team:")
         for (i in player.team.teams.indices) {
-            println(" ${player.team.teams[i]}")
+            println(" ${player.team.teams[i].toString()}")
         }
 
         println("Shop:")
         for (i in player.shop.slots.indices) {
-            println(" ${player.shop.slots[i].name}")
+            println(" ${player.shop.slots[i].toString()}")
         }
 
         println("Shop frozen: ${player.shop.frozenUnits}")
