@@ -3,7 +3,6 @@ package io.github.super_auto_pets.main
 import com.badlogic.gdx.ApplicationAdapter
 import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.controller.PlayerController
-import io.github.super_auto_pets.models.Battle
 import io.github.super_auto_pets.models.Player
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms. */
@@ -24,14 +23,9 @@ fun main() {
     handleTurn("Player A", playerA, playerAController)
     handleTurn("Player B", playerB, playerBController)
 
-    val battle = Battle()
-    battle.playerA = playerA
-    battle.playerB = playerB
-
     // Start battle
-    val battleController = BattleController()
-    battleController.battle = battle
-    battleController.startBattle()
+    val battle = BattleController()
+    battle.nextAttackStep()
 }
 
 fun handleTurn(name: String, player: Player, controller: PlayerController) {
