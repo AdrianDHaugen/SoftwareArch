@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -18,6 +19,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.FitViewport
+import com.badlogic.gdx.scenes.scene2d.ui.Stack
+import com.badlogic.gdx.utils.Align
+
 
 class EditScreen (private val game: Main) : Screen {
     companion object {
@@ -36,31 +40,46 @@ class EditScreen (private val game: Main) : Screen {
 
     // Textures
     private val statBackground = TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("statbackground.png"))))
+    private val spriteFrame = TextureRegionDrawable(Texture(Gdx.files.internal("spriteframe.png")))
     private val heartIcon = Image(TextureRegion(Texture(Gdx.files.internal("heart.png"))))
     private val currencyIcon = Image(TextureRegion(Texture(Gdx.files.internal("coin.png"))))
     private val hourglassIcon = Image(TextureRegion(Texture(Gdx.files.internal("hourglass.png"))))
     private val trophyIcon = Image(TextureRegion(Texture(Gdx.files.internal("trophy.png"))))
 
     // Load a sample texture
-    val birdDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("bird-1-base-nb.PNG")))
-    val catDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("cat-1-base-nb.PNG")))
-    val dogDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("dog-1-base-nb.PNG")))
-    val emptyDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("empty.png")))
+    private val birdDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("bird-1-base-nb.PNG")))
+    private val catDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("cat-1-base-nb.PNG")))
+    private val dogDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("dog-1-base-nb.PNG")))
+    private val fishDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("fish-1-base-nb.PNG")))
+    private val emptyDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("empty.png")))
 
-    val animalTextures = listOf(birdDrawable, catDrawable,dogDrawable)
+    private val animalTextures = listOf(birdDrawable, catDrawable,dogDrawable,fishDrawable)
+
+    //Create buttons
+    val texture = Texture(Gdx.files.internal("rerollbtn.png"))
+    val drawable = TextureRegionDrawable(TextureRegion(texture))
+    val rerollBtn = ImageButton(drawable)
+
+
+
+    //Sizes
+    val boxSize = 180f
+    val spriteSize = 100f
 
     // Create a target that allows unit boxes to receive dragged units
     private fun createUnitBoxTarget(box: Table, boxSize: Float, emptyDrawable: TextureRegionDrawable, skin: Skin): DragAndDrop.Target {
         return object : DragAndDrop.Target(box) {
             override fun drag(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int): Boolean {
                 // Visual feedback during drag
-                box.background = skin.getDrawable("default-select")
+                //box.background = skin.getDrawable("default-select")
+                box.background = spriteFrame
                 return true
             }
 
             override fun drop(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int) {
                 // Reset background
-                box.background = skin.getDrawable("default-window")
+                //box.background = skin.getDrawable("default-window")
+                box.background = spriteFrame
 
                 // Get payload data
                 val dragPayload = payload?.`object` as? DragPayload
@@ -85,13 +104,13 @@ class EditScreen (private val game: Main) : Screen {
                         // Add dragged content to target box
                         val newImage = Image(dragPayload.drawable)
                         newImage.setScaling(Scaling.fit)
-                        box.add(newImage).width(boxSize - 20f).height(boxSize - 20f)
+                        box.add(newImage).width(spriteSize).height(spriteSize)
 
                         // If target had content, move it to source box
                         if (targetContent != null) {
                             val swappedImage = Image(targetContent)
                             swappedImage.setScaling(Scaling.fit)
-                            sourceBox.add(swappedImage).width(boxSize - 20f).height(boxSize - 20f)
+                            sourceBox.add(swappedImage).width(spriteSize).height(spriteSize)
                         } else {
                             // Otherwise add empty placeholder to source
                             val placeholder = Container<Image>(Image(emptyDrawable))
@@ -110,12 +129,12 @@ class EditScreen (private val game: Main) : Screen {
                         // Add dragged content
                         val newImage = Image(dragPayload.drawable)
                         newImage.setScaling(Scaling.fit)
-                        box.add(newImage).width(boxSize - 20f).height(boxSize - 20f)
+                        box.add(newImage).width(spriteSize).height(spriteSize)
 
                         // Clear source box (shop box) and add placeholder
                         sourceBox.clearChildren()
                         val placeholder = Container<Image>(Image(emptyDrawable))
-                        sourceBox.add(placeholder).width(boxSize - 20f).height(boxSize - 20f)
+                        sourceBox.add(placeholder).width(spriteSize).height(spriteSize)
 
                         // Re-register drag source for the unit box
                         setupDragSourceForUnitBox(box, boxSize)
@@ -124,7 +143,8 @@ class EditScreen (private val game: Main) : Screen {
             }
 
             override fun reset(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?) {
-                box.background = skin.getDrawable("default-window")
+                //box.background = skin.getDrawable("default-window")
+                box.background = spriteFrame
             }
         }
     }
@@ -180,13 +200,14 @@ class EditScreen (private val game: Main) : Screen {
 
         repeat(4) { // or however many shop slots you want
             val shopBox = Table()
-            shopBox.background = skin.getDrawable("default-window")
+            //shopBox.background = skin.getDrawable("default-window")
+            shopBox.background = spriteFrame
 
             val animalDrawable = animalTextures.random()
             val image = Image(animalDrawable)
             image.setScaling(Scaling.fit)
 
-            shopBox.add(image).width(boxSize - 20f).height(boxSize - 20f)
+            shopBox.add(image).width(spriteSize).height(spriteSize)
             shopTable.add(shopBox).width(boxSize).height(boxSize).padRight(20f)
 
             // Register drag source for shop box
@@ -210,7 +231,6 @@ class EditScreen (private val game: Main) : Screen {
 
 
     override fun show() {
-        val boxSize = 150f
 
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
@@ -281,7 +301,7 @@ class EditScreen (private val game: Main) : Screen {
         // Create 4 unit boxes
         for (i in 1..4) {
             val box = Table()
-            box.background = skin.getDrawable("default-window")
+            //box.background = skin.getDrawable("default-window")
 
             // Tag the box as belonging to the unit table
             box.setUserObject("unitBox")
@@ -289,7 +309,8 @@ class EditScreen (private val game: Main) : Screen {
             // Add a placeholder image
             val placeholder = Container<Image>(Image(emptyDrawable))
             placeholder.background = skin.getDrawable("default-pane-noborder")
-            box.add(placeholder).width(boxSize - 20f).height(boxSize - 20f)
+            box.add(placeholder).width(spriteSize).height(spriteSize)
+            box.background = spriteFrame
 
             // Add box to the row
             unitTable.add(box).width(boxSize).height(boxSize).padRight(20f)
@@ -304,7 +325,8 @@ class EditScreen (private val game: Main) : Screen {
         val itemContainer = Container(unitTable)
         itemContainer.setSize(320f, 320f)
         itemContainer.setPosition(50f, 120f)
-        itemContainer.background = skin.getDrawable("default-window")
+        //itemContainer.background = skin.getDrawable("default-window")
+        itemContainer.background = spriteFrame
 
         // Create table for items
         val itemTable = Table()
@@ -314,12 +336,13 @@ class EditScreen (private val game: Main) : Screen {
         // Create item boxes
         for (i in 1..2) {
             val box = Table()
-            box.background = skin.getDrawable("default-window")
+            //box.background = skin.getDrawable("default-window")
+            box.background = spriteFrame
 
             // Create an image using the unit sprite
             val unitImage = Image(birdDrawable)
             unitImage.setScaling(Scaling.fit)
-            box.add(unitImage).width(boxSize).height(boxSize).pad(20f)
+            box.add(unitImage).width(spriteSize).height(spriteSize).pad(20f)
 
             // Add box to the row
             itemTable.add(box).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
@@ -329,7 +352,7 @@ class EditScreen (private val game: Main) : Screen {
         val shopUnitContainer = Container(unitTable)
         shopUnitContainer.setSize(320f, 320f)
         shopUnitContainer.setPosition(50f, 200f)
-        shopUnitContainer.background = skin.getDrawable("default-window")
+        shopUnitContainer.background = spriteFrame
         shopUnitContainer.pad(20f)
 
         // Shop Unit Table
@@ -339,15 +362,53 @@ class EditScreen (private val game: Main) : Screen {
         // Create shop unit boxes
         for (i in 1..4) {
             val box = Table()
-            box.background = skin.getDrawable("default-window")
+            box.background = spriteFrame
 
-            // Create an image using the unit sprite
+            val stack = Stack()
+            box.add(stack).width(spriteSize).height(spriteSize).pad(20f)
+
+            // === Unit image ===
             val unitImage = Image(if (i % 2 == 0) birdDrawable else catDrawable)
             unitImage.setScaling(Scaling.fit)
-            box.add(unitImage).width(boxSize).height(boxSize).pad(20f)
+            stack.add(unitImage)
 
-            // Add box to the row
+            // === Stat overlay ===
+            val statOverlay = Table()
+            statOverlay.setFillParent(true)
+            statOverlay.top().left().padTop(90f)
+
+            // === HP stack (heart + number centered inside) ===
+            val hpStack = Stack()
+            val heartIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("heart.png")))))
+            heartIcon.setSize(55f, 55f)
+
+            val hpLabel = Label("10", skin)
+            hpLabel.setFontScale(1.5f)
+            hpLabel.setAlignment(Align.center)
+            hpLabel.style.background = null
+
+            val hpLabelContainer = Container(hpLabel)
+            hpLabelContainer.padLeft(-7f) // Adjust this to shift left/right
+
+            hpStack.add(heartIcon)
+            hpStack.add(hpLabelContainer)
+
+
+            statOverlay.add(hpStack).size(55f).padLeft(-30f).padBottom(20f)
+
+            // Spacer
+            statOverlay.add().width(100f)
+
+            // === ATK label ===
+            val atkLabel = Label("5", skin)
+            atkLabel.setFontScale(1.5f)
+            atkLabel.style.background = null
+            statOverlay.add(atkLabel).right().padRight(3f)
+
+            stack.add(statOverlay)
+
             shopUnitTable.add(box).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
+
 
             // Add drag source for shop units
             dragAndDrop.addSource(object : DragAndDrop.Source(unitImage) {
@@ -373,16 +434,15 @@ class EditScreen (private val game: Main) : Screen {
         }
 
         val rerollTable = Table()
-        rerollTable.setPosition(150f,230f)
+        rerollTable.setPosition(130f,230f)
 
-        // Reroll button
-        val rerollBtn = TextButton("reroll", skin)
-        rerollBtn.label.setFontScale(2f)
         rerollBtn.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                rerollShop(shopUnitTable,boxSize)
+                rerollShop(shopUnitTable, boxSize)
             }
         })
+
+        // Add to table
         rerollTable.add(rerollBtn).width(boxSize).height(boxSize).pad(30f)
 
         // Create button for starting the battle
