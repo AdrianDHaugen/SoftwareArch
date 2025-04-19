@@ -1,76 +1,52 @@
 @startuml
 class io.github.some_example_name.models.Player {
-- String _name
 + String name
-- Int _gold
 + Int gold
-- Int _turn
 + Int turn
--  _team
 + Team team
--  _shop
 + Shop shop
--  _shopController
 + ShopController shopController
 }
 
 class io.github.some_example_name.models.Sprite {
-- String _name
 + String name
-- Int _attack
 + Int attack
-- Int _health
 + Int health
-- Int _tier
 + Int tier
-- Item? _item
 + Item? item
-- Int _level
 + Int level
-- Int _cost
 + Int cost
-- Boolean _isFrozen
 + Boolean isFrozen
-- String _color
 + String color
 }
 
+class io.github.some_example_name.resources.items
+
+class io.github.some_example_name.resources.sprites
+
 class io.github.some_example_name.models.Team {
-- MutableList<GameUnit> _teams
 + MutableList<GameUnit> teams
-+ void move(Int,Int,GameUnit)
-+ Boolean hasSummonSpace()
-+ void summon(Sprite,Int)
-+ Int size()
 }
 
 
 class io.github.some_example_name.controller.BattleController {
 + void startBattle()
 + void attack(Sprite,Sprite)
-- void removeDead(MutableList<GameUnit>)
 }
 
 class io.github.some_example_name.models.Item {
-- String _name
 + String name
-- Int _cost
 + Int cost
-- Boolean _isFrozen
 + Boolean isFrozen
 }
 
 class io.github.some_example_name.models.Shop {
-- MutableList<GameUnit> _slots
 + MutableList<GameUnit> slots
-- MutableSet<Int> _frozenUnits
 + MutableSet<Int> frozenUnits
 }
 
 class io.github.some_example_name.models.Battle {
--  _playerA
 + Player playerA
--  _playerB
 + Player playerB
 }
 
@@ -94,7 +70,6 @@ class io.github.some_example_name.models.Empty {
 class io.github.some_example_name.utilities.JsonParser {
 + List<Sprite> parseSprites()
 + List<Item> parseItems()
-+ void main()
 }
 
 interface io.github.some_example_name.interfaces.ISprite {

@@ -1,42 +1,60 @@
+/*
 [
   {
     "name": "hat",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 1
   },
   {
     "name": "stick",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 2
   },
   {
     "name": "bomb",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 2,
+    "addAttack": 1
   },
   {
     "name": "fork",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 1
   },
   {
     "name": "canvas",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 1
   },
   {
     "name": "leash",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 2
   },
   {
     "name": "chips",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 0
   },
   {
     "name": "seeds",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 2,
+    "addAttack": 0
   }
 ]
+*/

@@ -108,7 +108,7 @@ class ShopController(private val player: Player) {
     private fun buyItemResponse(gameUnit: GameUnit, targetPos: Int): Int {
         return when {
             player.team.teams[targetPos] is Sprite -> buyTargetedItem(gameUnit, targetPos)
-            else -> buyNonTargetedItem(gameUnit, targetPos)
+            else -> -1
         }
     }
 
@@ -122,16 +122,11 @@ class ShopController(private val player: Player) {
         val sprite = player.team.teams[targetPos] as Sprite
         sprite.item = item
 
+        sprite.attack += item.addAttack
+        sprite.health += item.addHealth
+
         player.shop.slots[player.shop.slots.indexOf(gameUnit)] = Empty()
 
-        return 0
-    }
-
-    private fun buyNonTargetedItem(gameUnit: GameUnit, targetPos: Int): Int {
-        if (player.team.teams.size < 1) return -1
-
-        player.gold -= gameUnit.cost
-        //gameUnit.buy()
         return 0
     }
 

@@ -19,4 +19,17 @@ class Item : GameUnit {
         get() = _isFrozen
         set(value) { _isFrozen = value }
 
+    private var _addHealth: Int = addHealth
+    var addHealth: Int
+        get() = _addHealth
+        set(value) { _addHealth = value }
+
+    private var _addAttack: Int = addAttack
+    var addAttack: Int
+        get() = _addAttack
+        set(value) { _addAttack = value }
+
+    override fun toString(): String {
+        return "Item(name='$name', cost=$cost, isFrozen=$isFrozen, addHealth=$addHealth, addAttack=$addAttack)"
+    }
 }

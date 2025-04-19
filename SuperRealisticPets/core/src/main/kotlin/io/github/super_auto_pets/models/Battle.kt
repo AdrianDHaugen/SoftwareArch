@@ -6,6 +6,7 @@ class Battle {
         get() = _playerA
         set(value) { _playerA = value }
 
+
     private var _playerB = Player()
     var playerB: Player
         get() = _playerB

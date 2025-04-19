@@ -1,50 +1,94 @@
 package io.github.super_auto_pets.controller
 
 import io.github.super_auto_pets.interfaces.GameUnit
+import io.github.super_auto_pets.interfaces.HighscoreService
 import io.github.super_auto_pets.models.Battle
 import io.github.super_auto_pets.models.Sprite
 
-class BattleController(private val battle: Battle = Battle() ) {
+class BattleController(
+    val battle: Battle = Battle(),
+    private val highscoreService: HighscoreService  // 💡 inject the highscore logic
+) {
 
-    fun startBattle() {
-        println(" Battle starts!")
+    fun nextAttackStep(): AttackEvent? {
+        val teamALive = battle.playerA.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
+        val teamBLive = battle.playerB.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
 
-        while (battle.playerA.team.teams.filterIsInstance<Sprite>().any { it.health > 0 } && battle.playerB.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }) {
-            val spriteA = battle.playerA.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
-            val spriteB = battle.playerB.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
+        if (!teamALive || !teamBLive) {
+            println("Battle is over.")
 
-            if (spriteA == null || spriteB == null) break
+            when {
+                teamALive && !teamBLive -> {
+                    println("${battle.playerA.name} wins!")
+                    battle.playerA.winStreak++
+                    highscoreService.updateHighscore(battle.playerA.name, battle.playerA.winStreak)
+                    battle.playerB.winStreak = 0
+                }
+                teamBLive && !teamALive -> {
+                    println("${battle.playerB.name} wins!")
+                    battle.playerB.winStreak++
+                    highscoreService.updateHighscore(battle.playerB.name, battle.playerB.winStreak)
+                    battle.playerA.winStreak = 0
+                }
+                else -> {
+                    println("It's a draw!")
+                    battle.playerA.winStreak = 0
+                    battle.playerB.winStreak = 0
+                }
+            }
 
-            println("\n ${spriteA.name} vs ${spriteB.name}")
-            attack(spriteA, spriteB)
-
-            removeDead(battle.playerA.team.teams)
-            removeDead(battle.playerB.team.teams)
+            return null
         }
 
-        println("\n Battle result:")
-        when {
-            battle.playerA.team.teams.filterIsInstance<Sprite>().any { it.health > 0 } && battle.playerB.team.teams.filterIsInstance<Sprite>().none { it.health > 0 } -> println("Team A wins!")
-            battle.playerB.team.teams.filterIsInstance<Sprite>().any { it.health > 0 } && battle.playerA.team.teams.filterIsInstance<Sprite>().none { it.health > 0 } -> println("Team B wins!")
-            else -> println("Draw!")
+        // Choose the left team’s front fighter as the last alive
+        // and the right team’s front fighter as the first alive.
+        val spriteA = battle.playerA.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
+        val spriteB = battle.playerB.team.teams.filterIsInstance<Sprite>().firstOrNull { it.health > 0 }
+        if (spriteA == null || spriteB == null) return null
+
+        // Capture health before attack.
+        val oldAHp = spriteA.health
+        val oldBHp = spriteB.health
+
+        // Simulate the attack.
+        spriteB.health -= spriteA.attack
+        spriteA.health -= spriteB.attack
+
+        // Identify which sprites died in this round.
+        val diedList = mutableListOf<Sprite>()
+        if (spriteA.health <= 0) diedList.add(spriteA)
+        if (spriteB.health <= 0) diedList.add(spriteB)
+
+        // Remove dead sprites from each team.
+        removeDead(battle.playerA.team.teams)
+        removeDead(battle.playerB.team.teams)
+
+        // Create and return the AttackEvent for this step.
+        return AttackEvent(
+            attacker = spriteA,
+            defender = spriteB,
+            oldAttackerHp = oldAHp,
+            oldDefenderHp = oldBHp,
+            newAttackerHp = spriteA.health,
+            newDefenderHp = spriteB.health,
+            diedSprites = diedList
+        )
+    }
+
+    private fun removeDead(team: MutableList<GameUnit>) {
+        val deadSprites = team.filterIsInstance<Sprite>().filter { it.health <= 0 }
+        team.removeAll(deadSprites)
+
+        // Log them
+        for (sprite in deadSprites) {
+            println("${sprite.name} is dead.")
         }
     }
 
     fun attack(sprite1: Sprite, sprite2: Sprite) {
-        println("$sprite1 attacks $sprite2!")
+        println("${sprite1.name} attacks ${sprite2.name}!")
         sprite2.health -= sprite1.attack
         sprite1.health -= sprite2.attack
-        //sprite1.item?.onAttack(sprite1, sprite2)
-    }
-
-    private fun removeDead(team: MutableList<GameUnit>) {
-        team.filterIsInstance<Sprite>().forEach { sprite ->
-            if (sprite.health > 0) {
-                println("${sprite.name} is alive with ${sprite.health} health.")
-            } else {
-                team.remove(sprite)
-                println("${sprite.name} is dead.")
-            }
-        }
     }
 }
+
