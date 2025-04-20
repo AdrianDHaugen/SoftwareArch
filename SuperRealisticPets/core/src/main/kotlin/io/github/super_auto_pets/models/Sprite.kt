@@ -49,7 +49,12 @@ class Sprite : ISprite {
         get() = _color
         set(value) { _color = value }
 
+    private var _path: String = path
+    var path : String
+        get() = _path
+        set(value) { _path = value }
+
     override fun toString(): String {
-        return "Sprite(name='$name', attack=$attack, health=$health, tier=$tier, item=$item, level=$level, cost=$cost, isFrozen=$isFrozen, color='$color')"
+        return "Sprite(name='$name', attack=$attack, health=$health, tier=$tier, item=$item, level=$level, cost=$cost, isFrozen=$isFrozen, color='$color', path='$path')"
     }
 }
