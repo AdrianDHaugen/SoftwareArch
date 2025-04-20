@@ -21,8 +21,13 @@ import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.Align
+import io.github.super_auto_pets.controller.PlayerController
+import io.github.super_auto_pets.controller.ShopController
 import io.github.super_auto_pets.models.Sprite
 import io.github.super_auto_pets.models.Item
+import io.github.super_auto_pets.models.Player
+import io.github.super_auto_pets.models.Shop
+import io.github.super_auto_pets.models.Team
 
 class EditScreen (private val game: Main) : Screen {
     companion object {
@@ -34,6 +39,14 @@ class EditScreen (private val game: Main) : Screen {
     private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
     private val dragAndDrop = DragAndDrop()
+
+    //player
+    private lateinit var player:Player
+    private lateinit var playerController: PlayerController
+
+    //Shop
+    private lateinit var shop:Shop
+    private lateinit var shopController: ShopController
 
     data class DragPayload(
         val drawable: Drawable,
@@ -118,7 +131,6 @@ class EditScreen (private val game: Main) : Screen {
     val spriteSize = 100f
 
     // Player stats
-    private var playerCoins = 10
     private var playerHealth = 10
     private var playerTurn = 1
     private var playerTrophies = 0
@@ -190,9 +202,9 @@ class EditScreen (private val game: Main) : Screen {
                     // If source is from shop unit table
                     else if (draggedSprite != null) {
                         // Check if player has enough coins
-                        if (playerCoins >= draggedSprite.cost) {
+                        if (player.gold >= draggedSprite.cost) {
                             // Deduct cost
-                            playerCoins -= draggedSprite.cost
+                            player.gold -= draggedSprite.cost
                             updateStatsDisplay()
 
                             // Clear target box
@@ -333,8 +345,12 @@ class EditScreen (private val game: Main) : Screen {
 
     private fun rerollShop(shopTable: Table, boxSize: Float) {
         // Check if player has enough coins for reroll (typically costs 1)
-        if (playerCoins >= 1) {
-            playerCoins -= 1
+        if (player.gold >= 1) {
+            playerController.reroll()
+            println("player gold:"+player.gold)
+            println("player shop:" + player.shop)
+            println("player shopController" + player.shopController)
+            println("player name" + player.name)
             updateStatsDisplay()
 
             shopTable.clearChildren()
@@ -405,10 +421,10 @@ class EditScreen (private val game: Main) : Screen {
 
     // Update the stats display labels
     private fun updateStatsDisplay() {
-        currencyLabel.setText(playerCoins.toString())
-        heartLabel.setText(playerHealth.toString())
-        hourglassLabel.setText(playerTurn.toString())
-        trophyLabel.setText(playerTrophies.toString())
+        currencyLabel.setText(player.gold)
+        println(player.gold)
+        //heartLabel.setText(playerHealth.toString())
+        trophyLabel.setText("10")
     }
 
     // Helper extension function to store and retrieve different types of user objects
@@ -426,6 +442,13 @@ class EditScreen (private val game: Main) : Screen {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
         Gdx.app.log("DEBUG", "File exists? " + Gdx.files.internal("uiskin.json").exists())
+        player = Player()
+        player.shop = Shop()
+        shopController = ShopController(player)
+        player.shopController = shopController
+        player.team = Team()
+        playerController = PlayerController(player)
+
 
         // --- Background ---
         val bgTexture = Texture(Gdx.files.internal("editorbackground.png"))
@@ -447,16 +470,16 @@ class EditScreen (private val game: Main) : Screen {
         val iconSize = 100f
 
         miniTable.add(currencyIcon).size(iconSize,iconSize).padLeft(spaceBetweenObjects)
-        currencyLabel = Label(playerCoins.toString(), skin, "default")
+        currencyLabel = Label(player.gold.toString(), skin, "default")
         currencyLabel.setFontScale(fontScale)
         currencyLabel.style.background = statBackground
         miniTable.add(currencyLabel).padLeft(spaceBetweenObjects)
 
-        miniTable.add(heartIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
+        //miniTable.add(heartIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
         heartLabel = Label(playerHealth.toString(), skin, "default")
         heartLabel.setFontScale(fontScale)
         heartLabel.style.background = statBackground
-        miniTable.add(heartLabel).padLeft(spaceBetweenObjects)
+        //miniTable.add(heartLabel).padLeft(spaceBetweenObjects)
 
         miniTable.add(hourglassIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
         hourglassLabel = Label(playerTurn.toString(), skin, "default")
@@ -562,14 +585,25 @@ class EditScreen (private val game: Main) : Screen {
         rerollTable.add(rerollBtn).width(boxSize).height(boxSize).pad(30f)
 
         // Create button for starting the battle
-        val startBattleBtn = TextButton("Start Battle", skin)
-        startBattleBtn.label.setFontScale(4f)
+        // Load your custom texture
+        val startBattleTexture = Texture(Gdx.files.internal("startbattlebtn.png"))
+
+// Create drawable from the texture
+        val startBattleDrawable = TextureRegionDrawable(TextureRegion(startBattleTexture))
+
+// Create the ImageButton with your custom image
+        val startBattleBtn = ImageButton(startBattleDrawable)
+
+// Add click listener to handle the screen switch
         startBattleBtn.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
                 game.screen = GameScreen(game)
             }
         })
+
+// Add the button to the table
         buttonTable.add(startBattleBtn).width(400f).height(400f).pad(30f)
+
 
         // Add tables to the stage
         stage.addActor(statsTable)
