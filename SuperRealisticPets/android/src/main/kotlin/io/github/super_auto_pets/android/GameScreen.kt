@@ -98,6 +98,7 @@ class GameScreen(private val game: Main) : Screen {
         nextAttackButton = TextButton("Next Attack", skin)
         nextAttackButton.addListener(object : com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent, x: Float, y: Float) {
+                if (nextAttackButton.isDisabled) return
                 performBattleStep()
             }
         })
