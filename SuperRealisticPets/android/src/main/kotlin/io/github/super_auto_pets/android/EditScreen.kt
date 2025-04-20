@@ -2,6 +2,7 @@ package io.github.super_auto_pets.android
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.InputEvent
@@ -21,6 +22,7 @@ import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.Timer
 import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.controller.ShopController
 import io.github.super_auto_pets.models.Sprite
@@ -76,6 +78,17 @@ class EditScreen (private val game: Main) : Screen {
         "Dog" to dogDrawable,
         "Fish" to fishDrawable
     )
+
+    private val emptySprite = Sprite().apply {
+        name = ""
+        attack = 0
+        health = 0
+        tier = 0
+        level = 0
+        cost = 0
+        isFrozen = false
+        color = ""
+    }
 
     // Sample sprites for the shop
     private val shopSprites = listOf(
@@ -141,91 +154,69 @@ class EditScreen (private val game: Main) : Screen {
     private lateinit var hourglassLabel: Label
     private lateinit var trophyLabel: Label
 
-    // Create a target that allows unit boxes to receive dragged units
-    private fun createUnitBoxTarget(box: Table, boxSize: Float, emptyDrawable: TextureRegionDrawable, skin: Skin): DragAndDrop.Target {
+    private fun getImageDrawable(box: Table): TextureRegionDrawable? {
+        val stack = box.children.firstOrNull() as? Stack ?: return null
+        val image = stack.children.find { it is Image } as? Image
+        return image?.drawable as? TextureRegionDrawable
+    }
+
+
+    private fun createUnitBoxTarget(
+        box: Table,
+        boxSize: Float,
+        emptyDrawable: TextureRegionDrawable,
+        skin: Skin
+    ): DragAndDrop.Target {
         return object : DragAndDrop.Target(box) {
             override fun drag(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int): Boolean {
-                // Visual feedback during drag
                 box.background = spriteFrame
                 return true
             }
 
             override fun drop(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int) {
-                // Reset background
                 box.background = spriteFrame
 
-                // Get payload data
-                val dragPayload = payload?.`object` as? DragPayload
-                if (dragPayload != null) {
-                    // Handle two cases: dragging from shop or swapping between unit boxes
-                    val sourceBox = dragPayload.sourceBox
-                    val draggedSprite = dragPayload.sprite
+                val dragPayload = payload?.`object` as? DragPayload ?: return
+                val sourceBox = dragPayload.sourceBox
+                val draggedSprite = dragPayload.sprite
+                val fromUnitBox = sourceBox.getUserObject("type") == "unitBox"
 
-                    // If source is from unit table (switching positions)
-                    if (sourceBox.getUserObject() == "unitBox") {
-                        // Get the current content of target box
-                        val targetContent = if (box.children.size > 0 && box.children.first() is Stack) {
-                            val targetStack = box.children.first() as Stack
-                            val targetImage = targetStack.children.find { it is Image } as? Image
-                            targetImage?.drawable as? TextureRegionDrawable
-                        } else {
-                            null
-                        }
-
-                        val targetSprite = box.getUserObject("sprite") as? Sprite
-
-                        // Clear both boxes
+                if (fromUnitBox) {
+                    // Moving a unit from one unitBox to another
+                    if (draggedSprite != null) {
+                        // 1. Add to target box
                         box.clearChildren()
                         sourceBox.clearChildren()
-
-                        // Add dragged content to target box
-                        if (draggedSprite != null) {
-                            addSpriteToBox(box, draggedSprite, dragPayload.drawable)
-                            box.setUserObject("sprite", draggedSprite)
-                        }
-
-                        // If target had content, move it to source box
-                        if (targetContent != null && targetSprite != null) {
-                            addSpriteToBox(sourceBox, targetSprite, targetContent)
-                            sourceBox.setUserObject("sprite", targetSprite)
-                        } else {
-                            // Otherwise add empty placeholder to source
-                            val placeholder = Container<Image>(Image(emptyDrawable))
-                            sourceBox.add(placeholder).width(boxSize - 20f).height(boxSize - 20f)
-                            sourceBox.setUserObject("sprite", null)
-                        }
-
-                        // Re-register drag sources for both boxes
+                        addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                        box.setUserObject("sprite", draggedSprite)
                         setupDragSourceForUnitBox(box, boxSize)
-                        setupDragSourceForUnitBox(sourceBox, boxSize)
+
+                        // 2. Clear source box and add empty placeholder
+                        sourceBox.clearChildren()
+                        val placeholder = Container(Image(emptyDrawable))
+                        sourceBox.add(placeholder).width(spriteSize).height(spriteSize)
+                        sourceBox.setUserObject("type","unitBox")
                     }
-                    // If source is from shop unit table
-                    else if (draggedSprite != null) {
-                        // Check if player has enough coins
-                        if (player.gold >= draggedSprite.cost) {
-                            // Deduct cost
-                            player.gold -= draggedSprite.cost
-                            updateStatsDisplay()
 
-                            // Clear target box
-                            box.clearChildren()
+                } else {
+                    // Buying from the shop
+                    if (draggedSprite != null && player.gold >= draggedSprite.cost) {
+                        player.gold -= draggedSprite.cost
+                        updateStatsDisplay()
 
-                            // Add dragged sprite with its stats
-                            addSpriteToBox(box, draggedSprite, dragPayload.drawable)
-                            box.setUserObject("sprite", draggedSprite)
+                        box.clearChildren()
+                        sourceBox.clearChildren()
+                        addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                        box.setUserObject("sprite", draggedSprite)
+                        setupDragSourceForUnitBox(box, boxSize)
 
-                            // Re-register drag source for the unit box
-                            setupDragSourceForUnitBox(box, boxSize)
-                        } else {
-                            // Not enough coins - provide feedback
-                            currencyLabel.style.fontColor = com.badlogic.gdx.graphics.Color.RED
-                            // Schedule to reset color after a delay
-                            com.badlogic.gdx.utils.Timer.schedule(object : com.badlogic.gdx.utils.Timer.Task() {
-                                override fun run() {
-                                    currencyLabel.style.fontColor = com.badlogic.gdx.graphics.Color.WHITE
-                                }
-                            }, 0.5f)
-                        }
+                    } else {
+                        currencyLabel.style.fontColor = Color.RED
+                        Timer.schedule(object : Timer.Task() {
+                            override fun run() {
+                                currencyLabel.style.fontColor = Color.WHITE
+                            }
+                        }, 0.5f)
                     }
                 }
             }
@@ -409,11 +400,11 @@ class EditScreen (private val game: Main) : Screen {
             }
         } else {
             // Not enough coins for reroll - provide visual feedback
-            currencyLabel.style.fontColor = com.badlogic.gdx.graphics.Color.RED
+            currencyLabel.style.fontColor = Color.RED
             // Schedule to reset color after a delay
-            com.badlogic.gdx.utils.Timer.schedule(object : com.badlogic.gdx.utils.Timer.Task() {
+            Timer.schedule(object : Timer.Task() {
                 override fun run() {
-                    currencyLabel.style.fontColor = com.badlogic.gdx.graphics.Color.WHITE
+                    currencyLabel.style.fontColor = Color.WHITE
                 }
             }, 0.5f)
         }
@@ -516,12 +507,11 @@ class EditScreen (private val game: Main) : Screen {
         for (i in 1..4) {
             val box = Table()
             // Tag the box as belonging to the unit table
-            box.setUserObject("unitBox")
+            box.setUserObject("type","unitBox")
             box.background = spriteFrame
 
             // Add a placeholder image
             val placeholder = Container<Image>(Image(emptyDrawable))
-            placeholder.background = skin.getDrawable("default-pane-noborder")
             box.add(placeholder).width(spriteSize).height(spriteSize)
 
             // Add box to the row
