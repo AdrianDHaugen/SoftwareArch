@@ -21,7 +21,6 @@ import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
-import io.github.super_auto_pets.android.MainMenuScreen
 
 
 
@@ -341,6 +340,10 @@ class GameScreen(private val game: Main) : Screen {
                     val rightAlive = battleController.battle.playerB.team.teams
                         .filterIsInstance<Sprite>().any { it.health > 0 }
                     nextAttackButton.isDisabled = !(leftAlive && rightAlive)
+                    if (!leftAlive || !rightAlive) {
+                        showBattleResult()
+                    }
+
                 },
 
                 // wait for the slide to complete
