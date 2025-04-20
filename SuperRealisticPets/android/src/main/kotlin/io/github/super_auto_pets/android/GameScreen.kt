@@ -21,6 +21,8 @@ import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
+import io.github.super_auto_pets.android.MainMenuScreen
+
 
 
 class GameScreen(private val game: Main) : Screen {
@@ -188,6 +190,7 @@ class GameScreen(private val game: Main) : Screen {
         val event = battleController.nextAttackStep()
         if (event == null) {
             println("Battle is over!")
+            showBattleResult()
             return
         }
 
@@ -277,6 +280,54 @@ class GameScreen(private val game: Main) : Screen {
             )
         )
     }
+
+    private fun showBattleResult() {
+        // figure out who’s left
+        val leftAlive = battleController.battle.playerA.team.teams
+            .filterIsInstance<Sprite>().any { it.health > 0 }
+        val rightAlive = battleController.battle.playerB.team.teams
+            .filterIsInstance<Sprite>().any { it.health > 0 }
+
+        // decide what to say
+        val resultText = when {
+            leftAlive && !rightAlive  -> "Team A Wins!"
+            rightAlive && !leftAlive  -> "Team B Wins!"
+            else                      -> "Draw!"
+        }
+
+        // disable further attacks
+        nextAttackButton.isDisabled = true
+
+        // build an overlay table, full‑screen
+        val overlay = Table(skin).apply {
+            setFillParent(true)
+            top()
+        }
+
+        // large label
+        val resultLabel = Label(resultText, skin).apply {
+            setFontScale(4f)
+        }
+
+        // back‑to‑menu button
+        val menuBtn = TextButton("Back to Menu", skin).apply {
+            label.setFontScale(2f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    game.screen = MainMenuScreen(game)
+                }
+            })
+        }
+
+        // layout it: label, then a bit of space, then button
+        overlay.add(resultLabel).center().padTop(200f)
+        overlay.row()
+        overlay.add(menuBtn).center().padTop(50f)
+
+        stage.addActor(overlay)
+    }
+
+
 
 
     /**
