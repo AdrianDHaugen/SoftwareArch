@@ -9,11 +9,22 @@ class FirebaseHighscoreService : HighscoreService {
         val db = Firebase.firestore
         val doc = db.collection("highscores").document(playerName)
 
-        doc.get().addOnSuccessListener {
-            val best = it.getLong("bestStreak") ?: 0
+        doc.get().addOnSuccessListener { snapshot ->
+            val best = snapshot.getLong("bestStreak") ?: 0
             val newBest = maxOf(winStreak, best.toInt())
             val entry = HighscoreEntry(playerName, winStreak, newBest)
+
+            //Debugging
             doc.set(entry)
+                .addOnSuccessListener {
+                    println(" Highscore saved for $playerName: $winStreak")
+                }
+                .addOnFailureListener { e ->
+                    println("Failed to write highscore for $playerName: ${e.message}")
+                }
+        }.addOnFailureListener { e ->
+            println(" Failed to read highscore for $playerName: ${e.message}")
         }
     }
 }
+
