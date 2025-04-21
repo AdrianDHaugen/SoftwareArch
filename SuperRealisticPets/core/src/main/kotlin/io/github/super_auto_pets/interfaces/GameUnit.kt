@@ -4,6 +4,7 @@ interface GameUnit {
     var isFrozen: Boolean
     val name: String
     val cost: Int
+    val path: String
 
     fun toggleFreeze() {
         isFrozen = !isFrozen
