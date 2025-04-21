@@ -13,7 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
@@ -31,6 +30,7 @@ import io.github.super_auto_pets.models.Item
 import io.github.super_auto_pets.models.Player
 import io.github.super_auto_pets.models.Shop
 import io.github.super_auto_pets.models.Team
+import io.github.super_auto_pets.models.Empty
 
 class EditScreen (private val game: Main) : Screen {
     companion object {
@@ -44,12 +44,14 @@ class EditScreen (private val game: Main) : Screen {
     private val dragAndDrop = DragAndDrop()
 
     //player
-    private lateinit var player:Player
+    private lateinit var player: Player
     private lateinit var playerController: PlayerController
+    private lateinit var team: Team
 
     //Shop
-    private lateinit var shop:Shop
+    private lateinit var shop: Shop
     private lateinit var shopController: ShopController
+    private lateinit var shopUnitTable: Table
 
     data class DragPayload(
         val drawable: Drawable,
@@ -90,6 +92,13 @@ class EditScreen (private val game: Main) : Screen {
     private lateinit var hourglassLabel: Label
     private lateinit var trophyLabel: Label
 
+    // Debug utility
+    private fun debugShopContents() {
+        Gdx.app.log("DEBUG", "Shop slots size: ${player.shop.slots.size}")
+        for (i in player.shop.slots.indices) {
+            Gdx.app.log("DEBUG", "Slot $i: ${player.shop.slots[i]}")
+        }
+    }
 
     private fun createUnitBoxTarget(
         box: Table,
@@ -114,33 +123,104 @@ class EditScreen (private val game: Main) : Screen {
                 if (fromUnitBox) {
                     // Moving a unit from one unitBox to another
                     if (draggedSprite != null) {
-                        // 1. Add to target box
-                        box.clearChildren()
-                        sourceBox.clearChildren()
-                        addSpriteToBox(box, draggedSprite, dragPayload.drawable)
-                        box.setUserObject("sprite", draggedSprite)
-                        setupDragSourceForUnitBox(box, boxSize)
+                        // Get the team position for the source and target boxes
+                        val sourceIndex = getTeamPositionFromBox(sourceBox)
+                        val targetIndex = getTeamPositionFromBox(box)
 
-                        // 2. Clear source box and add empty placeholder
-                        sourceBox.clearChildren()
-                        val placeholder = Container(Image(emptyDrawable))
-                        sourceBox.add(placeholder).width(spriteSize).height(spriteSize)
-                        sourceBox.setUserObject("type","unitBox")
+                        if (sourceIndex >= 0 && targetIndex >= 0) {
+                            // Use PlayerController to move the unit
+                            val result = playerController.move(sourceIndex, targetIndex)
+
+                            if (result >= 0) {
+                                // Move succeeded - update UI
+                                box.clearChildren()
+                                addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                                box.setUserObject("sprite", draggedSprite)
+                                setupDragSourceForUnitBox(box, boxSize)
+
+                                sourceBox.clearChildren()
+                                val placeholder = Container(Image(emptyDrawable))
+                                sourceBox.add(placeholder).width(spriteSize).height(spriteSize)
+                                sourceBox.setUserObject("type","unitBox")
+                            }
+                        } else {
+                            // Just update the UI if we can't find team indices
+                            box.clearChildren()
+                            addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                            box.setUserObject("sprite", draggedSprite)
+                            setupDragSourceForUnitBox(box, boxSize)
+
+                            sourceBox.clearChildren()
+                            val placeholder = Container(Image(emptyDrawable))
+                            sourceBox.add(placeholder).width(spriteSize).height(spriteSize)
+                            sourceBox.setUserObject("type","unitBox")
+                        }
                     }
-
                 } else {
                     // Buying from the shop
                     if (draggedSprite != null && player.gold >= draggedSprite.cost) {
-                        player.gold -= draggedSprite.cost
-                        updateStatsDisplay()
+                        // Debug before buying
+                        debugShopContents()
 
-                        box.clearChildren()
-                        sourceBox.clearChildren()
-                        addSpriteToBox(box, draggedSprite, dragPayload.drawable)
-                        box.setUserObject("sprite", draggedSprite)
-                        setupDragSourceForUnitBox(box, boxSize)
+                        // Get the shop index from the source box
+                        val shopIndex = sourceBox.getUserObject("shopIndex") as? Int ?: -1
+                        Gdx.app.log("DEBUG", "Attempting to buy from shop index: $shopIndex")
 
+                        // Find the team position for the target box
+                        val teamPosition = getTeamPositionFromBox(box)
+                        Gdx.app.log("DEBUG", "Placing into team position: $teamPosition")
+
+                        if (shopIndex >= 0 && teamPosition >= 0 && shopIndex < player.shop.slots.size) {
+                            try {
+                                // Use PlayerController to buy the unit
+                                val result = playerController.buy(shopIndex, teamPosition)
+                                Gdx.app.log("DEBUG", "Buy result: $result")
+
+                                if (result >= 0) {
+                                    // Buy succeeded - update UI
+                                    box.clearChildren()
+                                    addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                                    box.setUserObject("sprite", draggedSprite)
+                                    setupDragSourceForUnitBox(box, boxSize)
+
+                                    // Update shop UI
+                                    populateShopFromModel(shopUnitTable, boxSize)
+                                    updateStatsDisplay()
+                                } else {
+                                    // Buy failed - provide visual feedback
+                                    currencyLabel.style.fontColor = Color.RED
+                                    Timer.schedule(object : Timer.Task() {
+                                        override fun run() {
+                                            currencyLabel.style.fontColor = Color.WHITE
+                                        }
+                                    }, 0.5f)
+                                }
+                            } catch (e: Exception) {
+                                Gdx.app.error("ERROR", "Exception buying unit: ${e.message}")
+                                e.printStackTrace()
+
+                                // Use a fallback approach - just update UI
+                                player.gold -= draggedSprite.cost
+
+                                box.clearChildren()
+                                addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                                box.setUserObject("sprite", draggedSprite)
+                                setupDragSourceForUnitBox(box, boxSize)
+
+                                updateStatsDisplay()
+                            }
+                        } else {
+                            // Invalid indices - provide feedback
+                            Gdx.app.error("ERROR", "Invalid shop/team indices: shop=$shopIndex, team=$teamPosition, shopSize=${player.shop.slots.size}")
+                            currencyLabel.style.fontColor = Color.RED
+                            Timer.schedule(object : Timer.Task() {
+                                override fun run() {
+                                    currencyLabel.style.fontColor = Color.WHITE
+                                }
+                            }, 0.5f)
+                        }
                     } else {
+                        // Not enough gold - provide visual feedback
                         currencyLabel.style.fontColor = Color.RED
                         Timer.schedule(object : Timer.Task() {
                             override fun run() {
@@ -155,6 +235,11 @@ class EditScreen (private val game: Main) : Screen {
                 box.background = spriteFrame
             }
         }
+    }
+
+    // Helper method to get the team position from a box
+    private fun getTeamPositionFromBox(box: Table): Int {
+        return box.getUserObject("teamIndex") as? Int ?: -1
     }
 
     // Helper method to add a sprite with its stats to a box
@@ -258,65 +343,97 @@ class EditScreen (private val game: Main) : Screen {
     // Add drag sources to all unit boxes
     private fun setupDragSourcesForUnitBoxes(unitTable: Table, boxSize: Float) {
         for (box in unitTable.children) {
-            if (box is Table && box.getUserObject() == "unitBox") {
+            if (box is Table && box.getUserObject("type") == "unitBox") {
                 setupDragSourceForUnitBox(box, boxSize)
             }
         }
     }
 
+    // Method to populate shop from the model
+    private fun populateShopFromModel(shopTable: Table, boxSize: Float) {
+        shopTable.clearChildren()
+
+        Gdx.app.log("DEBUG", "Populating shop UI from model. Slots size: ${player.shop.slots.size}")
+
+        // Loop through the actual shop.slots collection
+        player.shop.slots.forEachIndexed { index, unit ->
+            val shopBox = Table()
+            shopBox.background = spriteFrame
+
+            Gdx.app.log("DEBUG", "Processing shop slot $index: $unit")
+
+            if (unit is Sprite) {
+                // Get the appropriate drawable for this sprite
+                val key = unit.name + "-" + unit.color
+                val spriteDrawable = spriteTextures[key] ?: emptyDrawable
+
+                // Add the sprite to the box with its stats
+                addSpriteToBox(shopBox, unit, spriteDrawable)
+
+                // Store unit reference and its index in the shop model
+                shopBox.setUserObject("sprite", unit)
+                shopBox.setUserObject("shopIndex", index)
+                shopBox.setUserObject("unitType", "animal")
+
+                shopTable.add(shopBox).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
+
+                // Register drag source for this shop item
+                val image = (shopBox.children.first() as Stack).children.find { it is Image } as Image
+                dragAndDrop.addSource(object : DragAndDrop.Source(image) {
+                    override fun dragStart(event: InputEvent?, x: Float, y: Float, pointer: Int): DragAndDrop.Payload {
+                        val payload = DragAndDrop.Payload()
+                        val dragActor = Image(image.drawable)
+                        dragActor.setSize(boxSize, boxSize)
+                        payload.dragActor = dragActor
+
+                        // Store sprite data in payload
+                        payload.`object` = DragPayload(
+                            spriteDrawable,
+                            shopBox,
+                            unit
+                        )
+
+                        image.color.a = 0.5f
+                        return payload
+                    }
+
+                    override fun dragStop(event: InputEvent?, x: Float, y: Float, pointer: Int, payload: DragAndDrop.Payload?, target: DragAndDrop.Target?) {
+                        image.color.a = 1f
+                    }
+                })
+            } else if (unit is Item) {
+                // Handle Item UI similarly to sprites
+                // This part would need to be implemented based on your Item rendering logic
+                // ...
+
+                shopBox.setUserObject("unitType", "item")
+                shopBox.setUserObject("shopIndex", index)
+            }
+        }
+    }
+
     private fun rerollShop(shopTable: Table, boxSize: Float) {
-        // Check if player has enough coins for reroll (typically costs 1)
+        // Check if player has enough coins for reroll
         if (player.gold >= 1) {
-            playerController.reroll()
-            updateStatsDisplay()
+            // Use the controller to reroll the actual shop model
+            val result = playerController.reroll()
 
-            shopTable.clearChildren()
-
-            // Use the sprites from the shop model
-            shop.slots.forEachIndexed { index, unit ->
-                val shopBox = Table()
-                shopBox.background = spriteFrame
-
-                if (unit is Sprite) {
-                    // Get the appropriate drawable for this sprite
-                    val key = unit.name + "-" + unit.color
-                    val spriteDrawable = spriteTextures[key] ?: emptyDrawable
-
-                    // Add the sprite to the box with its stats
-                    addSpriteToBox(shopBox, unit, spriteDrawable)
-
-                    shopTable.add(shopBox).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
-
-                    // Register drag source for this shop item
-                    val image = (shopBox.children.first() as Stack).children.find { it is Image } as Image
-                    dragAndDrop.addSource(object : DragAndDrop.Source(image) {
-                        override fun dragStart(event: InputEvent?, x: Float, y: Float, pointer: Int): DragAndDrop.Payload {
-                            val payload = DragAndDrop.Payload()
-                            val dragActor = Image(image.drawable)
-                            dragActor.setSize(boxSize, boxSize)
-                            payload.dragActor = dragActor
-
-                            // Store sprite data in payload
-                            payload.`object` = DragPayload(
-                                spriteDrawable,
-                                shopBox,
-                                unit
-                            )
-
-                            image.color.a = 0.5f
-                            return payload
-                        }
-
-                        override fun dragStop(event: InputEvent?, x: Float, y: Float, pointer: Int, payload: DragAndDrop.Payload?, target: DragAndDrop.Target?) {
-                            image.color.a = 1f
-                        }
-                    })
-                }
+            if (result >= 0) {
+                // Success - update the UI based on the new shop contents
+                populateShopFromModel(shopTable, boxSize)
+                updateStatsDisplay()
+            } else {
+                // Reroll failed - provide visual feedback
+                currencyLabel.style.fontColor = Color.RED
+                Timer.schedule(object : Timer.Task() {
+                    override fun run() {
+                        currencyLabel.style.fontColor = Color.WHITE
+                    }
+                }, 0.5f)
             }
         } else {
             // Not enough coins for reroll - provide visual feedback
             currencyLabel.style.fontColor = Color.RED
-            // Schedule to reset color after a delay
             Timer.schedule(object : Timer.Task() {
                 override fun run() {
                     currencyLabel.style.fontColor = Color.WHITE
@@ -327,10 +444,9 @@ class EditScreen (private val game: Main) : Screen {
 
     // Update the stats display labels
     private fun updateStatsDisplay() {
-        currencyLabel.setText(player.gold)
-        println(player.gold)
-        //heartLabel.setText(playerHealth.toString())
-        trophyLabel.setText("10")
+        currencyLabel.setText(player.gold.toString())
+        hourglassLabel.setText(playerTurn.toString())
+        trophyLabel.setText(playerTrophies.toString())
     }
 
     // Helper extension function to store and retrieve different types of user objects
@@ -394,43 +510,38 @@ class EditScreen (private val game: Main) : Screen {
         return sprites
     }
 
-    // Add a method to initialize the shop
-    private fun initializeShop() {
-        // Read sprites from JSON
-        val spritesJson = Gdx.files.internal("sprites.json").readString()
-        val availableSprites = parseSpritesFromJson(spritesJson)
-
-        // Populate shop with random selection of sprites
-        val shopSprites = availableSprites.filter { it.color == "base" }.shuffled().take(4)
-
-        // Add sprites to shop slots
-        shop.slots.clear()
-        shopSprites.forEach { sprite ->
-            // Create a copy of the sprite to avoid reference issues
-            val shopSprite = sprite.copy()
-            shop.slots.add(shopSprite as GameUnit)
-        }
-    }
-
     override fun show() {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
         Gdx.app.log("DEBUG", "File exists? " + Gdx.files.internal("uiskin.json").exists())
-        player = Player()
+
+        // FIXED INITIALIZATION ORDER:
         shop = Shop()
+        Gdx.app.log("DEBUG", "Created shop. Initial size: ${shop.slots.size}")
+
+        // 2. Create a new player WITHOUT initializing ShopController yet
+        player = Player()
+        Gdx.app.log("DEBUG", "Created player. Player's initial shop size: ${player.shop.slots.size}")
+
+        // 3. Set our custom shop to the player
         player.shop = shop
+        Gdx.app.log("DEBUG", "Set custom shop to player. Player's shop size now: ${player.shop.slots.size}")
+        // 4. Now create a ShopController with the player that already has our shop
         shopController = ShopController(player)
+
+        // 5. Set the shop controller to the player
         player.shopController = shopController
-        player.team = Team()
+
+        // 6. Create and set up the team
+
+        // 7. Set up the player controller
         playerController = PlayerController(player)
+
+        // Log the shop size at this point
+        Gdx.app.log("DEBUG", "After initialization - Shop slots size: ${player.shop.slots.size}")
 
         // Load all sprite textures from the sprites.json data
         loadSpriteTextures()
-
-        // Initialize the shop with sprites
-        initializeShop()
-
-
 
         // --- Background ---
         val bgTexture = Texture(Gdx.files.internal("editorbackground.png"))
@@ -495,10 +606,11 @@ class EditScreen (private val game: Main) : Screen {
         unitTable.setPosition(850f, 490f)
 
         // Create 4 unit boxes
-        for (i in 1..4) {
+        for (i in 0 until 4) {
             val box = Table()
             // Tag the box as belonging to the unit table
             box.setUserObject("type","unitBox")
+            box.setUserObject("teamIndex", i)  // Store the team index
             box.background = spriteFrame
 
             // Add a placeholder image
@@ -546,12 +658,13 @@ class EditScreen (private val game: Main) : Screen {
         shopUnitContainer.background = spriteFrame
         shopUnitContainer.pad(20f)
 
-        // Shop Unit Table
-        val shopUnitTable = Table()
+        // Shop Unit Table - Now using the class property
+        shopUnitTable = Table()
         shopUnitTable.setPosition(630f, 240f)
 
-        // Initial population of shop
-        rerollShop(shopUnitTable, boxSize)
+        // Initial population of shop from the model
+        debugShopContents() // Debug before populating UI
+        populateShopFromModel(shopUnitTable, boxSize)
 
         val rerollTable = Table()
         rerollTable.setPosition(130f, 230f)
@@ -569,22 +682,21 @@ class EditScreen (private val game: Main) : Screen {
         // Load your custom texture
         val startBattleTexture = Texture(Gdx.files.internal("startbattlebtn.png"))
 
-// Create drawable from the texture
+        // Create drawable from the texture
         val startBattleDrawable = TextureRegionDrawable(TextureRegion(startBattleTexture))
 
-// Create the ImageButton with your custom image
+        // Create the ImageButton with your custom image
         val startBattleBtn = ImageButton(startBattleDrawable)
 
-// Add click listener to handle the screen switch
+        // Add click listener to handle the screen switch
         startBattleBtn.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
                 game.screen = GameScreen(game)
             }
         })
 
-// Add the button to the table
+        // Add the button to the table
         buttonTable.add(startBattleBtn).width(400f).height(400f).pad(30f)
-
 
         // Add tables to the stage
         stage.addActor(statsTable)
@@ -593,6 +705,9 @@ class EditScreen (private val game: Main) : Screen {
         stage.addActor(itemTable)
         stage.addActor(shopUnitTable)
         stage.addActor(rerollTable)
+
+        // Update the stats display initially
+        updateStatsDisplay()
     }
 
     override fun render(delta: Float) {

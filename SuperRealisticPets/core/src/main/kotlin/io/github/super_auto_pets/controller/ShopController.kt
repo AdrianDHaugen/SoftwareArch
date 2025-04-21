@@ -137,12 +137,12 @@ class ShopController(private val player: Player) {
 
     private fun generateInitialShop() {
         player.shop.slots.clear()
-        repeat(5) { player.shop.slots.add(generateRandomSprite()) }  // Assuming 5 shop slots
+        repeat(4) { player.shop.slots.add(generateRandomSprite()) }  // Assuming 5 shop slots
         repeat(2) { player.shop.slots.add(generateRandomItem()) }
     }
 
     private fun generateShopSlot(pos : Int): GameUnit {
-        return if (pos < 5) {
+        return if (pos < 4) {
             generateRandomSprite()
         } else {
             generateRandomItem()
