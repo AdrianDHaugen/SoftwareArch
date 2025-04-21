@@ -28,7 +28,6 @@ import io.github.super_auto_pets.models.Sprite
 import io.github.super_auto_pets.models.Item
 import io.github.super_auto_pets.models.Player
 import io.github.super_auto_pets.models.Shop
-import io.github.super_auto_pets.models.Team
 
 class EditScreen(private val game: Main) : Screen {
     companion object {
@@ -44,12 +43,16 @@ class EditScreen(private val game: Main) : Screen {
     //player
     private lateinit var player: Player
     private lateinit var playerController: PlayerController
-    private lateinit var team: Team
 
     //Shop
     private lateinit var shop: Shop
     private lateinit var shopController: ShopController
     private lateinit var shopUnitTable: Table
+
+    //Countdown
+    private var countdownSeconds = 60
+    private var countdownTimer: Timer.Task? = null
+    private var isCountdownRunning = false
 
     data class DragPayload(
         val drawable: Drawable,
@@ -84,15 +87,30 @@ class EditScreen(private val game: Main) : Screen {
     val spriteSize = 100f
 
     // Player stats
-    private var playerHealth = 10
     private var playerTurn = 1
     private var playerTrophies = 0
 
     // References to UI elements
     private lateinit var currencyLabel: Label
-    private lateinit var heartLabel: Label
     private lateinit var hourglassLabel: Label
     private lateinit var trophyLabel: Label
+
+    // Helper method to create unique label styles
+    private fun createUniqueLabel(text: String, skin: Skin, fontScale: Float = 1.0f, background: Drawable? = null, color: Color = Color.WHITE): Label {
+        // Create a unique style for this label by copying the default style
+        val style = Label.LabelStyle(skin.get("default", Label.LabelStyle::class.java))
+        style.fontColor = color // Set the initial color
+
+        val label = Label(text, skin)
+        label.style = style // Apply the unique style
+        label.setFontScale(fontScale)
+
+        if (background != null) {
+            style.background = background
+        }
+
+        return label
+    }
 
     // Debug utility
     private fun debugShopContents() {
@@ -338,10 +356,9 @@ class EditScreen(private val game: Main) : Screen {
             Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("heart.png")))))
         heartIcon.setSize(55f, 55f)
 
-        val hpLabel = Label(sprite.health.toString(), skin)
-        hpLabel.setFontScale(1.7f)
+        // Create a unique label for this sprite's health stat
+        val hpLabel = createUniqueLabel(sprite.health.toString(), skin, 1.7f)
         hpLabel.setAlignment(Align.center)
-        hpLabel.style.background = null
 
         val hpLabelContainer = Container(hpLabel)
         hpLabelContainer.padLeft(-7f)
@@ -355,10 +372,9 @@ class EditScreen(private val game: Main) : Screen {
             Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("crossed_swords.png")))))
         atkIcon.setSize(55f, 55f)
 
-        val atkLabel = Label(sprite.attack.toString(), skin)
-        atkLabel.setFontScale(1.7f)
+        // Create a unique label for this sprite's attack stat
+        val atkLabel = createUniqueLabel(sprite.attack.toString(), skin, 1.7f)
         atkLabel.setAlignment(Align.center)
-        atkLabel.style.background = null
 
         val atkLabelContainer = Container(atkLabel)
         atkLabelContainer.padLeft(-7f)
@@ -537,11 +553,16 @@ class EditScreen(private val game: Main) : Screen {
                     val heartIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("heart.png")))))
                     heartIcon.setSize(55f, 55f)
 
-                    val hpLabel = Label((if (unit.addHealth > 0) "+" else "") + unit.addHealth.toString(), skin)
-                    hpLabel.setFontScale(1.7f)
+                    // Create a unique label with appropriate color
+                    val hpColor = if (unit.addHealth > 0) Color.GREEN else Color.RED
+                    val hpLabel = createUniqueLabel(
+                        (if (unit.addHealth > 0) "+" else "") + unit.addHealth.toString(),
+                        skin,
+                        1.7f,
+                        null,
+                        hpColor
+                    )
                     hpLabel.setAlignment(Align.center)
-                    hpLabel.style.background = null
-                    hpLabel.style.fontColor = if (unit.addHealth > 0) Color.GREEN else Color.RED
 
                     val hpLabelContainer = Container(hpLabel)
                     hpLabelContainer.padLeft(-7f)
@@ -554,11 +575,16 @@ class EditScreen(private val game: Main) : Screen {
                     val atkIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("crossed_swords.png")))))
                     atkIcon.setSize(55f, 55f)
 
-                    val atkLabel = Label((if (unit.addAttack > 0) "+" else "") + unit.addAttack.toString(), skin)
-                    atkLabel.setFontScale(1.7f)
+                    // Create a unique label with appropriate color
+                    val atkColor = if (unit.addAttack > 0) Color.GREEN else Color.RED
+                    val atkLabel = createUniqueLabel(
+                        (if (unit.addAttack > 0) "+" else "") + unit.addAttack.toString(),
+                        skin,
+                        1.7f,
+                        null,
+                        atkColor
+                    )
                     atkLabel.setAlignment(Align.center)
-                    atkLabel.style.background = null
-                    atkLabel.style.fontColor = if (unit.addAttack > 0) Color.GREEN else Color.RED
 
                     val atkLabelContainer = Container(atkLabel)
                     atkLabelContainer.padLeft(-7f)
@@ -653,9 +679,51 @@ class EditScreen(private val game: Main) : Screen {
 
     // Update the stats display labels
     private fun updateStatsDisplay() {
-        currencyLabel.setText(playerController.getPlayerGold().toString())
-        hourglassLabel.setText(playerTurn.toString())
-        trophyLabel.setText(playerTrophies.toString())
+        currencyLabel.setText(playerController.getPlayerGold().toString() + " ")
+        hourglassLabel.setText("$countdownSeconds ")
+        trophyLabel.setText("$playerTrophies ")
+    }
+
+    private fun startCountdown() {
+        if (isCountdownRunning) return
+
+        isCountdownRunning = true
+        countdownSeconds = 60
+
+        // Update display immediately
+        updateStatsDisplay()
+
+        // Schedule a repeating task that decrements the counter every second
+        countdownTimer = Timer.schedule(object : Timer.Task() {
+            override fun run() {
+                countdownSeconds--
+
+                // Update the UI on the main thread
+                Gdx.app.postRunnable {
+                    updateStatsDisplay()
+
+                    // Check if countdown is complete
+                    if (countdownSeconds <= 0) {
+                        // Stop the timer
+                        stopCountdown()
+
+                        // Automatically trigger the start battle button
+                        startBattle()
+                    }
+                }
+            }
+        }, 1f, 1f) // Start after 1 second, repeat every 1 second
+    }
+
+    private fun stopCountdown() {
+        countdownTimer?.cancel()
+        countdownTimer = null
+        isCountdownRunning = false
+    }
+
+    private fun startBattle() {
+        // Same code as in the click listener
+        game.screen = GameScreen(game, player)
     }
 
     // Helper method to update a sprite's display after applying an item
@@ -847,27 +915,31 @@ class EditScreen(private val game: Main) : Screen {
         val iconSize = 100f
 
         miniTable.add(currencyIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
-        currencyLabel = Label(playerController.getPlayerGold().toString(), skin, "default")
-        currencyLabel.setFontScale(fontScale)
-        currencyLabel.style.background = statBackground
+        // Create a unique label for currency with its own style
+        currencyLabel = createUniqueLabel(
+            playerController.getPlayerGold().toString(),
+            skin,
+            fontScale,
+            statBackground
+        )
         miniTable.add(currencyLabel).padLeft(spaceBetweenObjects)
 
-        //miniTable.add(heartIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
-        heartLabel = Label(playerHealth.toString(), skin, "default")
-        heartLabel.setFontScale(fontScale)
-        heartLabel.style.background = statBackground
-        //miniTable.add(heartLabel).padLeft(spaceBetweenObjects)
-
         miniTable.add(hourglassIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
-        hourglassLabel = Label(playerTurn.toString(), skin, "default")
-        hourglassLabel.setFontScale(fontScale)
-        hourglassLabel.style.background = statBackground
+        hourglassLabel = createUniqueLabel(
+            playerTurn.toString(),
+            skin,
+            fontScale,
+            statBackground
+        )
         miniTable.add(hourglassLabel).padLeft(spaceBetweenObjects)
 
         miniTable.add(trophyIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
-        trophyLabel = Label(playerTrophies.toString(), skin, "default")
-        trophyLabel.setFontScale(fontScale)
-        trophyLabel.style.background = statBackground
+        trophyLabel = createUniqueLabel(
+            playerTrophies.toString(),
+            skin,
+            fontScale,
+            statBackground
+        )
         miniTable.add(trophyLabel).padLeft(spaceBetweenObjects)
 
         // === Container to wrap miniTable ===
@@ -956,7 +1028,8 @@ class EditScreen(private val game: Main) : Screen {
         // Add click listener to handle the screen switch
         startBattleBtn.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                game.screen = GameScreen(game)
+                // Pass the player to GameScreen when starting the battle
+                startBattle()
             }
         })
 
@@ -972,6 +1045,9 @@ class EditScreen(private val game: Main) : Screen {
 
         // Update the stats display initially
         updateStatsDisplay()
+
+        //Start hourglass countdown
+        startCountdown()
     }
 
     override fun render(delta: Float) {
@@ -999,6 +1075,6 @@ class EditScreen(private val game: Main) : Screen {
     override fun dispose() {
         stage.dispose()
         skin.dispose()
+        stopCountdown()
     }
-
 }

@@ -21,18 +21,15 @@ import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
+import io.github.super_auto_pets.models.Player
+import io.github.super_auto_pets.models.Battle
+import io.github.super_auto_pets.models.Team
 
-
-
-class GameScreen(private val game: Main) : Screen {
-
-    /**
-    class GameScreen(
-}
-            private val game: Main,
-            private val battleController: BattleController
-        ) : Screen {
-    */
+class GameScreen(
+    private val game: Main,
+    // Accept a player parameter in the constructor
+    private val playerA: Player? = null
+) : Screen {
 
     companion object {
         private const val VIRTUAL_WIDTH = 1920f
@@ -46,7 +43,6 @@ class GameScreen(private val game: Main) : Screen {
     private val heartTexture = Texture(Gdx.files.internal("heart.png"))
     private val swordTexture = Texture(Gdx.files.internal("crossed_swords.png"))
     private val statTableMap = mutableMapOf<Sprite, Table>()
-    //For testing, should be removed
     private lateinit var battleController: BattleController
 
     private val cellPositions = mutableListOf<Pair<Float,Float>>()
@@ -61,7 +57,7 @@ class GameScreen(private val game: Main) : Screen {
     override fun show() {
         Gdx.input.inputProcessor = stage
 
-        // --- compute the 9 “slots” in a row ---
+        // --- compute the 9 "slots" in a row ---
         val cellW = stage.viewport.worldWidth / 9f
         // pick a Y that centers your 150×150 images vertically:
         val cellY = stage.viewport.worldHeight/2f - 75f
@@ -77,8 +73,14 @@ class GameScreen(private val game: Main) : Screen {
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
 
-        // Initialize battle scenario, remove when connecting to shop stage
-        battleController = createTestBattle()
+        // Initialize battle scenario
+        battleController = if (playerA != null) {
+            // If we have a player from EditScreen, use it
+            createBattleWithPlayer(playerA)
+        } else {
+            // Fallback to test battle if no player provided
+            createTestBattle()
+        }
 
         // Set up battle field table (9 fixed cells)
         battleFieldTable = Table(skin)
@@ -109,6 +111,34 @@ class GameScreen(private val game: Main) : Screen {
         stage.addActor(buttonTable)
     }
 
+    // New method to create a battle with the player from EditScreen
+    private fun createBattleWithPlayer(player: Player): BattleController {
+        val battle = Battle()
+
+        // Set player A (from EditScreen)
+        battle.playerA = player
+
+        // Create a mock opponent (player B)
+        // You can customize this mock opponent as needed
+        val mockOpponent = Player()
+
+        // Create a mock team for the opponent
+        mockOpponent.team = Team()
+
+        // Add some sprites to the opponent's team
+        val catB = Sprite().apply { name = "cat"; health = 10; attack = 3 }
+        val dogB = Sprite().apply { name = "dog"; health = 5; attack = 2 }
+        val birdB = Sprite().apply { name = "bird"; health = 5; attack = 2 }
+        val fishB = Sprite().apply { name = "fish"; health = 5; attack = 2 }
+        mockOpponent.team.teams.addAll(listOf(catB, dogB, birdB, fishB))
+
+        // Set player B
+        battle.playerB = mockOpponent
+
+        // Create and return the battle controller
+        return BattleController(battle)
+    }
+
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f,0f,0f,1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -127,12 +157,6 @@ class GameScreen(private val game: Main) : Screen {
         skin.dispose()
     }
 
-    /**
-     * Rebuilds the battle field UI from the current model state.
-     * For team left, maps teamLeft[0] → slot 3, teamLeft[1] → slot 2, etc.
-     * For team right, maps teamRight[0] → slot 5, teamRight[1] → slot 6, etc.
-     * Slot 4 remains empty.
-     */
     private fun refreshBattleFieldUI() {
         // 1) remove old pet Images…
         battleFieldActors.forEach { it?.remove() }
@@ -151,7 +175,7 @@ class GameScreen(private val game: Main) : Screen {
         teamLeft .take(4).forEachIndexed { i, s -> slots[3 - i] = s }
         teamRight.take(4).forEachIndexed { i, s -> slots[5 + i] = s }
 
-        // 5) now place each Sprite’s Image (and stats table) at the precalculated x,y
+        // 5) now place each Sprite's Image (and stats table) at the precalculated x,y
         slots.forEachIndexed { idx, sprite ->
             if (sprite != null) {
                 // — Image
@@ -366,7 +390,7 @@ class GameScreen(private val game: Main) : Screen {
 
 
     private fun showBattleResult() {
-        // figure out who’s left
+        // figure out who's left
         val leftAlive = battleController.battle.playerA.team.teams
             .filterIsInstance<Sprite>().any { it.health > 0 }
         val rightAlive = battleController.battle.playerB.team.teams
@@ -374,8 +398,8 @@ class GameScreen(private val game: Main) : Screen {
 
         // decide what to say
         val resultText = when {
-            leftAlive && !rightAlive  -> "Team A Wins!"
-            rightAlive && !leftAlive  -> "Team B Wins!"
+            leftAlive && !rightAlive  -> "You Win!"
+            rightAlive && !leftAlive  -> "You Lose!"
             else                      -> "Draw!"
         }
 
@@ -412,8 +436,6 @@ class GameScreen(private val game: Main) : Screen {
     }
 
 
-
-
     /**
      * Finds the UI actor associated with a given sprite.
      */
@@ -422,7 +444,8 @@ class GameScreen(private val game: Main) : Screen {
     }
 
     /**
-     * A minimal test scenario: each team gets up to four sprites. Remove
+     * A minimal test scenario: each team gets up to four sprites.
+     * This is used only if no player is provided from EditScreen.
      */
     private fun createTestBattle(): BattleController {
         val bc = BattleController()
@@ -444,4 +467,3 @@ class GameScreen(private val game: Main) : Screen {
         return bc
     }
 }
-
