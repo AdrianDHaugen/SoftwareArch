@@ -27,7 +27,6 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
 import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.controller.ShopController
-import io.github.super_auto_pets.models.Sprite
 import io.github.super_auto_pets.models.Item
 import io.github.super_auto_pets.models.Player
 import io.github.super_auto_pets.models.Shop
@@ -42,6 +41,7 @@ class EditScreen (
         private const val VIRTUAL_HEIGHT = 1080f
     }
     private lateinit var unitTable: Table
+
 
     private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
     private val stage = Stage(viewport)
@@ -730,9 +730,16 @@ class EditScreen (
     }
 
     private fun startBattle() {
-        // Same code as in the click listener
-        game.screen = GameScreen(game, player)
+        val team = collectTeamFromBoxes()
+
+        game.screen = GameScreen(
+            game = game,
+            gameMode = gameMode,
+            teamA = team,
+            teamB = emptyList()
+        )
     }
+
 
     // Helper method to update a sprite's display after applying an item
     private fun updateSpriteDisplay(box: Table, sprite: Sprite) {
@@ -1036,8 +1043,6 @@ class EditScreen (
         // Add click listener to handle the screen switch
         startBattleBtn.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                // Pass the player to GameScreen when starting the battle
-                startBattle()
                 val currentTeam = collectTeamFromBoxes()
 
                 when (gameMode) {
@@ -1077,7 +1082,10 @@ class EditScreen (
         updateStatsDisplay()
 
         //Start hourglass countdown
-        startCountdown()
+        if (gameMode == GameMode.SINGLEPLAYER) {
+            startCountdown()
+        }
+
     }
 
     override fun render(delta: Float) {
@@ -1112,12 +1120,7 @@ class EditScreen (
         for (box in unitTable.children) {
             if (box is Table && box.children.size > 0) {
                 val image = box.children.first() as? Image
-                val sprite = when (image?.drawable) {
-                    birdDrawable -> Sprite().apply { name = "bird"; health = 5; attack = 2 }
-                    catDrawable  -> Sprite().apply { name = "cat";  health = 10; attack = 2 }
-                    dogDrawable  -> Sprite().apply { name = "dog";  health = 5; attack = 2 }
-                    else -> null
-                }
+                val sprite = box.getUserObject("sprite") as? Sprite
                 sprite?.let { team.add(it) }
             }
         }

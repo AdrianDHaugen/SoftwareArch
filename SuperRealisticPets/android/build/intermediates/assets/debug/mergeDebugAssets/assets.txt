@@ -34,6 +34,7 @@ dog-1.jpg
 edit_bg.png
 editorbackground.png
 empty.png
+exit.png
 fish-1-base-nb.PNG
 fish-1-base.png
 fish-1-blue-nb.png
@@ -47,7 +48,10 @@ heart.png
 hourglass.png
 items.json
 main_menu_bg.png
+multiplayer.png
+nextattack.png
 rerollbtn.png
+singleplayer.png
 spriteframe.png
 sprites.json
 startbattlebtn.png
