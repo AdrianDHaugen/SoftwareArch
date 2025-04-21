@@ -47,6 +47,8 @@ heart.png
 hourglass.png
 items.json
 main_menu_bg.png
+rerollbtn.png
+spriteframe.png
 sprites.json
 statbackground.png
 trophy.png

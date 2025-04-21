@@ -13,5 +13,7 @@ interface ISprite : GameUnit {
         var level: Int
         override var cost: Int
         override var isFrozen: Boolean
+        var color: String
+        override var path: String
 
 }
