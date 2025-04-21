@@ -2,6 +2,66 @@
   {
     "name": "hat",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 1,
+    "path": "hat-nb.png"
+  },
+  {
+    "name": "stick",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 2,
+    "path": "stick-nb.png"
+  },
+  {
+    "name": "bomb",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 2,
+    "addAttack": 1,
+    "path": "bomb-nb.png"
+  },
+  {
+    "name": "fork",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 1,
+    "path": "fork-nb.png"
+  },
+  {
+    "name": "canvas",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 1,
+    "path": "canvas-nb.png"
+  },
+  {
+    "name": "leash",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 2,
+    "path": "leash-nb.png"
+  },
+  {
+    "name": "chips",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 0,
+    "path": "chips-nb.png"
+  },
+  {
+    "name": "seeds",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 2,
+    "addAttack": 0,
+    "path": "seeds-nb.png"
   }
 ]
+

@@ -25,6 +25,7 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
 import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.controller.ShopController
+import io.github.super_auto_pets.interfaces.GameUnit
 import io.github.super_auto_pets.models.Sprite
 import io.github.super_auto_pets.models.Item
 import io.github.super_auto_pets.models.Player
@@ -59,85 +60,20 @@ class EditScreen (private val game: Main) : Screen {
     // Textures
     private val statBackground = TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("statbackground.png"))))
     private val spriteFrame = TextureRegionDrawable(Texture(Gdx.files.internal("spriteframe.png")))
-    private val heartIcon = Image(TextureRegion(Texture(Gdx.files.internal("heart.png"))))
     private val currencyIcon = Image(TextureRegion(Texture(Gdx.files.internal("coin.png"))))
     private val hourglassIcon = Image(TextureRegion(Texture(Gdx.files.internal("hourglass.png"))))
     private val trophyIcon = Image(TextureRegion(Texture(Gdx.files.internal("trophy.png"))))
 
     // Load textures
     private val birdDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("bird-1-base-nb.PNG")))
-    private val catDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("cat-1-base-nb.PNG")))
-    private val dogDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("dog-1-base-nb.PNG")))
-    private val fishDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("fish-1-base-nb.PNG")))
     private val emptyDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("empty.png")))
 
-    // Define available animal sprites with their textures
-    private val animalTextures = mapOf(
-        "Bird" to birdDrawable,
-        "Cat" to catDrawable,
-        "Dog" to dogDrawable,
-        "Fish" to fishDrawable
-    )
-
-    private val emptySprite = Sprite().apply {
-        name = ""
-        attack = 0
-        health = 0
-        tier = 0
-        level = 0
-        cost = 0
-        isFrozen = false
-        color = ""
-    }
-
-    // Sample sprites for the shop
-    private val shopSprites = listOf(
-        Sprite().apply {
-            name = "Bird"
-            attack = 2
-            health = 3
-            tier = 1
-            level = 1
-            cost = 3
-            isFrozen = false
-            color = "yellow"
-        },
-        Sprite().apply {
-            name = "Cat"
-            attack = 3
-            health = 2
-            tier = 1
-            level = 1
-            cost = 3
-            isFrozen = false
-            color = "orange"
-        },
-        Sprite().apply {
-            name = "Dog"
-            attack = 2
-            health = 2
-            tier = 1
-            level = 1
-            cost = 3
-            isFrozen = false
-            color = "brown"
-        },
-        Sprite().apply {
-            name = "Fish"
-            attack = 1
-            health = 4
-            tier = 1
-            level = 1
-            cost = 3
-            isFrozen = false
-            color = "blue"
-        }
-    )
+    private val spriteTextures = mutableMapOf<String, TextureRegionDrawable>()
 
     //Create buttons
-    val texture = Texture(Gdx.files.internal("rerollbtn.png"))
-    val drawable = TextureRegionDrawable(TextureRegion(texture))
-    val rerollBtn = ImageButton(drawable)
+    private val texture = Texture(Gdx.files.internal("rerollbtn.png"))
+    private val drawable = TextureRegionDrawable(TextureRegion(texture))
+    private val rerollBtn = ImageButton(drawable)
 
     //Sizes
     val boxSize = 180f
@@ -153,12 +89,6 @@ class EditScreen (private val game: Main) : Screen {
     private lateinit var heartLabel: Label
     private lateinit var hourglassLabel: Label
     private lateinit var trophyLabel: Label
-
-    private fun getImageDrawable(box: Table): TextureRegionDrawable? {
-        val stack = box.children.firstOrNull() as? Stack ?: return null
-        val image = stack.children.find { it is Image } as? Image
-        return image?.drawable as? TextureRegionDrawable
-    }
 
 
     private fun createUnitBoxTarget(
@@ -338,65 +268,50 @@ class EditScreen (private val game: Main) : Screen {
         // Check if player has enough coins for reroll (typically costs 1)
         if (player.gold >= 1) {
             playerController.reroll()
-            println("player gold:"+player.gold)
-            println("player shop:" + player.shop)
-            println("player shopController" + player.shopController)
-            println("player name" + player.name)
             updateStatsDisplay()
 
             shopTable.clearChildren()
 
-            // Create a shuffled list of sprites for the shop
-            val shuffledSprites = shopSprites.shuffled()
-
-            repeat(4) { index ->
+            // Use the sprites from the shop model
+            shop.slots.forEachIndexed { index, unit ->
                 val shopBox = Table()
                 shopBox.background = spriteFrame
 
-                // Get a sprite for this shop slot
-                val sprite = if (index < shuffledSprites.size) {
-                    // Create a new instance of the sprite to avoid reference issues
-                    shuffledSprites[index].copy().also {
-                        it.health = (2..4).random() // Randomize health between 2-4
-                        it.attack = (1..3).random() // Randomize attack between 1-3
-                    }
-                } else {
-                    // Fallback sprite if we somehow run out
-                    shopSprites[0].copy()
+                if (unit is Sprite) {
+                    // Get the appropriate drawable for this sprite
+                    val key = unit.name + "-" + unit.color
+                    val spriteDrawable = spriteTextures[key] ?: emptyDrawable
+
+                    // Add the sprite to the box with its stats
+                    addSpriteToBox(shopBox, unit, spriteDrawable)
+
+                    shopTable.add(shopBox).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
+
+                    // Register drag source for this shop item
+                    val image = (shopBox.children.first() as Stack).children.find { it is Image } as Image
+                    dragAndDrop.addSource(object : DragAndDrop.Source(image) {
+                        override fun dragStart(event: InputEvent?, x: Float, y: Float, pointer: Int): DragAndDrop.Payload {
+                            val payload = DragAndDrop.Payload()
+                            val dragActor = Image(image.drawable)
+                            dragActor.setSize(boxSize, boxSize)
+                            payload.dragActor = dragActor
+
+                            // Store sprite data in payload
+                            payload.`object` = DragPayload(
+                                spriteDrawable,
+                                shopBox,
+                                unit
+                            )
+
+                            image.color.a = 0.5f
+                            return payload
+                        }
+
+                        override fun dragStop(event: InputEvent?, x: Float, y: Float, pointer: Int, payload: DragAndDrop.Payload?, target: DragAndDrop.Target?) {
+                            image.color.a = 1f
+                        }
+                    })
                 }
-
-                // Get the appropriate drawable for this sprite
-                val spriteDrawable = animalTextures[sprite.name] ?: birdDrawable
-
-                // Add the sprite to the box with its stats
-                addSpriteToBox(shopBox, sprite, spriteDrawable)
-
-                shopTable.add(shopBox).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
-
-                // Register drag source for this shop item
-                val image = (shopBox.children.first() as Stack).children.find { it is Image } as Image
-                dragAndDrop.addSource(object : DragAndDrop.Source(image) {
-                    override fun dragStart(event: InputEvent?, x: Float, y: Float, pointer: Int): DragAndDrop.Payload {
-                        val payload = DragAndDrop.Payload()
-                        val dragActor = Image(image.drawable)
-                        dragActor.setSize(boxSize, boxSize)
-                        payload.dragActor = dragActor
-
-                        // Store sprite data in payload
-                        payload.`object` = DragPayload(
-                            spriteDrawable,
-                            shopBox,
-                            sprite
-                        )
-
-                        image.color.a = 0.5f
-                        return payload
-                    }
-
-                    override fun dragStop(event: InputEvent?, x: Float, y: Float, pointer: Int, payload: DragAndDrop.Payload?, target: DragAndDrop.Target?) {
-                        image.color.a = 1f
-                    }
-                })
             }
         } else {
             // Not enough coins for reroll - provide visual feedback
@@ -429,16 +344,92 @@ class EditScreen (private val game: Main) : Screen {
         return (this.userObject as? MutableMap<String, Any?>)?.get(key)
     }
 
+    // Add this new method to load textures
+    private fun loadSpriteTextures() {
+        // Load all available sprite textures
+        val spritesJson = Gdx.files.internal("sprites.json").readString()
+        val sprites = parseSpritesFromJson(spritesJson)
+
+        // Create texture drawables for each unique sprite
+        sprites.forEach { sprite ->
+            val texturePath = sprite.path
+            if (!spriteTextures.containsKey(sprite.name + "-" + sprite.color)) {
+                try {
+                    val texture = Texture(Gdx.files.internal(texturePath))
+                    spriteTextures[sprite.name + "-" + sprite.color] = TextureRegionDrawable(texture)
+                } catch (e: Exception) {
+                    Gdx.app.error("TextureLoading", "Failed to load texture: $texturePath", e)
+                    // Fallback to empty texture
+                    spriteTextures[sprite.name + "-" + sprite.color] = emptyDrawable
+                }
+            }
+        }
+    }
+
+    private fun parseSpritesFromJson(json: String): List<Sprite> {
+        val sprites = mutableListOf<Sprite>()
+
+        // Use gdx-json to parse the JSON
+        val jsonReader = com.badlogic.gdx.utils.JsonReader()
+        val jsonValue = jsonReader.parse(json)
+
+        for (i in 0 until jsonValue.size) {
+            val spriteJson = jsonValue.get(i)
+
+            val sprite = Sprite().apply {
+                name = spriteJson.getString("name", "unknown")
+                attack = spriteJson.getInt("attack", 1)
+                health = spriteJson.getInt("health", 1)
+                tier = spriteJson.getInt("tier", 1)
+                level = spriteJson.getInt("level", 1)
+                cost = spriteJson.getInt("cost", 3)
+                isFrozen = spriteJson.getBoolean("isFrozen", false)
+                color = spriteJson.getString("color", "base")
+                path = spriteJson.getString("path", "empty.png")
+            }
+
+            sprites.add(sprite)
+        }
+
+        return sprites
+    }
+
+    // Add a method to initialize the shop
+    private fun initializeShop() {
+        // Read sprites from JSON
+        val spritesJson = Gdx.files.internal("sprites.json").readString()
+        val availableSprites = parseSpritesFromJson(spritesJson)
+
+        // Populate shop with random selection of sprites
+        val shopSprites = availableSprites.filter { it.color == "base" }.shuffled().take(4)
+
+        // Add sprites to shop slots
+        shop.slots.clear()
+        shopSprites.forEach { sprite ->
+            // Create a copy of the sprite to avoid reference issues
+            val shopSprite = sprite.copy()
+            shop.slots.add(shopSprite as GameUnit)
+        }
+    }
+
     override fun show() {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
         Gdx.app.log("DEBUG", "File exists? " + Gdx.files.internal("uiskin.json").exists())
         player = Player()
-        player.shop = Shop()
+        shop = Shop()
+        player.shop = shop
         shopController = ShopController(player)
         player.shopController = shopController
         player.team = Team()
         playerController = PlayerController(player)
+
+        // Load all sprite textures from the sprites.json data
+        loadSpriteTextures()
+
+        // Initialize the shop with sprites
+        initializeShop()
+
 
 
         // --- Background ---
