@@ -32,7 +32,7 @@ import io.github.super_auto_pets.models.Shop
 import io.github.super_auto_pets.models.Team
 import io.github.super_auto_pets.models.Empty
 
-class EditScreen (private val game: Main) : Screen {
+class EditScreen(private val game: Main) : Screen {
     companion object {
         private const val VIRTUAL_WIDTH = 1920f
         private const val VIRTUAL_HEIGHT = 1080f
@@ -56,21 +56,25 @@ class EditScreen (private val game: Main) : Screen {
     data class DragPayload(
         val drawable: Drawable,
         val sourceBox: Table,
-        val sprite: Sprite? = null
+        val sprite: Sprite? = null,
+        val item: Item? = null
     )
 
     // Textures
-    private val statBackground = TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("statbackground.png"))))
+    private val statBackground =
+        TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("statbackground.png"))))
     private val spriteFrame = TextureRegionDrawable(Texture(Gdx.files.internal("spriteframe.png")))
     private val currencyIcon = Image(TextureRegion(Texture(Gdx.files.internal("coin.png"))))
     private val hourglassIcon = Image(TextureRegion(Texture(Gdx.files.internal("hourglass.png"))))
     private val trophyIcon = Image(TextureRegion(Texture(Gdx.files.internal("trophy.png"))))
 
     // Load textures
-    private val birdDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("bird-1-base-nb.PNG")))
+    private val birdDrawable =
+        TextureRegionDrawable(Texture(Gdx.files.internal("bird-1-base-nb.PNG")))
     private val emptyDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("empty.png")))
 
     private val spriteTextures = mutableMapOf<String, TextureRegionDrawable>()
+    private val itemTextures = mutableMapOf<String, TextureRegionDrawable>()
 
     //Create buttons
     private val texture = Texture(Gdx.files.internal("rerollbtn.png"))
@@ -107,18 +111,91 @@ class EditScreen (private val game: Main) : Screen {
         skin: Skin
     ): DragAndDrop.Target {
         return object : DragAndDrop.Target(box) {
-            override fun drag(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int): Boolean {
+            override fun drag(
+                source: DragAndDrop.Source?,
+                payload: DragAndDrop.Payload?,
+                x: Float,
+                y: Float,
+                pointer: Int
+            ): Boolean {
                 box.background = spriteFrame
+
+                // Check if this is an item being dragged onto a sprite
+                val dragPayload = payload?.`object` as? DragPayload
+                if (dragPayload?.item != null) {
+                    // Only allow dropping if the target box has a sprite
+                    val targetSprite = box.getUserObject("sprite") as? Sprite
+                    return targetSprite != null
+                }
+
                 return true
             }
 
-            override fun drop(source: DragAndDrop.Source?, payload: DragAndDrop.Payload?, x: Float, y: Float, pointer: Int) {
+            override fun drop(
+                source: DragAndDrop.Source?,
+                payload: DragAndDrop.Payload?,
+                x: Float,
+                y: Float,
+                pointer: Int
+            ) {
                 box.background = spriteFrame
 
                 val dragPayload = payload?.`object` as? DragPayload ?: return
                 val sourceBox = dragPayload.sourceBox
                 val draggedSprite = dragPayload.sprite
+                val draggedItem = dragPayload.item
                 val fromUnitBox = sourceBox.getUserObject("type") == "unitBox"
+
+                if (draggedItem != null) {
+                    // Item is being applied to a sprite
+                    val targetSprite = box.getUserObject("sprite") as? Sprite
+                    if (targetSprite != null && player.gold >= draggedItem.cost) {
+                        // Get shop index of the item
+                        val shopIndex = sourceBox.getUserObject("shopIndex") as? Int ?: -1
+                        // Get team position of the target sprite
+                        val teamPosition = getTeamPositionFromBox(box)
+
+                        if (shopIndex >= 0 && teamPosition >= 0) {
+                            // Try to apply the item via controller
+                            val result = playerController.buy(shopIndex, teamPosition)
+
+                            if (result >= 0) {
+                                // Item applied successfully
+                                // The buyTargetedItem method has already updated the sprite's stats in the model
+                                // Get the updated sprite from the team
+                                val updatedSprite = player.team.teams[teamPosition] as? Sprite
+                                if (updatedSprite != null) {
+                                    // Update the box's user object to reference the updated sprite
+                                    box.setUserObject("sprite", updatedSprite)
+
+                                    // Update the sprite's visual representation in the UI
+                                    updateSpriteDisplay(box, updatedSprite)
+                                }
+
+                                // Update shop UI
+                                populateShopFromModel(shopUnitTable, boxSize)
+                                updateStatsDisplay()
+                            } else {
+                                // Application failed - provide feedback
+                                currencyLabel.style.fontColor = Color.RED
+                                Timer.schedule(object : Timer.Task() {
+                                    override fun run() {
+                                        currencyLabel.style.fontColor = Color.WHITE
+                                    }
+                                }, 0.5f)
+                            }
+                        }
+                    } else {
+                        // Not enough gold - provide visual feedback
+                        currencyLabel.style.fontColor = Color.RED
+                        Timer.schedule(object : Timer.Task() {
+                            override fun run() {
+                                currencyLabel.style.fontColor = Color.WHITE
+                            }
+                        }, 0.5f)
+                    }
+                    return
+                }
 
                 if (fromUnitBox) {
                     // Moving a unit from one unitBox to another
@@ -141,7 +218,7 @@ class EditScreen (private val game: Main) : Screen {
                                 sourceBox.clearChildren()
                                 val placeholder = Container(Image(emptyDrawable))
                                 sourceBox.add(placeholder).width(spriteSize).height(spriteSize)
-                                sourceBox.setUserObject("type","unitBox")
+                                sourceBox.setUserObject("type", "unitBox")
                             }
                         } else {
                             // Just update the UI if we can't find team indices
@@ -153,11 +230,11 @@ class EditScreen (private val game: Main) : Screen {
                             sourceBox.clearChildren()
                             val placeholder = Container(Image(emptyDrawable))
                             sourceBox.add(placeholder).width(spriteSize).height(spriteSize)
-                            sourceBox.setUserObject("type","unitBox")
+                            sourceBox.setUserObject("type", "unitBox")
                         }
                     }
                 } else {
-                    // Buying from the shop
+                    // Buying from the shop (sprite only)
                     if (draggedSprite != null && player.gold >= draggedSprite.cost) {
                         // Debug before buying
                         debugShopContents()
@@ -211,7 +288,10 @@ class EditScreen (private val game: Main) : Screen {
                             }
                         } else {
                             // Invalid indices - provide feedback
-                            Gdx.app.error("ERROR", "Invalid shop/team indices: shop=$shopIndex, team=$teamPosition, shopSize=${player.shop.slots.size}")
+                            Gdx.app.error(
+                                "ERROR",
+                                "Invalid shop/team indices: shop=$shopIndex, team=$teamPosition, shopSize=${player.shop.slots.size}"
+                            )
                             currencyLabel.style.fontColor = Color.RED
                             Timer.schedule(object : Timer.Task() {
                                 override fun run() {
@@ -259,7 +339,8 @@ class EditScreen (private val game: Main) : Screen {
 
         // HP stack (heart + number)
         val hpStack = Stack()
-        val heartIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("heart.png")))))
+        val heartIcon =
+            Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("heart.png")))))
         heartIcon.setSize(55f, 55f)
 
         val hpLabel = Label(sprite.health.toString(), skin)
@@ -275,7 +356,8 @@ class EditScreen (private val game: Main) : Screen {
 
         // ATK stack (swords + number)
         val atkStack = Stack()
-        val atkIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("crossed_swords.png")))))
+        val atkIcon =
+            Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("crossed_swords.png")))))
         atkIcon.setSize(55f, 55f)
 
         val atkLabel = Label(sprite.attack.toString(), skin)
@@ -293,6 +375,14 @@ class EditScreen (private val game: Main) : Screen {
         statOverlay.add(hpStack).size(55f).padLeft(-30f).padBottom(20f)
         statOverlay.add().expandX() // flexible spacer between
         statOverlay.add(atkStack).size(55f).padRight(-40f).padBottom(30f).right()
+
+        // If the sprite has an item, display a small item icon
+        val item = sprite.item
+        if (item != null) {
+            val itemDrawable = itemTextures[item.name] ?: emptyDrawable
+            val itemIcon = Image(itemDrawable)
+            itemIcon.setScaling(Scaling.fit)
+        }
 
         stack.add(statOverlay)
     }
@@ -312,7 +402,12 @@ class EditScreen (private val game: Main) : Screen {
                 if (image != null && image.drawable != null && image.drawable != emptyDrawable) {
                     // Add new drag source
                     dragAndDrop.addSource(object : DragAndDrop.Source(image) {
-                        override fun dragStart(event: InputEvent?, x: Float, y: Float, pointer: Int): DragAndDrop.Payload {
+                        override fun dragStart(
+                            event: InputEvent?,
+                            x: Float,
+                            y: Float,
+                            pointer: Int
+                        ): DragAndDrop.Payload {
                             val payload = DragAndDrop.Payload()
                             val dragActor = Image(image.drawable)
                             dragActor.setSize(boxSize, boxSize)
@@ -330,7 +425,14 @@ class EditScreen (private val game: Main) : Screen {
                             return payload
                         }
 
-                        override fun dragStop(event: InputEvent?, x: Float, y: Float, pointer: Int, payload: DragAndDrop.Payload?, target: DragAndDrop.Target?) {
+                        override fun dragStop(
+                            event: InputEvent?,
+                            x: Float,
+                            y: Float,
+                            pointer: Int,
+                            payload: DragAndDrop.Payload?,
+                            target: DragAndDrop.Target?
+                        ) {
                             // Reset opacity
                             image.color.a = 1f
                         }
@@ -378,9 +480,15 @@ class EditScreen (private val game: Main) : Screen {
                 shopTable.add(shopBox).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
 
                 // Register drag source for this shop item
-                val image = (shopBox.children.first() as Stack).children.find { it is Image } as Image
+                val image =
+                    (shopBox.children.first() as Stack).children.find { it is Image } as Image
                 dragAndDrop.addSource(object : DragAndDrop.Source(image) {
-                    override fun dragStart(event: InputEvent?, x: Float, y: Float, pointer: Int): DragAndDrop.Payload {
+                    override fun dragStart(
+                        event: InputEvent?,
+                        x: Float,
+                        y: Float,
+                        pointer: Int
+                    ): DragAndDrop.Payload {
                         val payload = DragAndDrop.Payload()
                         val dragActor = Image(image.drawable)
                         dragActor.setSize(boxSize, boxSize)
@@ -397,17 +505,138 @@ class EditScreen (private val game: Main) : Screen {
                         return payload
                     }
 
-                    override fun dragStop(event: InputEvent?, x: Float, y: Float, pointer: Int, payload: DragAndDrop.Payload?, target: DragAndDrop.Target?) {
+                    override fun dragStop(
+                        event: InputEvent?,
+                        x: Float,
+                        y: Float,
+                        pointer: Int,
+                        payload: DragAndDrop.Payload?,
+                        target: DragAndDrop.Target?
+                    ) {
                         image.color.a = 1f
                     }
                 })
             } else if (unit is Item) {
-                // Handle Item UI similarly to sprites
-                // This part would need to be implemented based on your Item rendering logic
-                // ...
+                // Handle Item UI
+                val itemDrawable = itemTextures[unit.name] ?: emptyDrawable
 
-                shopBox.setUserObject("unitType", "item")
+                // Create the item visual representation
+                val stack = Stack()
+                shopBox.add(stack).width(spriteSize).height(spriteSize)
+
+                // Add item image
+                val itemImage = Image(itemDrawable)
+                itemImage.setScaling(Scaling.fit)
+                stack.add(itemImage)
+
+                // Add stat overlay for the item (showing bonuses)
+                // Use the same positioning as for sprites
+                val statOverlay = Table()
+                statOverlay.setFillParent(true)
+                statOverlay.top().left().padTop(90f)  // Match sprite stat position
+
+                // Only add stat labels if the item has effects
+                if (unit.addHealth != 0 || unit.addAttack != 0) {
+                    // HP stack (heart + number) - same structure as sprite stats
+                    val hpStack = Stack()
+                    val heartIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("heart.png")))))
+                    heartIcon.setSize(55f, 55f)
+
+                    val hpLabel = Label((if (unit.addHealth > 0) "+" else "") + unit.addHealth.toString(), skin)
+                    hpLabel.setFontScale(1.7f)
+                    hpLabel.setAlignment(Align.center)
+                    hpLabel.style.background = null
+                    hpLabel.style.fontColor = if (unit.addHealth > 0) Color.GREEN else Color.RED
+
+                    val hpLabelContainer = Container(hpLabel)
+                    hpLabelContainer.padLeft(-7f)
+
+                    hpStack.add(heartIcon)
+                    hpStack.add(hpLabelContainer)
+
+                    // ATK stack (swords + number) - same structure as sprite stats
+                    val atkStack = Stack()
+                    val atkIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("crossed_swords.png")))))
+                    atkIcon.setSize(55f, 55f)
+
+                    val atkLabel = Label((if (unit.addAttack > 0) "+" else "") + unit.addAttack.toString(), skin)
+                    atkLabel.setFontScale(1.7f)
+                    atkLabel.setAlignment(Align.center)
+                    atkLabel.style.background = null
+                    atkLabel.style.fontColor = if (unit.addAttack > 0) Color.GREEN else Color.RED
+
+                    val atkLabelContainer = Container(atkLabel)
+                    atkLabelContainer.padLeft(-7f)
+
+                    atkStack.add(atkIcon)
+                    atkStack.add(atkLabelContainer)
+
+                    // Add both stacks to stat overlay
+                    statOverlay.add(hpStack).size(55f).padLeft(-30f).padBottom(20f)
+                    statOverlay.add().expandX() // flexible spacer between
+                    statOverlay.add(atkStack).size(55f).padRight(-40f).padBottom(30f).right()
+
+                    stack.add(statOverlay)
+                }
+
+                // Add cost indicator
+                val costLabel = Label(unit.cost.toString(), skin)
+                costLabel.setFontScale(1.5f)
+                costLabel.setAlignment(Align.center)
+
+                val costContainer = Container(costLabel)
+                costContainer.background = statBackground
+
+                val costTable = Table()
+                costTable.setFillParent(true)
+                costTable.bottom().left()
+                costTable.add(costContainer).padLeft(5f).padBottom(5f)
+
+                stack.add(costTable)
+
+                // Store references
+                shopBox.setUserObject("item", unit)
                 shopBox.setUserObject("shopIndex", index)
+                shopBox.setUserObject("unitType", "item")
+
+                shopTable.add(shopBox).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
+
+                // Register drag source for this item
+                dragAndDrop.addSource(object : DragAndDrop.Source(itemImage) {
+                    override fun dragStart(
+                        event: InputEvent?,
+                        x: Float,
+                        y: Float,
+                        pointer: Int
+                    ): DragAndDrop.Payload {
+                        val payload = DragAndDrop.Payload()
+                        val dragActor = Image(itemImage.drawable)
+                        dragActor.setSize(boxSize, boxSize)
+                        payload.dragActor = dragActor
+
+                        // Store item data in payload
+                        payload.`object` = DragPayload(
+                            itemDrawable,
+                            shopBox,
+                            null, // No sprite, it's an item
+                            unit  // Pass the item itself
+                        )
+
+                        itemImage.color.a = 0.5f
+                        return payload
+                    }
+
+                    override fun dragStop(
+                        event: InputEvent?,
+                        x: Float,
+                        y: Float,
+                        pointer: Int,
+                        payload: DragAndDrop.Payload?,
+                        target: DragAndDrop.Target?
+                    ) {
+                        itemImage.color.a = 1f
+                    }
+                })
             }
         }
     }
@@ -449,6 +678,25 @@ class EditScreen (private val game: Main) : Screen {
         trophyLabel.setText(playerTrophies.toString())
     }
 
+    // Helper method to update a sprite's display after applying an item
+    private fun updateSpriteDisplay(box: Table, sprite: Sprite) {
+        // Clear the box
+        box.clearChildren()
+
+        // Get the sprite texture
+        val key = sprite.name + "-" + sprite.color
+        val spriteDrawable = spriteTextures[key] ?: emptyDrawable
+
+        // Re-add the sprite with updated stats
+        addSpriteToBox(box, sprite, spriteDrawable)
+
+        // Update user object
+        box.setUserObject("sprite", sprite)
+
+        // Re-setup drag source
+        setupDragSourceForUnitBox(box, boxSize)
+    }
+
     // Helper extension function to store and retrieve different types of user objects
     private fun Table.setUserObject(key: String, value: Any?) {
         val userData = this.userObject as? MutableMap<String, Any?> ?: mutableMapOf()
@@ -472,11 +720,33 @@ class EditScreen (private val game: Main) : Screen {
             if (!spriteTextures.containsKey(sprite.name + "-" + sprite.color)) {
                 try {
                     val texture = Texture(Gdx.files.internal(texturePath))
-                    spriteTextures[sprite.name + "-" + sprite.color] = TextureRegionDrawable(texture)
+                    spriteTextures[sprite.name + "-" + sprite.color] =
+                        TextureRegionDrawable(texture)
                 } catch (e: Exception) {
                     Gdx.app.error("TextureLoading", "Failed to load texture: $texturePath", e)
                     // Fallback to empty texture
                     spriteTextures[sprite.name + "-" + sprite.color] = emptyDrawable
+                }
+            }
+        }
+    }
+
+    private fun loadItemTextures() {
+        // Load all available item textures
+        val itemsJson = Gdx.files.internal("items.json").readString()
+        val items = parseItemsFromJson(itemsJson)
+
+        // Create texture drawables for each unique item
+        items.forEach { item ->
+            val texturePath = item.path
+            if (!itemTextures.containsKey(item.name)) {
+                try {
+                    val texture = Texture(Gdx.files.internal(texturePath))
+                    itemTextures[item.name] = TextureRegionDrawable(texture)
+                } catch (e: Exception) {
+                    Gdx.app.error("TextureLoading", "Failed to load item texture: $texturePath", e)
+                    // Fallback to empty texture
+                    itemTextures[item.name] = emptyDrawable
                 }
             }
         }
@@ -510,6 +780,31 @@ class EditScreen (private val game: Main) : Screen {
         return sprites
     }
 
+    private fun parseItemsFromJson(json: String): List<Item> {
+        val items = mutableListOf<Item>()
+
+        // Use gdx-json to parse the JSON
+        val jsonReader = com.badlogic.gdx.utils.JsonReader()
+        val jsonValue = jsonReader.parse(json)
+
+        for (i in 0 until jsonValue.size) {
+            val itemJson = jsonValue.get(i)
+
+            val item = Item().apply {
+                name = itemJson.getString("name", "unknown")
+                cost = itemJson.getInt("cost", 3)
+                isFrozen = itemJson.getBoolean("isFrozen", false)
+                addHealth = itemJson.getInt("addHealth", 0)
+                addAttack = itemJson.getInt("addAttack", 0)
+                path = itemJson.getString("path", "empty.png")
+            }
+
+            items.add(item)
+        }
+
+        return items
+    }
+
     override fun show() {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
@@ -521,11 +816,17 @@ class EditScreen (private val game: Main) : Screen {
 
         // 2. Create a new player WITHOUT initializing ShopController yet
         player = Player()
-        Gdx.app.log("DEBUG", "Created player. Player's initial shop size: ${player.shop.slots.size}")
+        Gdx.app.log(
+            "DEBUG",
+            "Created player. Player's initial shop size: ${player.shop.slots.size}"
+        )
 
         // 3. Set our custom shop to the player
         player.shop = shop
-        Gdx.app.log("DEBUG", "Set custom shop to player. Player's shop size now: ${player.shop.slots.size}")
+        Gdx.app.log(
+            "DEBUG",
+            "Set custom shop to player. Player's shop size now: ${player.shop.slots.size}"
+        )
         // 4. Now create a ShopController with the player that already has our shop
         shopController = ShopController(player)
 
@@ -542,6 +843,9 @@ class EditScreen (private val game: Main) : Screen {
 
         // Load all sprite textures from the sprites.json data
         loadSpriteTextures()
+
+        // Load all item textures from the items.json data
+        loadItemTextures()
 
         // --- Background ---
         val bgTexture = Texture(Gdx.files.internal("editorbackground.png"))
@@ -562,7 +866,7 @@ class EditScreen (private val game: Main) : Screen {
         val spaceBetweenObjects = 15f
         val iconSize = 100f
 
-        miniTable.add(currencyIcon).size(iconSize,iconSize).padLeft(spaceBetweenObjects)
+        miniTable.add(currencyIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
         currencyLabel = Label(player.gold.toString(), skin, "default")
         currencyLabel.setFontScale(fontScale)
         currencyLabel.style.background = statBackground
@@ -609,7 +913,7 @@ class EditScreen (private val game: Main) : Screen {
         for (i in 0 until 4) {
             val box = Table()
             // Tag the box as belonging to the unit table
-            box.setUserObject("type","unitBox")
+            box.setUserObject("type", "unitBox")
             box.setUserObject("teamIndex", i)  // Store the team index
             box.background = spriteFrame
 
@@ -632,25 +936,6 @@ class EditScreen (private val game: Main) : Screen {
         itemContainer.setPosition(50f, 120f)
         itemContainer.background = spriteFrame
 
-        // Create table for items
-        val itemTable = Table()
-        itemTable.setPosition(1250f, 240f)
-        itemTable.pad(10f)
-
-        // Create item boxes (these would be integrated with Item class later)
-        for (i in 1..2) {
-            val box = Table()
-            box.background = spriteFrame
-
-            // Create an image using the unit sprite
-            val unitImage = Image(birdDrawable)
-            unitImage.setScaling(Scaling.fit)
-            box.add(unitImage).width(spriteSize).height(spriteSize).pad(20f)
-
-            // Add box to the row
-            itemTable.add(box).width(boxSize).height(boxSize).padRight(20f).padBottom(20f)
-        }
-
         // Place shopUnitTable in a container for better control
         val shopUnitContainer = Container(unitTable)
         shopUnitContainer.setSize(320f, 320f)
@@ -660,7 +945,7 @@ class EditScreen (private val game: Main) : Screen {
 
         // Shop Unit Table - Now using the class property
         shopUnitTable = Table()
-        shopUnitTable.setPosition(630f, 240f)
+        shopUnitTable.setPosition(850f, 240f)
 
         // Initial population of shop from the model
         debugShopContents() // Debug before populating UI
@@ -702,7 +987,6 @@ class EditScreen (private val game: Main) : Screen {
         stage.addActor(statsTable)
         stage.addActor(buttonTable)
         stage.addActor(unitTable)
-        stage.addActor(itemTable)
         stage.addActor(shopUnitTable)
         stage.addActor(rerollTable)
 
@@ -748,7 +1032,18 @@ class EditScreen (private val game: Main) : Screen {
             this.cost = this@copy.cost
             this.isFrozen = this@copy.isFrozen
             this.color = this@copy.color
-            // Item would be copied here when implemented
+            this.path = this@copy.path
+            // Copy item if present
+            this@copy.item?.let { originalItem ->
+                this.item = Item().apply {
+                    this.name = originalItem.name
+                    this.cost = originalItem.cost
+                    this.isFrozen = originalItem.isFrozen
+                    this.addHealth = originalItem.addHealth
+                    this.addAttack = originalItem.addAttack
+                    this.path = originalItem.path
+                }
+            }
         }
     }
 }
