@@ -29,7 +29,12 @@ class Item : GameUnit {
         get() = _addAttack
         set(value) { _addAttack = value }
 
+    private var _path: String = path
+    override var path : String
+        get() = _path
+        set(value) { _path = value }
+
     override fun toString(): String {
-        return "Item(name='$name', cost=$cost, isFrozen=$isFrozen, addHealth=$addHealth, addAttack=$addAttack)"
+        return "Item(name='$name', cost=$cost, isFrozen=$isFrozen, addHealth=$addHealth, addAttack=$addAttack, path='$path's)"
     }
 }
