@@ -24,13 +24,11 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
 import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.controller.ShopController
-import io.github.super_auto_pets.interfaces.GameUnit
 import io.github.super_auto_pets.models.Sprite
 import io.github.super_auto_pets.models.Item
 import io.github.super_auto_pets.models.Player
 import io.github.super_auto_pets.models.Shop
 import io.github.super_auto_pets.models.Team
-import io.github.super_auto_pets.models.Empty
 
 class EditScreen(private val game: Main) : Screen {
     companion object {
@@ -149,7 +147,7 @@ class EditScreen(private val game: Main) : Screen {
                 if (draggedItem != null) {
                     // Item is being applied to a sprite
                     val targetSprite = box.getUserObject("sprite") as? Sprite
-                    if (targetSprite != null && player.gold >= draggedItem.cost) {
+                    if (targetSprite != null && playerController.canAffordUnit(draggedItem)) {
                         // Get shop index of the item
                         val shopIndex = sourceBox.getUserObject("shopIndex") as? Int ?: -1
                         // Get team position of the target sprite
@@ -235,7 +233,7 @@ class EditScreen(private val game: Main) : Screen {
                     }
                 } else {
                     // Buying from the shop (sprite only)
-                    if (draggedSprite != null && player.gold >= draggedSprite.cost) {
+                    if (draggedSprite != null && playerController.canAffordUnit(draggedSprite)) {
                         // Debug before buying
                         debugShopContents()
 
@@ -275,9 +273,6 @@ class EditScreen(private val game: Main) : Screen {
                             } catch (e: Exception) {
                                 Gdx.app.error("ERROR", "Exception buying unit: ${e.message}")
                                 e.printStackTrace()
-
-                                // Use a fallback approach - just update UI
-                                player.gold -= draggedSprite.cost
 
                                 box.clearChildren()
                                 addSpriteToBox(box, draggedSprite, dragPayload.drawable)
@@ -579,21 +574,6 @@ class EditScreen(private val game: Main) : Screen {
                     stack.add(statOverlay)
                 }
 
-                // Add cost indicator
-                val costLabel = Label(unit.cost.toString(), skin)
-                costLabel.setFontScale(1.5f)
-                costLabel.setAlignment(Align.center)
-
-                val costContainer = Container(costLabel)
-                costContainer.background = statBackground
-
-                val costTable = Table()
-                costTable.setFillParent(true)
-                costTable.bottom().left()
-                costTable.add(costContainer).padLeft(5f).padBottom(5f)
-
-                stack.add(costTable)
-
                 // Store references
                 shopBox.setUserObject("item", unit)
                 shopBox.setUserObject("shopIndex", index)
@@ -643,7 +623,7 @@ class EditScreen(private val game: Main) : Screen {
 
     private fun rerollShop(shopTable: Table, boxSize: Float) {
         // Check if player has enough coins for reroll
-        if (player.gold >= 1) {
+        if (playerController.canAffordReroll()) {
             // Use the controller to reroll the actual shop model
             val result = playerController.reroll()
 
@@ -673,7 +653,7 @@ class EditScreen(private val game: Main) : Screen {
 
     // Update the stats display labels
     private fun updateStatsDisplay() {
-        currencyLabel.setText(player.gold.toString())
+        currencyLabel.setText(playerController.getPlayerGold().toString())
         hourglassLabel.setText(playerTurn.toString())
         trophyLabel.setText(playerTrophies.toString())
     }
@@ -867,7 +847,7 @@ class EditScreen(private val game: Main) : Screen {
         val iconSize = 100f
 
         miniTable.add(currencyIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
-        currencyLabel = Label(player.gold.toString(), skin, "default")
+        currencyLabel = Label(playerController.getPlayerGold().toString(), skin, "default")
         currencyLabel.setFontScale(fontScale)
         currencyLabel.style.background = statBackground
         miniTable.add(currencyLabel).padLeft(spaceBetweenObjects)
@@ -1021,29 +1001,4 @@ class EditScreen(private val game: Main) : Screen {
         skin.dispose()
     }
 
-    // Extension function for Sprite to create a deep copy
-    private fun Sprite.copy(): Sprite {
-        return Sprite().apply {
-            this.name = this@copy.name
-            this.attack = this@copy.attack
-            this.health = this@copy.health
-            this.tier = this@copy.tier
-            this.level = this@copy.level
-            this.cost = this@copy.cost
-            this.isFrozen = this@copy.isFrozen
-            this.color = this@copy.color
-            this.path = this@copy.path
-            // Copy item if present
-            this@copy.item?.let { originalItem ->
-                this.item = Item().apply {
-                    this.name = originalItem.name
-                    this.cost = originalItem.cost
-                    this.isFrozen = originalItem.isFrozen
-                    this.addHealth = originalItem.addHealth
-                    this.addAttack = originalItem.addAttack
-                    this.path = originalItem.path
-                }
-            }
-        }
-    }
 }
