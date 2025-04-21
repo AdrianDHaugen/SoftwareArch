@@ -45,12 +45,12 @@ class Sprite : ISprite {
         set(value) { _isFrozen = value }
 
     private var _color: String = color
-    var color: String
+    override var color: String
         get() = _color
         set(value) { _color = value }
 
     private var _path: String = path
-    var path : String
+    override var path : String
         get() = _path
         set(value) { _path = value }
 

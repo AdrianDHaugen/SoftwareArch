@@ -2,6 +2,66 @@
   {
     "name": "hat",
     "cost": 3,
-    "isFrozen": false
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 1,
+    "path": "trophy.png"
+  },
+  {
+    "name": "stick",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 2,
+    "path": "trophy.png"
+  },
+  {
+    "name": "bomb",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 2,
+    "addAttack": 1,
+    "path": "trophy.png"
+  },
+  {
+    "name": "fork",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 1,
+    "path": "trophy.png"
+  },
+  {
+    "name": "canvas",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 1,
+    "path": "hourglass.png"
+  },
+  {
+    "name": "leash",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 0,
+    "addAttack": 2,
+    "path": "heart.png"
+  },
+  {
+    "name": "chips",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 0,
+    "path": "heart.png"
+  },
+  {
+    "name": "seeds",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 2,
+    "addAttack": 0,
+    "path": "heart.png"
   }
 ]
+
