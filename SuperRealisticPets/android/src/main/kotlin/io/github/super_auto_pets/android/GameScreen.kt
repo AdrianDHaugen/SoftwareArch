@@ -21,9 +21,15 @@ import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
+import io.github.super_auto_pets.controller.GameMode
 
 
-class GameScreen(private val game: Main) : Screen {
+class GameScreen(
+    private val game: Main,
+    private val gameMode: GameMode,
+    private val teamA: List<Sprite> = emptyList(),
+    private val teamB: List<Sprite> = emptyList()
+    ) : Screen {
 
     /**
     class GameScreen(
@@ -74,7 +80,7 @@ class GameScreen(private val game: Main) : Screen {
         stage.addActor(bgImage)
 
         // Initialize battle scenario, remove when connecting to shop stage
-        battleController = createTestBattle()
+        battleController = createBattleFromTeams()
 
         // Set up battle field table (9 fixed cells)
         battleFieldTable = Table(skin)
@@ -289,24 +295,33 @@ class GameScreen(private val game: Main) : Screen {
     /**
      * A minimal test scenario: each team gets up to four sprites. Remove
      */
-    private fun createTestBattle(): BattleController {
+    private fun createBattleFromTeams(): BattleController {
         val bc = BattleController()
+        bc.battle.playerA.team.teams.addAll(teamA)
 
-        // Team Left (playerA) – shop order is 0..3; assign in reverse.
-        val catA = Sprite().apply { name = "cat"; health = 10; attack = 2 }
-        val dogA = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val birdA = Sprite().apply { name = "bird"; health = 5; attack = 2 }
-        val fishA = Sprite().apply { name = "fish"; health = 5; attack = 2 }
-        bc.battle.playerA.team.teams.addAll(listOf(catA, dogA, birdA, fishA))
-
-        // Team Right (playerB) – shop order 0..3; assignment is natural.
-        val catB = Sprite().apply { name = "cat"; health = 10; attack = 3 }
-        val dogB = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val birdB = Sprite().apply { name = "bird"; health = 5; attack = 2 }
-        val fishB = Sprite().apply { name = "fish"; health = 5; attack = 2 }
-        bc.battle.playerB.team.teams.addAll(listOf(catB, dogB, birdB, fishB))
+        if (gameMode == GameMode.SINGLEPLAYER && teamB.isEmpty()) {
+            bc.battle.playerB.team.teams.addAll(generateRandomTeam())
+        } else {
+            bc.battle.playerB.team.teams.addAll(teamB)
+        }
 
         return bc
     }
+
+
+    private fun generateRandomTeam(): List<Sprite> {
+        val options = listOf("cat", "dog", "bird")
+        return List(4) {
+            val name = options.random()
+            when (name) {
+                "cat"  -> Sprite().apply { this.name = "cat";  health = 10; attack = 2 }
+                "dog"  -> Sprite().apply { this.name = "dog";  health = 5;  attack = 2 }
+                "bird" -> Sprite().apply { this.name = "bird"; health = 5;  attack = 2 }
+                else   -> Sprite().apply { this.name = "???";  health = 1;  attack = 1 }
+            }
+        }
+    }
+
+
 }
 

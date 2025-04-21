@@ -18,12 +18,20 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.FitViewport
+import io.github.super_auto_pets.controller.BuildPhase
+import io.github.super_auto_pets.controller.GameMode
+import io.github.super_auto_pets.models.Sprite
 
-class EditScreen (private val game: Main) : Screen {
+class EditScreen (
+    private val game: Main,
+    private val gameMode: GameMode,
+    private val teamA: List<Sprite> = emptyList(),
+    private val buildPhase: BuildPhase = BuildPhase.PLAYER_A) : Screen {
     companion object {
         private const val VIRTUAL_WIDTH = 1920f
         private const val VIRTUAL_HEIGHT = 1080f
     }
+    private lateinit var unitTable: Table
 
     private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
     private val stage = Stage(viewport)
@@ -275,7 +283,7 @@ class EditScreen (private val game: Main) : Screen {
         buttonTable.setFillParent(true)
 
         // === Unit Table ===
-        val unitTable = Table()
+        unitTable = Table()
         unitTable.setPosition(850f, 490f)
 
         // Create 4 unit boxes
@@ -390,9 +398,33 @@ class EditScreen (private val game: Main) : Screen {
         startBattleBtn.label.setFontScale(4f)
         startBattleBtn.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                game.screen = GameScreen(game)
+                val currentTeam = collectTeamFromBoxes()
+
+                when (gameMode) {
+                    GameMode.SINGLEPLAYER -> {
+                        game.screen = GameScreen(game, gameMode, teamA = currentTeam)
+                    }
+                    GameMode.LOCAL_MULTIPLAYER -> {
+                        if (buildPhase == BuildPhase.PLAYER_A) {
+                            game.screen = EditScreen(
+                                game,
+                                gameMode = GameMode.LOCAL_MULTIPLAYER,
+                                teamA = currentTeam,
+                                buildPhase = BuildPhase.PLAYER_B
+                            )
+                        } else {
+                            game.screen = GameScreen(
+                                game,
+                                gameMode = GameMode.LOCAL_MULTIPLAYER,
+                                teamA = teamA,
+                                teamB = currentTeam
+                            )
+                        }
+                    }
+                }
             }
         })
+
         buttonTable.add(startBattleBtn).width(400f).height(400f).pad(30f)
 
         // Add tables to the stage
@@ -430,4 +462,21 @@ class EditScreen (private val game: Main) : Screen {
         stage.dispose()
         skin.dispose()
     }
+    private fun collectTeamFromBoxes(): List<Sprite> {
+        val team = mutableListOf<Sprite>()
+        for (box in unitTable.children) {
+            if (box is Table && box.children.size > 0) {
+                val image = box.children.first() as? Image
+                val sprite = when (image?.drawable) {
+                    birdDrawable -> Sprite().apply { name = "bird"; health = 5; attack = 2 }
+                    catDrawable  -> Sprite().apply { name = "cat";  health = 10; attack = 2 }
+                    dogDrawable  -> Sprite().apply { name = "dog";  health = 5; attack = 2 }
+                    else -> null
+                }
+                sprite?.let { team.add(it) }
+            }
+        }
+        return team
+    }
+
 }
