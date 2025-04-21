@@ -50,6 +50,7 @@ class ShopController(private val player: Player) {
                 newSlots.add(generateShopSlot(i))  // Replace others
             }
         }
+        player.gold -= 1
         player.shop.slots.clear()
         player.shop.slots.addAll(newSlots)
 
