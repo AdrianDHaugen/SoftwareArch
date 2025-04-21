@@ -19,21 +19,29 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.FitViewport
+import io.github.super_auto_pets.controller.BuildPhase
+import io.github.super_auto_pets.controller.GameMode
+import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
 import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.controller.ShopController
-import io.github.super_auto_pets.models.Sprite
 import io.github.super_auto_pets.models.Item
 import io.github.super_auto_pets.models.Player
 import io.github.super_auto_pets.models.Shop
 
-class EditScreen(private val game: Main) : Screen {
+class EditScreen (
+    private val game: Main,
+    private val gameMode: GameMode,
+    private val teamA: List<Sprite> = emptyList(),
+    private val buildPhase: BuildPhase = BuildPhase.PLAYER_A) : Screen {
     companion object {
         private const val VIRTUAL_WIDTH = 1920f
         private const val VIRTUAL_HEIGHT = 1080f
     }
+    private lateinit var unitTable: Table
+
 
     private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
     private val stage = Stage(viewport)
@@ -722,9 +730,16 @@ class EditScreen(private val game: Main) : Screen {
     }
 
     private fun startBattle() {
-        // Same code as in the click listener
-        game.screen = GameScreen(game, player)
+        val team = collectTeamFromBoxes()
+
+        game.screen = GameScreen(
+            game = game,
+            gameMode = gameMode,
+            teamA = team,
+            teamB = emptyList()
+        )
     }
+
 
     // Helper method to update a sprite's display after applying an item
     private fun updateSpriteDisplay(box: Table, sprite: Sprite) {
@@ -958,7 +973,7 @@ class EditScreen(private val game: Main) : Screen {
         buttonTable.setFillParent(true)
 
         // === Unit Table ===
-        val unitTable = Table()
+        unitTable = Table()
         unitTable.setPosition(850f, 490f)
 
         // Create 4 unit boxes
@@ -1028,12 +1043,32 @@ class EditScreen(private val game: Main) : Screen {
         // Add click listener to handle the screen switch
         startBattleBtn.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                // Pass the player to GameScreen when starting the battle
-                startBattle()
+                val currentTeam = collectTeamFromBoxes()
+
+                when (gameMode) {
+                    GameMode.SINGLEPLAYER -> {
+                        game.screen = GameScreen(game, gameMode, teamA = currentTeam)
+                    }
+                    GameMode.LOCAL_MULTIPLAYER -> {
+                        if (buildPhase == BuildPhase.PLAYER_A) {
+                            game.screen = EditScreen(
+                                game,
+                                gameMode = GameMode.LOCAL_MULTIPLAYER,
+                                teamA = currentTeam,
+                                buildPhase = BuildPhase.PLAYER_B
+                            )
+                        } else {
+                            game.screen = GameScreen(
+                                game,
+                                gameMode = GameMode.LOCAL_MULTIPLAYER,
+                                teamA = teamA,
+                                teamB = currentTeam
+                            )
+                        }
+                    }
+                }
             }
         })
-
-        // Add the button to the table
         buttonTable.add(startBattleBtn).width(400f).height(400f).pad(30f)
 
         // Add tables to the stage
@@ -1047,7 +1082,10 @@ class EditScreen(private val game: Main) : Screen {
         updateStatsDisplay()
 
         //Start hourglass countdown
-        startCountdown()
+        if (gameMode == GameMode.SINGLEPLAYER) {
+            startCountdown()
+        }
+
     }
 
     override fun render(delta: Float) {
@@ -1077,4 +1115,16 @@ class EditScreen(private val game: Main) : Screen {
         skin.dispose()
         stopCountdown()
     }
+    private fun collectTeamFromBoxes(): List<Sprite> {
+        val team = mutableListOf<Sprite>()
+        for (box in unitTable.children) {
+            if (box is Table && box.children.size > 0) {
+                val image = box.children.first() as? Image
+                val sprite = box.getUserObject("sprite") as? Sprite
+                sprite?.let { team.add(it) }
+            }
+        }
+        return team
+    }
+
 }

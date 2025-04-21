@@ -21,15 +21,24 @@ import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
-import io.github.super_auto_pets.models.Player
-import io.github.super_auto_pets.models.Battle
-import io.github.super_auto_pets.models.Team
+import io.github.super_auto_pets.controller.GameMode
 
+/**
+class GameScreen(
+}
+private val game: Main,
+private val gameMode: GameMode,
+private val teamA: List<Sprite> = emptyList(),
+private val teamB: List<Sprite> = emptyList()
+) : Screen {
+ */
 class GameScreen(
     private val game: Main,
-    // Accept a player parameter in the constructor
-    private val playerA: Player? = null
-) : Screen {
+    private val gameMode: GameMode,
+    private val teamA: List<Sprite> = emptyList(),
+    private val teamB: List<Sprite> = emptyList()
+    ) : Screen {
+
 
     companion object {
         private const val VIRTUAL_WIDTH = 1920f
@@ -73,14 +82,8 @@ class GameScreen(
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
 
-        // Initialize battle scenario
-        battleController = if (playerA != null) {
-            // If we have a player from EditScreen, use it
-            createBattleWithPlayer(playerA)
-        } else {
-            // Fallback to test battle if no player provided
-            createTestBattle()
-        }
+        // Initialize battle scenario, remove when connecting to shop stage
+        battleController = createBattleFromTeams()
 
         // Set up battle field table (9 fixed cells)
         battleFieldTable = Table(skin)
@@ -109,34 +112,6 @@ class GameScreen(
         buttonTable.bottom().center()
         buttonTable.add(nextAttackButton).pad(20f)
         stage.addActor(buttonTable)
-    }
-
-    // New method to create a battle with the player from EditScreen
-    private fun createBattleWithPlayer(player: Player): BattleController {
-        val battle = Battle()
-
-        // Set player A (from EditScreen)
-        battle.playerA = player
-
-        // Create a mock opponent (player B)
-        // You can customize this mock opponent as needed
-        val mockOpponent = Player()
-
-        // Create a mock team for the opponent
-        mockOpponent.team = Team()
-
-        // Add some sprites to the opponent's team
-        val catB = Sprite().apply { name = "cat"; health = 10; attack = 3 }
-        val dogB = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val birdB = Sprite().apply { name = "bird"; health = 5; attack = 2 }
-        val fishB = Sprite().apply { name = "fish"; health = 5; attack = 2 }
-        mockOpponent.team.teams.addAll(listOf(catB, dogB, birdB, fishB))
-
-        // Set player B
-        battle.playerB = mockOpponent
-
-        // Create and return the battle controller
-        return BattleController(battle)
     }
 
     override fun render(delta: Float) {
@@ -447,23 +422,32 @@ class GameScreen(
      * A minimal test scenario: each team gets up to four sprites.
      * This is used only if no player is provided from EditScreen.
      */
-    private fun createTestBattle(): BattleController {
+    private fun createBattleFromTeams(): BattleController {
         val bc = BattleController()
+        bc.battle.playerA.team.teams.addAll(teamA)
 
-        // Team Left (playerA) – shop order is 0..3; assign in reverse.
-        val catA = Sprite().apply { name = "cat"; health = 10; attack = 2 }
-        val dogA = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val birdA = Sprite().apply { name = "bird"; health = 5; attack = 2 }
-        val fishA = Sprite().apply { name = "fish"; health = 5; attack = 2 }
-        bc.battle.playerA.team.teams.addAll(listOf(catA, dogA, birdA, fishA))
-
-        // Team Right (playerB) – shop order 0..3; assignment is natural.
-        val catB = Sprite().apply { name = "cat"; health = 10; attack = 3 }
-        val dogB = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val birdB = Sprite().apply { name = "bird"; health = 5; attack = 2 }
-        val fishB = Sprite().apply { name = "fish"; health = 5; attack = 2 }
-        bc.battle.playerB.team.teams.addAll(listOf(catB, dogB, birdB, fishB))
+        if (gameMode == GameMode.SINGLEPLAYER && teamB.isEmpty()) {
+            bc.battle.playerB.team.teams.addAll(generateRandomTeam())
+        } else {
+            bc.battle.playerB.team.teams.addAll(teamB)
+        }
 
         return bc
     }
+
+
+    private fun generateRandomTeam(): List<Sprite> {
+        val options = listOf("cat", "dog", "bird")
+        return List(4) {
+            val name = options.random()
+            when (name) {
+                "cat"  -> Sprite().apply { this.name = "cat";  health = 10; attack = 2 }
+                "dog"  -> Sprite().apply { this.name = "dog";  health = 5;  attack = 2 }
+                "bird" -> Sprite().apply { this.name = "bird"; health = 5;  attack = 2 }
+                else   -> Sprite().apply { this.name = "???";  health = 1;  attack = 1 }
+            }
+        }
+    }
+
+
 }

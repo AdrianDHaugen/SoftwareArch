@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
+import io.github.super_auto_pets.controller.GameMode
 
 class MainMenuScreen(private val game: Main) : Screen {
     // Define a fixed virtual resolution for consistent layout
@@ -74,7 +75,7 @@ class MainMenuScreen(private val game: Main) : Screen {
             setSize(btnW, btnH)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    game.screen = EditScreen(game)
+                    game.screen = EditScreen(game, GameMode.SINGLEPLAYER)
                 }
             })
         }
@@ -83,7 +84,7 @@ class MainMenuScreen(private val game: Main) : Screen {
             setSize(btnW, btnH)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    // TODO: Multiplayer screen transition
+                    game.screen = EditScreen(game, GameMode.LOCAL_MULTIPLAYER)
                 }
             })
         }
