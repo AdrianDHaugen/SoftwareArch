@@ -12,11 +12,12 @@ class Main : Game() {
 
     //lateinit var batch: SpriteBatch
     //lateinit var font: BitmapFont
+    lateinit var battle:Battle
     lateinit var battleController : BattleController
 
     override fun create() {
         Gdx.app.log("DEBUG", "Main().create() runs!")
-        var battle = Battle()
+        battle = Battle()
         battleController = BattleController(battle)
 
 

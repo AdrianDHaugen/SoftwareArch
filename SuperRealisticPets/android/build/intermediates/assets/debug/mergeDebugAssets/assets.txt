@@ -47,7 +47,10 @@ heart.png
 hourglass.png
 items.json
 main_menu_bg.png
+rerollbtn.png
+spriteframe.png
 sprites.json
+startbattlebtn.png
 statbackground.png
 trophy.png
 uiskin.atlas
