@@ -1085,9 +1085,6 @@ class EditScreen (
         if (gameMode == GameMode.SINGLEPLAYER || gameMode == GameMode.LOCAL_MULTIPLAYER) {
             startCountdown()
         }
-
-
-
     }
 
     override fun render(delta: Float) {

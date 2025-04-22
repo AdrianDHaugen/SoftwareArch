@@ -4,9 +4,11 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
 import io.github.super_auto_pets.firebase.HighscoreManager
@@ -20,52 +22,92 @@ class HighscoreScreen(private val game: Main) : Screen {
         Gdx.input.inputProcessor = stage
 
         // --- Background ---
-        val bgTexture = Texture(Gdx.files.internal("victory_bg.png")) // or create a new bg like "highscore_bg.png"
+        val bgTexture = Texture(Gdx.files.internal("victory_bg.png"))
         val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
 
         // --- Root Table ---
-        val table = Table(skin)
-        table.setFillParent(true)
-        table.center()
-        stage.addActor(table)
+        val root = Table()
+        root.setFillParent(true)
+        root.top().center()
+        stage.addActor(root)
 
-        val title = Label("🏆 Highscores", skin)
-        title.setFontScale(2f)
-        table.add(title).colspan(2).pad(20f)
-        table.row()
+        // --- Title Image ---
+        val titleTexture = Texture(Gdx.files.internal("highscore.png"))
+        val titleImage = Image(TextureRegionDrawable(TextureRegion(titleTexture)))
+        titleImage.setSize(500f, 120f)
+        root.add(titleImage).padTop(40f).padBottom(30f)
+        root.row()
+// --- Box Background ---
+        val boxBg = Texture(Gdx.files.internal("box_bg.png"))
+        val boxTable = Table()
+        boxTable.background = TextureRegionDrawable(TextureRegion(boxBg))
+        boxTable.pad(40f)
+        root.add(boxTable).width(700f).height(500f).padBottom(30f)
+        root.row()
 
-        val loading = Label("Loading highscores...", skin)
-        table.add(loading).colspan(2).pad(10f)
-        table.row()
+// --- Scores Table (inside box) ---
+        val scoresTable = Table()
+        val scrollPane = ScrollPane(scoresTable, skin).apply {
+            setFadeScrollBars(false)
+            setScrollingDisabled(true, false)
+            style.background = null // <- fixes grey color
+        }
+        scoresTable.setBackground(null as Drawable?) // <- just to be sure
+        boxTable.add(scrollPane).expand().fill()
 
-        // --- Fetch and display highscores from Firebase ---
+
+
+        // --- Populate scores ---
         HighscoreManager.fetchTopHighscores { entries ->
             Gdx.app.postRunnable {
-                table.clear()
-                table.add(Label("Player", skin)).pad(10f)
-                table.add(Label("Best Streak", skin)).pad(10f)
-                table.row()
+                scoresTable.clear()
 
-                entries.forEach {
-                    table.add(Label(it.playerName, skin)).pad(8f)
-                    table.add(Label(it.bestStreak.toString(), skin)).pad(8f)
-                    table.row()
+                val headerPlayer = Label("Player", skin).apply {
+                    setFontScale(2f)
+                }
+                val headerStreak = Label("Streak", skin).apply {
+                    setFontScale(2f)
                 }
 
-                // Back to main menu
-                val backButton = TextButton("Back", skin)
-                backButton.addListener(object : ClickListener() {
-                    override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent?, x: Float, y: Float) {
-                        game.screen = MainMenuScreen(game)
-                    }
-                })
+                scoresTable.add(headerPlayer).expandX().left().padBottom(20f).padLeft(20f)
+                scoresTable.add(headerStreak).right().padRight(20f).padBottom(20f)
+                scoresTable.row()
 
-                table.row().padTop(30f)
-                table.add(backButton).colspan(2).width(300f).height(100f).pad(10f)
+                entries.forEach { entry ->
+                    val playerLabel = Label(entry.playerName, skin).apply {
+                        setFontScale(1.6f)
+                    }
+                    val scoreLabel = Label(entry.bestStreak.toString(), skin).apply {
+                        setFontScale(1.6f)
+                    }
+
+                    scoresTable.add(playerLabel).expandX().left().padLeft(30f).padBottom(15f)
+                    scoresTable.add(scoreLabel).right().padRight(30f).padBottom(15f)
+                    scoresTable.row()
+                }
             }
         }
+
+        // --- Exit Button ---
+        val exitTexture = Texture(Gdx.files.internal("exit.png"))
+        val exitBtn = ImageButton(TextureRegionDrawable(TextureRegion(exitTexture)))
+
+        val btnW = 400f  // Match this with your other screens if needed
+        val btnH = 200f
+        val verticalPad = 100f
+
+        exitBtn.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                game.screen = MainMenuScreen(game)
+            }
+        })
+
+// Apply same padding and size as main menu style
+        root.row().padTop(verticalPad * 0.65f)
+        root.add(exitBtn).width(btnW * 0.5f).height(btnH * 0.8f).colspan(2).padBottom(30f)
+
     }
 
     override fun render(delta: Float) {
