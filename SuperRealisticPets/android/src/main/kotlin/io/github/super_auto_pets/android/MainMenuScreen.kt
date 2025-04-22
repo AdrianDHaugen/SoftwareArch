@@ -8,7 +8,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.ui.Image
-import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
@@ -30,7 +29,6 @@ class MainMenuScreen(private val game: Main) : Screen {
     override fun show() {
         Gdx.input.inputProcessor = stage
 
-        // Background spans full virtual world
         val bg = Texture(Gdx.files.internal("main_menu_bg.png"))
         val bgImg = Image(TextureRegionDrawable(TextureRegion(bg))).apply {
             setSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
@@ -50,25 +48,36 @@ class MainMenuScreen(private val game: Main) : Screen {
             setFillParent(true)
             top()
             center()
+            padTop(VIRTUAL_HEIGHT * 0.30f)
         }
         stage.addActor(table)
 
-        // Title label scaled relative to virtual width
-        val title = Label("Super Realistic Pets", skin).apply {
-            setFontScale(VIRTUAL_WIDTH / 800f) // scales font based on resolution
+        // Create a table just for the logo
+        val logoTable = Table(skin).apply {
+            setFillParent(true)
+            top()
+            padTop(VIRTUAL_HEIGHT * 0.02f)
+        }
+        stage.addActor(logoTable)
+
+        val logoTexture = Texture(Gdx.files.internal("logo.png"))
+        val logoHeight = 612f*1.1f
+        val logoWidth = 918f*1.1f
+
+        val logoImg = Image(TextureRegionDrawable(TextureRegion(logoTexture))).apply {
+            setSize(logoWidth, logoHeight)
             addAction(Actions.sequence(Actions.alpha(0f), Actions.fadeIn(1f)))
         }
-        title.setFontScale(7f)
-        table.add(title).colspan(1).padBottom(30f).row()
+
+        logoTable.add(logoImg).size(logoWidth, logoHeight).expandX().center()
 
         // Button sizes
         val btnW = VIRTUAL_WIDTH * 0.25f
         val btnH = VIRTUAL_HEIGHT * 0.25f
 
-// Load button textures
+        // Load button textures
         val singleTexture = Texture(Gdx.files.internal("singleplayer.png"))
         val multiTexture = Texture(Gdx.files.internal("multiplayer.png"))
-        //val highscoreTexture = Texture(Gdx.files.internal("highscore.png"))
         val exitTexture = Texture(Gdx.files.internal("exit.png"))
         val tutorialTexture = Texture(Gdx.files.internal("tutorial.png"))
 
@@ -117,34 +126,27 @@ class MainMenuScreen(private val game: Main) : Screen {
             })
         }
 
-
-// Add to table
         // Create a two-column table for better layout
         val buttonTable = Table(skin)
         val verticalPad = -200f // Spacing between rows
         val horizontalPad = -30f // Spacing between buttons
 
-// Add title with proper padding and sizing to avoid overlapping with clouds
-        table.add(title).colspan(2).padBottom(-100f).padTop(-100f).row()
-
-// First row: Singleplayer and Multiplayer side by side
         buttonTable.add(singleBtn).width(btnW*1.1f).height(btnH).padRight(horizontalPad)
         buttonTable.add(multiBtn).width(btnW).height(btnH*1.55f).padLeft(horizontalPad).row()
 
-// Second row: Tutorial and Highscore side by side
         buttonTable.row().padTop(verticalPad)
         buttonTable.add(tutorialBtn).width(btnW).height(btnH*1.3f).padRight(horizontalPad)
         buttonTable.add(highscoreBtn).width(btnW).height(btnH*1.1f).padLeft(horizontalPad).row()
 
-// Third row: Exit button centered
+        // Third row: Exit button centered
         buttonTable.row().padTop(verticalPad * 0.65f)
         buttonTable.add(exitBtn).width(btnW * 0.5f).height(btnH * 0.8f).colspan(2).padBottom(30f)
 
-// Add the button table to the main table
+        // Add the button table to the main table
         table.add(buttonTable).colspan(2).row()
     }
 
-        override fun render(delta: Float) {
+    override fun render(delta: Float) {
         stage.act(delta)
         stage.draw()
     }
