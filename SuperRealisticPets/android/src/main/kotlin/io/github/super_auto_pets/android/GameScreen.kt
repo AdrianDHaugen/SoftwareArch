@@ -23,12 +23,6 @@ import com.badlogic.gdx.scenes.scene2d.Action
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import io.github.super_auto_pets.controller.GameMode
 
-import com.badlogic.gdx.scenes.scene2d.Actor
-import com.badlogic.gdx.scenes.scene2d.ui.Container
-import com.badlogic.gdx.scenes.scene2d.ui.Stack
-import com.badlogic.gdx.utils.Align
-
-
 
 class GameScreen(
     private val game: Main,
@@ -44,9 +38,9 @@ class GameScreen(
         private const val AUTO_ATTACK_DELAY = 1.5f  // Time between auto attacks in seconds
     }
 
-        private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
-        private val stage = Stage(viewport)
-        private val skin = Skin(Gdx.files.internal("uiskin.json"))
+    private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+    private val stage = Stage(viewport)
+    private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
     private val heartTexture = Texture(Gdx.files.internal("heart.png"))
     private val swordTexture = Texture(Gdx.files.internal("crossed_swords.png"))
@@ -56,11 +50,11 @@ class GameScreen(
     private val statTableMap = mutableMapOf<Sprite, Table>()
     private lateinit var battleController: BattleController
 
-        private val cellPositions = mutableListOf<Pair<Float, Float>>()
+    private val cellPositions = mutableListOf<Pair<Float, Float>>()
 
-        // Nine-slot array for the battle field.
-        private val battleFieldActors: MutableList<Image?> = MutableList(9) { null }
-        private lateinit var battleFieldTable: Table
+    // Nine-slot array for the battle field.
+    private val battleFieldActors: MutableList<Image?> = MutableList(9) { null }
+    private lateinit var battleFieldTable: Table
 
     // Auto battle variables
     private var battleStarted = false
@@ -72,42 +66,40 @@ class GameScreen(
     private lateinit var startBattleButton: ImageButton
     private lateinit var buttonTable: Table
 
-
     override fun show() {
         Gdx.input.inputProcessor = stage
 
         // --- compute the 9 "slots" in a row ---
         val cellW = stage.viewport.worldWidth / 9f
         // pick a Y that centers your 150×150 images vertically:
-        val cellY = stage.viewport.worldHeight/2f - 75f
+        val cellY = stage.viewport.worldHeight / 2f - 75f
         for (i in 0 until 9) {
             // center each 150px image in its cell
-            val x = i*cellW + (cellW - 200f)/2
+            val x = i * cellW + (cellW - 150f) / 2
             cellPositions.add(x to cellY)
         }
 
+        // Background
+        val bgTexture = Texture(Gdx.files.internal("battle_bg.png"))
+        val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
+        bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
+        stage.addActor(bgImage)
 
-            // Background
-            val bgTexture = Texture(Gdx.files.internal("battle_bg.png"))
-            val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
-            bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
-            stage.addActor(bgImage)
+        // Initialize battle scenario, remove when connecting to shop stage
+        battleController = createBattleFromTeams()
 
-            // Initialize battle scenario, remove when connecting to shop stage
-            battleController = createBattleFromTeams()
+        // Set up battle field table (9 fixed cells)
+        battleFieldTable = Table(skin)
+        battleFieldTable.setFillParent(true)
+        stage.addActor(battleFieldTable)
+        val cellWidth = stage.viewport.worldWidth / 9f
+        for (i in 0 until 9) {
+            battleFieldTable.add().width(cellWidth).height(220f).pad(10f)
+        }
+        battleFieldTable.row()
 
-            // Set up battle field table (9 fixed cells)
-            battleFieldTable = Table(skin)
-            battleFieldTable.setFillParent(true)
-            stage.addActor(battleFieldTable)
-            val cellWidth = stage.viewport.worldWidth / 9f
-            for (i in 0 until 9) {
-                battleFieldTable.add().width(cellWidth).height(220f).pad(10f)
-            }
-            battleFieldTable.row()
-
-            // Populate initial UI based on the current model state.
-            refreshBattleFieldUI()
+        // Populate initial UI based on the current model state.
+        refreshBattleFieldUI()
 
 
         // Add a Start Battle button
@@ -166,111 +158,88 @@ class GameScreen(
         skin.dispose()
     }
 
-
     private fun refreshBattleFieldUI() {
-        // 1) clear old actors
+        // 1) remove old pet Images…
         battleFieldActors.forEach { it?.remove() }
         battleFieldActors.clear()
+
+        // 2) …and also toss any old stat‐tables
         statTableMap.values.forEach { it.remove() }
         statTableMap.clear()
 
-        // 2) get your two teams
-        val teamLeft  = battleController.battle.playerA.team.teams.filterIsInstance<Sprite>()
+        // 3) pull from your controller exactly the same way…
+        val teamLeft = battleController.battle.playerA.team.teams.filterIsInstance<Sprite>()
         val teamRight = battleController.battle.playerB.team.teams.filterIsInstance<Sprite>()
 
-        // 3) build 9‑slot list
-        val slots = MutableList<Sprite?>(9){ null }
-        teamLeft .take(4).forEachIndexed { i, s -> slots[3 - i] = s }
+        // 4) build a 9‑slot list of Sprites (or null)
+        val slots = MutableList<Sprite?>(9) { null }
+        teamLeft.take(4).forEachIndexed { i, s -> slots[3 - i] = s }
         teamRight.take(4).forEachIndexed { i, s -> slots[5 + i] = s }
 
-
-        // 4) place each sprite + its stats
+        // 5) now place each Sprite's Image (and stats table) at the precalculated x,y
         slots.forEachIndexed { idx, sprite ->
+            if (sprite != null) {
+                // — Image
+                val img = createPetImage(sprite)
+                if (idx >= 5) {
+                    // set the origin to the center of the image
+                    img.setOrigin(img.width/2f, img.height/2f)
+                    // flip horizontally
+                    img.setScaleX(-1f)
+                }
+                val (x, y) = cellPositions[idx]
+                img.setPosition(x, y)
+                stage.addActor(img)
+                battleFieldActors.add(img)
 
-            if (sprite == null) {
+                // — Stats Table (♥ HP   ⚔ ATK), positioned just under the 200×200 sprite
+                val statT = Table().apply { userObject = sprite }
+                // heart icon + HP
+                statT.add(Image(TextureRegionDrawable(TextureRegion(heartTexture))))
+                    .size(32f).padRight(4f)
+                val hpLbl = Label(sprite.health.toString(), skin).apply { setFontScale(1f) }
+                statT.add(hpLbl).padRight(12f)
+                // sword icon + ATK
+                statT.add(Image(TextureRegionDrawable(TextureRegion(swordTexture))))
+                    .size(32f).padRight(4f)
+                val atkLbl = Label(sprite.attack.toString(), skin).apply { setFontScale(1f) }
+                statT.add(atkLbl)
+
+                // layout & position
+                statT.pack()
+                val statX = x + (200f - statT.width) / 2f
+                val statY = y - statT.height - 8f
+                statT.setPosition(statX, statY)
+                stage.addActor(statT)
+
+                // remember it so we can animate & update later
+                statTableMap[sprite] = statT
+            } else {
                 battleFieldActors.add(null)
-                return@forEachIndexed
             }
-
-            // — put down the pet image
-            val img = createPetImage(sprite)
-            if (idx >= 5) {
-                img.setOrigin(img.width/2f, img.height/2f)
-                img.setScaleX(-1f)
-            }
-            val (x, y) = cellPositions[idx]
-            img.setPosition(x, y)
-            stage.addActor(img)
-            battleFieldActors.add(img)
-
-            // — build a single Table with exactly two cells
-            val statT = Table().apply { userObject = sprite }
-
-            // health
-            val healthStack = Stack().apply {
-                val heartImg = Image(TextureRegionDrawable(TextureRegion(heartTexture))).apply {
-                    setSize(32f, 32f)
-                }
-                add(heartImg)
-                val hpLbl = Label(sprite.health.toString(), skin).apply {
-                    setFontScale(1f)
-                    setAlignment(Align.center)
-                    style = Label.LabelStyle(style).apply { fontColor = Color.WHITE }
-                }
-                add(Container(hpLbl).fill().center())
-            }
-            statT.add(healthStack).size(32f).padRight(12f)
-
-            // attack
-            val attackStack = Stack().apply {
-                val swordImg = Image(TextureRegionDrawable(TextureRegion(swordTexture))).apply {
-                    setSize(32f, 32f)
-                }
-                add(swordImg)
-                val atkLbl = Label(sprite.attack.toString(), skin).apply {
-                    setFontScale(1f)
-                    setAlignment(Align.center)
-                    style = Label.LabelStyle(style).apply { fontColor = Color.WHITE }
-                }
-                add(Container(atkLbl).fill().center())
-
-            }
-            statT.add(attackStack).size(32f)
-
-            // 5) pack, position under the **actual** image width, and add it
-            statT.pack()
-            val statX = x + (img.width  - statT.width) / 2f
-            val statY = y - statT.height - 8f
-            statT.setPosition(statX, statY)
-            stage.addActor(statT)
-
-            // 6) remember it so animations and updates work
-            statTableMap[sprite] = statT
         }
-
-
+    }
 
 
     //think this needs to be changed when connecting to the shop
     private val texCache = mutableMapOf<String, Texture>()
 
-
-        private fun createPetImage(sprite: Sprite): Image {
-            val file = when (sprite.name) {
-                "cat" -> "cat-1-base-nb.PNG"
-                "dog" -> "dog-1-base-nb.PNG"
-                "bird" -> "bird-1-base-nb.PNG"
-                "fish" -> "fish-1-base-nb.PNG"
-                else -> "heart.png"
-            }
-            val tex = texCache.getOrPut(file) {
-                Texture(Gdx.files.internal(file))
-            }
-            return Image(TextureRegionDrawable(TextureRegion(tex))).apply {
-                setSize(200f, 200f)
-                userObject = sprite
-            }
+    private fun createPetImage(sprite: Sprite): Image {
+        val file = when (sprite.name) {
+            "cat" -> "cat-1-base-nb.PNG"
+            "dog" -> "dog-1-base-nb.PNG"
+            "bird" -> "bird-1-base-nb.PNG"
+            "fish" -> "fish-1-base-nb.PNG"
+            else -> "heart.png"
         }
+        val tex = texCache.getOrPut(file) {
+            Texture(Gdx.files.internal(file))
+        }
+        return Image(TextureRegionDrawable(TextureRegion(tex))).apply {
+            setSize(200f, 200f)
+            userObject = sprite
+        }
+    }
 
     /**
      * Processes one battle step.
@@ -347,30 +316,51 @@ class GameScreen(
                 // wait for wiggle + fade to finish
                 Actions.delay(totalTime),
 
-                    // then:
-                    Actions.run {
-                        // a) Remove dead pet images + their stats tables
-                        event.diedSprites.forEach { dead ->
-                            findUIActorFor(dead)?.remove()
-                            statTableMap.remove(dead)?.remove()
-                        }
+                // then:
+                Actions.run {
+                    // a) Remove dead pet images + their stats tables
+                    event.diedSprites.forEach { dead ->
+                        findUIActorFor(dead)?.remove()
+                        statTableMap.remove(dead)?.remove()
+                    }
 
+                    // b) Slide survivors (images + stats) into new slots
+                    val slideTime = 0.5f
+
+                    // Left team → slots 3,2,1,0
+                    battleController.battle.playerA.team.teams
+                        .filterIsInstance<Sprite>()
+                        .take(4)
+                        .forEachIndexed { i, sprite ->
+                            val slot = 3 - i
+                            val (x, y) = cellPositions[slot]
+
+                            // image
+                            findUIActorFor(sprite)
+                                ?.addAction(Actions.moveTo(x, y, slideTime, Interpolation.sine))
 
                             // stats table
                             statTableMap[sprite]?.let { tbl ->
-                                val statX = x + (100f - tbl.width) / 2f
+                                val statX = x + (200f - tbl.width) / 2f
                                 val statY = y - tbl.height - 8f
-                                tbl.addAction(Actions.moveTo(statX, statY, slideTime, Interpolation.sine))
-
+                                tbl.addAction(
+                                    Actions.moveTo(
+                                        statX,
+                                        statY,
+                                        slideTime,
+                                        Interpolation.sine
+                                    )
+                                )
                             }
+                        }
 
-                        // Right team → slots 5,6,7,8
-                        battleController.battle.playerB.team.teams
-                            .filterIsInstance<Sprite>()
-                            .take(4)
-                            .forEachIndexed { i, sprite ->
-                                val slot = 5 + i
-                                val (x, y) = cellPositions[slot]
+                    // Right team → slots 5,6,7,8
+                    battleController.battle.playerB.team.teams
+                        .filterIsInstance<Sprite>()
+                        .take(4)
+                        .forEachIndexed { i, sprite ->
+                            val slot = 5 + i
+                            val (x, y) = cellPositions[slot]
 
                             findUIActorFor(sprite)
                                 ?.addAction(Actions.moveTo(x, y, slideTime, Interpolation.sine))
@@ -394,8 +384,8 @@ class GameScreen(
                     }
                 },
 
-                    // wait for the slide to complete
-                    Actions.delay(0.5f),
+                // wait for the slide to complete
+                Actions.delay(0.5f),
 
                 // finally, update numbers on all remaining stats tables
                 Actions.run {
@@ -408,42 +398,28 @@ class GameScreen(
     }
 
 
-
-
     private fun updateStats() {
-        statTableMap.forEach { (sprite, statT) ->
-            // children[0] is the HP‑stack, children[1] is the ATK‑stack
-            val hpStack = statT.children[0] as? Stack ?: return@forEach
-            val atkStack = statT.children[1] as? Stack ?: return@forEach
-
-            // In each stack we added: icon, then a Container<Label>
-            val hpContainer = hpStack.children
-                .firstOrNull { it is Container<*> } as? Container<*>
-            val atkContainer = atkStack.children
-                .firstOrNull { it is Container<*> } as? Container<*>
-
-            // The actor of that container is your Label
-            (hpContainer?.actor as? Label)
-                ?.setText(sprite.health.toString())
-            (atkContainer?.actor as? Label)
-                ?.setText(sprite.attack.toString())
-
+        statTableMap.forEach { (sprite, table) ->
+            // children: 0=image(♥), 1=hpLabel, 2=image(⚔), 3=atkLabel
+            (table.children[1] as? Label)?.setText(sprite.health.toString())
+            (table.children[3] as? Label)?.setText(sprite.attack.toString())
         }
+    }
 
 
-        private fun showBattleResult() {
-            // figure out who's left
-            val leftAlive = battleController.battle.playerA.team.teams
-                .filterIsInstance<Sprite>().any { it.health > 0 }
-            val rightAlive = battleController.battle.playerB.team.teams
-                .filterIsInstance<Sprite>().any { it.health > 0 }
+    private fun showBattleResult() {
+        // figure out who's left
+        val leftAlive = battleController.battle.playerA.team.teams
+            .filterIsInstance<Sprite>().any { it.health > 0 }
+        val rightAlive = battleController.battle.playerB.team.teams
+            .filterIsInstance<Sprite>().any { it.health > 0 }
 
-            // decide what to say
-            val resultText = when {
-                leftAlive && !rightAlive -> "You Win!"
-                rightAlive && !leftAlive -> "You Lose!"
-                else -> "Draw!"
-            }
+        // decide what to say
+        val resultText = when {
+            leftAlive && !rightAlive -> "You Win!"
+            rightAlive && !leftAlive -> "You Lose!"
+            else -> "Draw!"
+        }
 
         // build an overlay table, full‑screen
         val overlay = Table(skin).apply {
@@ -451,10 +427,10 @@ class GameScreen(
             top()
         }
 
-            // large label
-            val resultLabel = Label(resultText, skin).apply {
-                setFontScale(4f)
-            }
+        // large label
+        val resultLabel = Label(resultText, skin).apply {
+            setFontScale(4f)
+        }
 
         // — Back‐to‐Menu ImageButton
         val backDrawable = TextureRegionDrawable(TextureRegion(backTexture))
@@ -467,21 +443,21 @@ class GameScreen(
             })
         }
 
-            // layout it: label, then a bit of space, then button
-            overlay.add(resultLabel).center().padTop(200f)
-            overlay.row()
-            overlay.add(menuBtn).center().padTop(50f)
+        // layout it: label, then a bit of space, then button
+        overlay.add(resultLabel).center().padTop(200f)
+        overlay.row()
+        overlay.add(menuBtn).center().padTop(50f)
 
-            stage.addActor(overlay)
-        }
+        stage.addActor(overlay)
+    }
 
 
-        /**
-         * Finds the UI actor associated with a given sprite.
-         */
-        private fun findUIActorFor(sprite: Sprite): Image? {
-            return battleFieldActors.find { it?.userObject == sprite } ?: null
-        }
+    /**
+     * Finds the UI actor associated with a given sprite.
+     */
+    private fun findUIActorFor(sprite: Sprite): Image? {
+        return battleFieldActors.find { it?.userObject == sprite } ?: null
+    }
 
     /**
      * A minimal test scenario: each team gets up to four sprites.
@@ -497,19 +473,19 @@ class GameScreen(
             }
         }
     }
-    }
+}
 
 
-    private fun generateRandomTeam(): List<Sprite> {
-        val options = listOf("cat", "dog", "bird", "fish")
-        return List(4) {
-            val name = options.random()
-            when (name) {
-                "cat"  -> Sprite().apply { this.name = "cat";  health = 2;  attack = 2 }
-                "dog"  -> Sprite().apply { this.name = "dog";  health = 3;  attack = 2 }
-                "bird" -> Sprite().apply { this.name = "bird"; health = 1;  attack = 2 }
-                "fish" -> Sprite().apply { this.name = "fish"; health = 1;  attack = 1 }
-                else   -> Sprite().apply { this.name = "???";  health = 1;  attack = 1 }
-            }
+private fun generateRandomTeam(): List<Sprite> {
+    val options = listOf("cat", "dog", "bird", "fish")
+    return List(4) {
+        val name = options.random()
+        when (name) {
+            "cat"  -> Sprite().apply { this.name = "cat";  health = 2;  attack = 2 }
+            "dog"  -> Sprite().apply { this.name = "dog";  health = 3;  attack = 2 }
+            "bird" -> Sprite().apply { this.name = "bird"; health = 1;  attack = 2 }
+            "fish" -> Sprite().apply { this.name = "fish"; health = 1;  attack = 1 }
+            else   -> Sprite().apply { this.name = "???";  health = 1;  attack = 1 }
         }
     }
+}
