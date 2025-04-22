@@ -70,6 +70,7 @@ class MainMenuScreen(private val game: Main) : Screen {
         val singleTexture = Texture(Gdx.files.internal("singleplayer.png"))
         val multiTexture = Texture(Gdx.files.internal("multiplayer.png"))
         val exitTexture = Texture(Gdx.files.internal("exit.png"))
+        val tutorialTexture = Texture(Gdx.files.internal("tutorial.png"))
 
         val singleBtn = Image(TextureRegionDrawable(TextureRegion(singleTexture))).apply {
             setSize(btnW, btnH)
@@ -97,10 +98,19 @@ class MainMenuScreen(private val game: Main) : Screen {
             })
         }
 
+        val tutorialBtn = Image(TextureRegionDrawable(TextureRegion(tutorialTexture))).apply {
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    //game.screen = TutorialScreen(game)
+                }
+            })
+        }
+
 // Add to table
         table.add(singleBtn).width(btnW * 1.15f).height(btnH).pad(-70f).row()
         table.add(multiBtn).width(btnW).height(btnH * 1.5f).pad(-70f).row()
-        table.add(exitBtn).width(btnW * 0.5f).height(btnH * 0.75f).pad(-70f).row()
+        table.add(tutorialBtn).width(btnW).height(btnH * 1.15f).pad(-110f).row()
+        table.add(exitBtn).width(btnW * 0.5f).height(btnH * 0.75f).pad(5f).row()
     }
 
         override fun render(delta: Float) {
