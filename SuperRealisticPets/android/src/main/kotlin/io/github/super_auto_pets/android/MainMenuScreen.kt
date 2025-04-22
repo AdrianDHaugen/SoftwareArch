@@ -11,7 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
@@ -120,18 +119,29 @@ class MainMenuScreen(private val game: Main) : Screen {
 
 
 // Add to table
-        val verticalPad = 20f
-        val buttonHeight = btnH * 1.2f
-        val buttonWidth = btnW
+        // Create a two-column table for better layout
+        val buttonTable = Table(skin)
+        val verticalPad = -200f // Spacing between rows
+        val horizontalPad = -30f // Spacing between buttons
 
-        table.add(singleBtn).width(buttonWidth).height(buttonHeight).padBottom(verticalPad).row()
-        table.add(multiBtn).width(buttonWidth).height(buttonHeight).padBottom(verticalPad).row()
-        table.add(tutorialBtn).width(buttonWidth).height(buttonHeight).padBottom(verticalPad).row()
-        table.add(highscoreBtn).width(buttonWidth).height(buttonHeight).padBottom(verticalPad).row()
-        table.add(exitBtn).width(buttonWidth * 0.6f).height(buttonHeight * 0.8f).padTop(verticalPad).row()
+// Add title with proper padding and sizing to avoid overlapping with clouds
+        table.add(title).colspan(2).padBottom(-100f).padTop(-100f).row()
 
+// First row: Singleplayer and Multiplayer side by side
+        buttonTable.add(singleBtn).width(btnW*1.1f).height(btnH).padRight(horizontalPad)
+        buttonTable.add(multiBtn).width(btnW).height(btnH*1.55f).padLeft(horizontalPad).row()
 
+// Second row: Tutorial and Highscore side by side
+        buttonTable.row().padTop(verticalPad)
+        buttonTable.add(tutorialBtn).width(btnW).height(btnH*1.3f).padRight(horizontalPad)
+        buttonTable.add(highscoreBtn).width(btnW).height(btnH*1.1f).padLeft(horizontalPad).row()
 
+// Third row: Exit button centered
+        buttonTable.row().padTop(verticalPad * 0.65f)
+        buttonTable.add(exitBtn).width(btnW * 0.5f).height(btnH * 0.8f).colspan(2).padBottom(30f)
+
+// Add the button table to the main table
+        table.add(buttonTable).colspan(2).row()
     }
 
         override fun render(delta: Float) {
