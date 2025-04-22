@@ -18,6 +18,11 @@ class Player {
         get() = _turn
         set(value) { _turn = value }
 
+    private var _winStreak: Int = 0
+    var winStreak: Int
+        get() = _winStreak
+        set(value) { _winStreak = value }
+
     private var _team = Team()
     var team: Team
         get() = _team

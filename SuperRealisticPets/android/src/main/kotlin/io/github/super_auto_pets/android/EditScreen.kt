@@ -941,7 +941,7 @@ class EditScreen (
 
         miniTable.add(hourglassIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
         hourglassLabel = createUniqueLabel(
-            playerTurn.toString(),
+            countdownSeconds.toString(),
             skin,
             fontScale,
             statBackground
@@ -1082,10 +1082,9 @@ class EditScreen (
         updateStatsDisplay()
 
         //Start hourglass countdown
-        if (gameMode == GameMode.SINGLEPLAYER) {
+        if (gameMode == GameMode.SINGLEPLAYER || gameMode == GameMode.LOCAL_MULTIPLAYER) {
             startCountdown()
         }
-
     }
 
     override fun render(delta: Float) {
@@ -1108,6 +1107,8 @@ class EditScreen (
 
     override fun hide() {
         Gdx.input.inputProcessor = null
+        stopCountdown()
+        isCountdownRunning = false
     }
 
     override fun dispose() {

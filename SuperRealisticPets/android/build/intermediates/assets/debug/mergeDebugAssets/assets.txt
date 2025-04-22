@@ -1,5 +1,6 @@
 .gitkeep
 Stick.png
+back.png
 battle_bg.png
 bird-1-base-nb.PNG
 bird-1-base.png
@@ -11,6 +12,7 @@ bird-1-purple-nb.png
 bird-1-red-nb.png
 bird-1.jpg
 bomb.png
+box_bg.png
 canvas.png
 cat-1-base-nb.PNG
 cat-1-base.png
@@ -51,9 +53,11 @@ fish-1-red-nb.png
 fish-1.jpg
 fork.png
 heart.png
+highscore.png
 hourglass.png
 items.json
 leash.png
+logo.png
 main_menu_bg.png
 multiplayer.png
 nextattack.png
@@ -63,11 +67,14 @@ seeds.png
 singleplayer.png
 spriteframe.png
 sprites.json
+start.png
 startbattlebtn.png
 statbackground.png
 trophy.png
 tutorial.png
+tutorial_bg.png
 uiskin.atlas
 uiskin.json
 uiskin.png
 victory_bg.png
+white_pixel.png
