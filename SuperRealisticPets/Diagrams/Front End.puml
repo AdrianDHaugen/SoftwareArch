@@ -1,0 +1,122 @@
+@startuml
+class io.github.super_auto_pets.android.AndroidLauncher {
++ void onCreate(Bundle?)
+}
+
+class io.github.super_auto_pets.android.Main {
++ void create()
++ void render()
++ void dispose()
+}
+
+class io.github.super_auto_pets.android.EditScreen$Companion {
+-  VIRTUAL_WIDTH
+-  VIRTUAL_HEIGHT
+}
+
+class io.github.super_auto_pets.android.EditScreen$DragPayload {
+}
+class io.github.super_auto_pets.android.EditScreen {
+-  viewport
+-  stage
+-  skin
+-  dragAndDrop
+-  statBackground
+-  heartIcon
+-  currencyIcon
+-  hourglassIcon
+-  trophyIcon
++  birdDrawable
++  catDrawable
++  dogDrawable
++  emptyDrawable
++  animalTextures
+- DragAndDrop.Target createUnitBoxTarget(Table,Float,TextureRegionDrawable,Skin)
+- void setupDragSourceForUnitBox(Table,Float)
+- void setupDragSourcesForUnitBoxes(Table,Float)
+- void rerollShop(Table,Float)
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void pause()
++ void resume()
++ void hide()
++ void dispose()
+}
+
+
+class io.github.super_auto_pets.android.GameScreen$Companion {
+-  VIRTUAL_WIDTH
+-  VIRTUAL_HEIGHT
+}
+
+class io.github.super_auto_pets.android.GameScreen {
+-  viewport
+-  stage
+-  skin
+- BattleController battleController
+-  cellPositions
+- MutableList<Image?> battleFieldActors
+- Table battleFieldTable
+- TextButton nextAttackButton
+-  texCache
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void hide()
++ void pause()
++ void resume()
++ void dispose()
+- void refreshBattleFieldUI()
+- Image createPetImage(Sprite)
+- void performBattleStep()
+- Image? findUIActorFor(Sprite)
+- BattleController createTestBattle()
+}
+
+
+class io.github.super_auto_pets.android.VictoryScreen {
+-  stage
+-  skin
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void pause()
++ void resume()
++ void hide()
++ void dispose()
+}
+
+
+class io.github.super_auto_pets.android.MainMenuScreen$Companion {
+-  VIRTUAL_WIDTH
+-  VIRTUAL_HEIGHT
+}
+
+class io.github.super_auto_pets.android.MainMenuScreen {
+-  viewport
+-  stage
+-  skin
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void pause()
++ void resume()
++ void hide()
++ void dispose()
+}
+
+
+
+
+com.badlogic.gdx.backends.android.AndroidApplication <|-- io.github.super_auto_pets.android.AndroidLauncher
+com.badlogic.gdx.Game <|-- io.github.super_auto_pets.android.Main
+io.github.super_auto_pets.android.EditScreen +.. io.github.super_auto_pets.android.EditScreen$Companion
+io.github.super_auto_pets.android.EditScreen +.. io.github.super_auto_pets.android.EditScreen$DragPayload
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.EditScreen
+io.github.super_auto_pets.android.GameScreen +.. io.github.super_auto_pets.android.GameScreen$Companion
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.GameScreen
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.VictoryScreen
+io.github.super_auto_pets.android.MainMenuScreen +.. io.github.super_auto_pets.android.MainMenuScreen$Companion
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.MainMenuScreen
+@enduml

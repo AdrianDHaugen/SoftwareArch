@@ -1,0 +1,103 @@
+@startuml
+interface io.github.super_auto_pets.interfaces.GameUnit {
+}
+
+
+class io.github.super_auto_pets.android.AndroidLauncher {
+}
+
+class io.github.super_auto_pets.models.Empty {
+}
+
+class io.github.super_auto_pets.models.Sprite {
+}
+
+
+class io.github.super_auto_pets.controller.BattleController {
+}
+
+class io.github.super_auto_pets.controller.PlayerController {
+}
+
+class io.github.super_auto_pets.models.Battle {
+}
+
+class io.github.super_auto_pets.main.Main {
+}
+interface io.github.super_auto_pets.interfaces.ISprite {
+}
+
+class io.github.super_auto_pets.controller.ShopController {
+}
+
+class io.github.super_auto_pets.android.Main {
+}
+
+class io.github.super_auto_pets.android.EditScreen$Companion {
+}
+
+class io.github.super_auto_pets.android.EditScreen$DragPayload {
+}
+class io.github.super_auto_pets.android.EditScreen {
+
+}
+
+
+class io.github.super_auto_pets.android.GameScreen$Companion {
+}
+
+class io.github.super_auto_pets.android.GameScreen {
+}
+
+
+class io.github.super_auto_pets.utilities.JsonParser {
+}
+
+class io.github.super_auto_pets.controller.AttackEvent {
+}
+class io.github.super_auto_pets.models.Shop {
+}
+
+class io.github.super_auto_pets.android.VictoryScreen {
+}
+
+
+class io.github.super_auto_pets.models.Item {
+}
+
+
+class io.github.super_auto_pets.models.Player {
+}
+
+class io.github.super_auto_pets.models.Team {
+}
+
+class io.github.super_auto_pets.android.MainMenuScreen$Companion {
+}
+
+class io.github.super_auto_pets.android.MainMenuScreen {
+}
+
+
+
+
+com.badlogic.gdx.backends.android.AndroidApplication <|-- io.github.super_auto_pets.android.AndroidLauncher
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.models.Empty
+io.github.super_auto_pets.interfaces.ISprite <|.. io.github.super_auto_pets.models.Sprite
+com.badlogic.gdx.ApplicationAdapter <|-- io.github.super_auto_pets.main.Main
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.interfaces.ISprite
+com.badlogic.gdx.Game <|-- io.github.super_auto_pets.android.Main
+io.github.super_auto_pets.android.EditScreen +.. io.github.super_auto_pets.android.EditScreen$Companion
+io.github.super_auto_pets.android.EditScreen +.. io.github.super_auto_pets.android.EditScreen$DragPayload
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.EditScreen
+io.github.super_auto_pets.android.GameScreen +.. io.github.super_auto_pets.android.GameScreen$Companion
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.GameScreen
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.VictoryScreen
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.models.Item
+io.github.super_auto_pets.utilities.JsonParser <|.. io.github.super_auto_pets.controller.ShopController
+io.github.super_auto_pets.controller --|> "UPDATE MODEL" io.github.super_auto_pets.models
+io.github.super_auto_pets.main "UPDATE CONTROLLER" --|>   io.github.super_auto_pets.controller.PlayerController
+io.github.super_auto_pets.main "UPDATE VIEW" <|--|>  "USER INTERACTION" io.github.super_auto_pets.android
+io.github.super_auto_pets.android.MainMenuScreen +.. io.github.super_auto_pets.android.MainMenuScreen$Companion
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.MainMenuScreen
+@enduml

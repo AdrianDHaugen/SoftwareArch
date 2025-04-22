@@ -1,0 +1,133 @@
+@startuml
+interface io.github.super_auto_pets.interfaces.GameUnit {
++ Boolean isFrozen
++ String name
++ Int cost
++ String path
++ void toggleFreeze()
+}
+
+
+class io.github.super_auto_pets.models.Empty {
++ String name
++ Int cost
++ Boolean isFrozen
+}
+
+class io.github.super_auto_pets.models.Sprite {
++ String name
++ Int attack
++ Int health
++ Int tier
++ Item? item
++ Int level
++ Int cost
++ Boolean isFrozen
++ String color
++ String path
++ String toString()
+}
+
+
+class io.github.super_auto_pets.controller.BattleController {
++ AttackEvent? nextAttackStep()
+- void removeDead(MutableList<GameUnit>)
++ void attack(Sprite,Sprite)
+}
+
+class io.github.super_auto_pets.controller.PlayerController {
++ void startTurn()
++ Int toggleFreeze(Int)
++ Int reroll()
++ Int buy(Int,Int)
++ Int sell(Int)
++ Int move(Int,Int)
++ Int combine(Int,Int)
++ void endTurn()
+}
+
+class io.github.super_auto_pets.models.Battle {
++ Player playerA
++ Player playerB
+}
+
+class io.github.super_auto_pets.main.Main {
+}
+interface io.github.super_auto_pets.interfaces.ISprite {
++ String name
++ Int attack
++ Int health
++ Int tier
++ Item? item
++ Int level
++ Int cost
++ Boolean isFrozen
++ String color
++ String path
+}
+
+class io.github.super_auto_pets.controller.ShopController {
+- void parseGameUnits()
++ Int toggleFreeze(Int)
++ Int reroll()
++ Int buy(Int,Int)
+- Int buySpriteResponse(GameUnit,Int)
+- Int buyToEmptyResponse(GameUnit,Int)
+- Int buyToOccupiedSlotResponse()
+- Int buyToSameResponse(GameUnit,Int)
+- Int buyItemResponse(GameUnit,Int)
+- Int buyTargetedItem(GameUnit,Int)
+- void generateEmptyTeamSlots()
+- void generateInitialShop()
+- GameUnit generateShopSlot(Int)
+- Sprite generateRandomSprite()
+- Item generateRandomItem()
++ void endTurn()
+}
+
+class io.github.super_auto_pets.utilities.JsonParser {
++ List<Sprite> parseSprites()
++ List<Item> parseItems()
+}
+
+class io.github.super_auto_pets.controller.AttackEvent {
+}
+class io.github.super_auto_pets.models.Shop {
++ MutableList<GameUnit> slots
++ MutableSet<Int> frozenUnits
+}
+
+class io.github.super_auto_pets.models.Item {
++ String name
++ Int cost
++ Boolean isFrozen
++ Int addHealth
++ Int addAttack
++ String path
++ String toString()
+}
+
+
+class io.github.super_auto_pets.models.Player {
++ String name
++ Int gold
++ Int turn
++ Team team
++ Shop shop
++ ShopController shopController
+}
+
+class io.github.super_auto_pets.models.Team {
++ MutableList<GameUnit> teams
+}
+
+
+
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.models.Empty
+io.github.super_auto_pets.interfaces.ISprite <|.. io.github.super_auto_pets.models.Sprite
+com.badlogic.gdx.ApplicationAdapter <|-- io.github.super_auto_pets.main.Main
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.interfaces.ISprite
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.models.Item
+io.github.super_auto_pets.controller --|> "UPDATE MODEL" io.github.super_auto_pets.models
+io.github.super_auto_pets.main --|> "UPDATE CONTROLLER" io.github.super_auto_pets.controller
+@enduml
