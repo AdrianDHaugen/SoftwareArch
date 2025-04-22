@@ -23,26 +23,19 @@ import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
 import io.github.super_auto_pets.controller.GameMode
 
-/**
-class GameScreen(
-}
-private val game: Main,
-private val gameMode: GameMode,
-private val teamA: List<Sprite> = emptyList(),
-private val teamB: List<Sprite> = emptyList()
-) : Screen {
- */
+
 class GameScreen(
     private val game: Main,
     private val gameMode: GameMode,
     private val teamA: List<Sprite> = emptyList(),
     private val teamB: List<Sprite> = emptyList()
-    ) : Screen {
+) : Screen {
 
 
     companion object {
         private const val VIRTUAL_WIDTH = 1920f
         private const val VIRTUAL_HEIGHT = 1080f
+        private const val AUTO_ATTACK_DELAY = 1.5f  // Time between auto attacks in seconds
     }
 
     private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
@@ -60,8 +53,15 @@ class GameScreen(
     private val battleFieldActors: MutableList<Image?> = MutableList(9) { null }
     private lateinit var battleFieldTable: Table
 
-    // The Next Attack button.
-    private lateinit var nextAttackButton: TextButton
+    // Auto battle variables
+    private var battleStarted = false
+    private var timeSinceLastAttack = 0f
+    private var battleInProgress = true
+    private var waitingForAnimation = false
+
+    // Start battle button
+    private lateinit var startBattleButton: TextButton
+    private lateinit var buttonTable: Table
 
     override fun show() {
         Gdx.input.inputProcessor = stage
@@ -98,25 +98,38 @@ class GameScreen(
         // Populate initial UI based on the current model state.
         refreshBattleFieldUI()
 
-        // Add a Next Attack button
-        nextAttackButton = TextButton("Next Attack", skin)
-        nextAttackButton.addListener(object : com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
-            override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent, x: Float, y: Float) {
-                if (nextAttackButton.isDisabled) return
-                performBattleStep()
+
+        // Add a Start Battle button
+        startBattleButton = TextButton("Start Battle", skin)
+        startBattleButton.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent, x: Float, y: Float) {
+                battleStarted = true
+                startBattleButton.remove()  // Remove the button once battle starts
+                performBattleStep()         // Start the first battle step
             }
         })
+
         // Add the button to the stage
-        val buttonTable = Table(skin)
+        buttonTable = Table(skin)
         buttonTable.setFillParent(true)
         buttonTable.bottom().center()
-        buttonTable.add(nextAttackButton).pad(20f)
+        buttonTable.add(startBattleButton).pad(20f).height(60f).width(200f)
         stage.addActor(buttonTable)
     }
 
     override fun render(delta: Float) {
-        //Gdx.gl.glClearColor(0f,0f,0f,1f)
-        //Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        Gdx.gl.glClearColor(0f,0f,0f,1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+        // Handle auto battle logic - only if battle has started
+        if (battleStarted && battleInProgress && !waitingForAnimation) {
+            timeSinceLastAttack += delta
+            if (timeSinceLastAttack >= AUTO_ATTACK_DELAY) {
+                timeSinceLastAttack = 0f
+                performBattleStep()
+            }
+        }
+
         stage.act(delta)
         stage.draw()
     }
@@ -126,7 +139,7 @@ class GameScreen(
     }
     override fun hide() {
         stage.dispose()
-        Gdx.input.inputProcessor = null
+        skin.dispose()
     }
     override fun pause() {}
     override fun resume() {}
@@ -213,34 +226,34 @@ class GameScreen(
     }
 
     /**
-     * Called when the user presses the Next Attack button.
      * Processes one battle step.
      */
     private fun performBattleStep() {
-        // 1) Disable the button to prevent spamming
-        nextAttackButton.isDisabled = true
+        // Set flag to prevent starting another animation while one is in progress
+        waitingForAnimation = true
 
-        // 2) Process one battle step
+        // Process one battle step
         val event = battleController.nextAttackStep()
         if (event == null) {
             println("Battle is over!")
+            battleInProgress = false
             showBattleResult()
             return
         }
 
-        // 3) Find UI actors for attacker/defender (images + stats tables)
+        // Find UI actors for attacker/defender (images + stats tables)
         val attackerActor = findUIActorFor(event.attacker)
         val defenderActor = findUIActorFor(event.defender)
         val attackerStats = statTableMap[event.attacker]
         val defenderStats = statTableMap[event.defender]
 
-        // 4) Timing parameters
+        // Timing parameters
         val moveDist = 100f
         val moveDur  = 0.3f
         val flashDur = 0.2f
         val fadeDur  = 0.5f
 
-        // 5) Build wiggle sequences for images (with color flash)
+        // Build wiggle sequences for images (with color flash)
         val baseSeq = Actions.sequence(
             Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
             Actions.color(Color.RED,   flashDur, Interpolation.fade),
@@ -254,15 +267,15 @@ class GameScreen(
             Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine)
         )
 
-        // 6) Helper to append fade-out if the sprite died this round
+        // Helper to append fade-out if the sprite died this round
         fun wrapWithFade(seq: Action, died: Boolean) =
             if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
 
-        // 7) Apply actions to pet images
+        // Apply actions to pet images
         attackerActor?.addAction(wrapWithFade(baseSeq, event.diedSprites.contains(event.attacker)))
         defenderActor?.addAction(wrapWithFade(revSeq,  event.diedSprites.contains(event.defender)))
 
-        // 8) Build matching wiggle sequences for stats (no color, but same timing)
+        // Build matching wiggle sequences for stats (no color, but same timing)
         val statSeq = Actions.sequence(
             Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
             Actions.delay(flashDur * 2),
@@ -276,11 +289,11 @@ class GameScreen(
         fun wrapStat(seq: Action, died: Boolean) =
             if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
 
-        // 9) Apply actions to stat tables
+        // Apply actions to stat tables
         attackerStats?.addAction(wrapStat(statSeq, event.diedSprites.contains(event.attacker)))
         defenderStats?.addAction(wrapStat(statRevSeq, event.diedSprites.contains(event.defender)))
 
-        // 10) Schedule post-animation updates
+        // Schedule post-animation updates
         val totalTime = moveDur * 2 + flashDur * 2 + fadeDur
         stage.addAction(
             Actions.sequence(
@@ -336,23 +349,27 @@ class GameScreen(
                             }
                         }
 
-                    // c) Re-enable button if battle still ongoing
+                    // c) Check if battle is still ongoing
                     val leftAlive  = battleController.battle.playerA.team.teams
                         .filterIsInstance<Sprite>().any { it.health > 0 }
                     val rightAlive = battleController.battle.playerB.team.teams
                         .filterIsInstance<Sprite>().any { it.health > 0 }
-                    nextAttackButton.isDisabled = !(leftAlive && rightAlive)
+
                     if (!leftAlive || !rightAlive) {
+                        battleInProgress = false
                         showBattleResult()
                     }
-
                 },
 
                 // wait for the slide to complete
                 Actions.delay(0.5f),
 
                 // finally, update numbers on all remaining stats tables
-                Actions.run { updateStats() }
+                Actions.run {
+                    updateStats()
+                    // Animation is complete, reset flag to allow next attack
+                    waitingForAnimation = false
+                }
             )
         )
     }
@@ -380,9 +397,6 @@ class GameScreen(
             rightAlive && !leftAlive  -> "You Lose!"
             else                      -> "Draw!"
         }
-
-        // disable further attacks
-        nextAttackButton.isDisabled = true
 
         // build an overlay table, full‑screen
         val overlay = Table(skin).apply {
@@ -451,6 +465,4 @@ class GameScreen(
             }
         }
     }
-
-
 }
