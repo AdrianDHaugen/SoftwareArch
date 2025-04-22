@@ -235,7 +235,7 @@ class EditScreen (
                             if (result >= 0) {
                                 // Move succeeded - update UI
                                 box.clearChildren()
-                                addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                                addSpriteToBox(box, draggedSprite, dragPayload.drawable,false)
                                 box.setUserObject("sprite", draggedSprite)
                                 setupDragSourceForUnitBox(box, boxSize)
 
@@ -247,7 +247,7 @@ class EditScreen (
                         } else {
                             // Just update the UI if we can't find team indices
                             box.clearChildren()
-                            addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                            addSpriteToBox(box, draggedSprite, dragPayload.drawable,false)
                             box.setUserObject("sprite", draggedSprite)
                             setupDragSourceForUnitBox(box, boxSize)
 
@@ -280,7 +280,7 @@ class EditScreen (
                                 if (result >= 0) {
                                     // Buy succeeded - update UI
                                     box.clearChildren()
-                                    addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                                    addSpriteToBox(box, draggedSprite, dragPayload.drawable,false)
                                     box.setUserObject("sprite", draggedSprite)
                                     setupDragSourceForUnitBox(box, boxSize)
 
@@ -301,7 +301,7 @@ class EditScreen (
                                 e.printStackTrace()
 
                                 box.clearChildren()
-                                addSpriteToBox(box, draggedSprite, dragPayload.drawable)
+                                addSpriteToBox(box, draggedSprite, dragPayload.drawable,true)
                                 box.setUserObject("sprite", draggedSprite)
                                 setupDragSourceForUnitBox(box, boxSize)
 
@@ -343,8 +343,7 @@ class EditScreen (
         return box.getUserObject("teamIndex") as? Int ?: -1
     }
 
-    // Helper method to add a sprite with its stats to a box
-    private fun addSpriteToBox(box: Table, sprite: Sprite, drawable: Drawable) {
+    private fun addSpriteToBox(box: Table, sprite: Sprite, drawable: Drawable, showCost: Boolean = false) {
         val stack = Stack()
         box.add(stack).width(spriteSize).height(spriteSize)
 
@@ -405,30 +404,36 @@ class EditScreen (
 
         stack.add(statOverlay)
 
-        val costOverlay = Table()
-        costOverlay.setFillParent(true)
-        costOverlay.top().right()
+        // Only show cost in shop, not in unit boxes
+        if (showCost) {
+            val costOverlay = Table()
+            costOverlay.setFillParent(true)
+            costOverlay.top().right()
 
-        // Cost stack (coin + number)
-        val costStack = Stack()
-        val costCoinIcon =
-            Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("costcoin.png")))))
-        costCoinIcon.setSize(55f, 55f)
+            // Cost stack (coin + number)
+            val costStack = Stack()
+            val costCoinIcon =
+                Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("costcoin.png")))))
+            costCoinIcon.setSize(55f, 55f)
 
-        // Create label for cost
-        val costLabel = createUniqueLabel(sprite.cost.toString(), skin, 1.7f)
-        costLabel.setAlignment(Align.center)
+            val cost = playerController.getUnitCost(sprite)
 
-        val costLabelContainer = Container(costLabel)
-        costLabelContainer.padLeft(0f)
+            // Create label for cost
+            val costLabel = createUniqueLabel(cost.toString(), skin, 1.7f)
+            costLabel.setAlignment(Align.center)
 
-        costStack.add(costCoinIcon)
-        costStack.add(costLabelContainer)
+            val costLabelContainer = Container(costLabel)
+            costLabelContainer.padLeft(0f)
 
-        costOverlay.add(costStack).size(55f).padRight(-33f).padTop(-33f)
+            costStack.add(costCoinIcon)
+            costStack.add(costLabelContainer)
 
-        stack.add(costOverlay)
+            costOverlay.add(costStack).size(55f).padRight(-30f).padTop(-30f)
+
+            stack.add(costOverlay)
+        }
     }
+
 
     // Set up a drag source for a single unit box
     private fun setupDragSourceForUnitBox(box: Table, boxSize: Float) {
@@ -495,6 +500,7 @@ class EditScreen (
     }
 
     // Method to populate shop from the model
+    // Method to populate shop from the model
     private fun populateShopFromModel(shopTable: Table, boxSize: Float) {
         shopTable.clearChildren()
 
@@ -513,7 +519,7 @@ class EditScreen (
                 val spriteDrawable = spriteTextures[key] ?: emptyDrawable
 
                 // Add the sprite to the box with its stats
-                addSpriteToBox(shopBox, unit, spriteDrawable)
+                addSpriteToBox(shopBox, unit, spriteDrawable,true)
 
                 // Store unit reference and its index in the shop model
                 shopBox.setUserObject("sprite", unit)
@@ -631,6 +637,34 @@ class EditScreen (
 
                     stack.add(statOverlay)
                 }
+
+                // Add cost coin to upper right for items
+                val costOverlay = Table()
+                costOverlay.setFillParent(true)
+                costOverlay.top().right()
+
+                // Cost stack (coin + number)
+                val costStack = Stack()
+                val costCoinIcon =
+                    Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("costcoin.png")))))
+                costCoinIcon.setSize(55f, 55f)
+
+                // Get cost through the controller
+                val cost = playerController.getUnitCost(unit)
+
+                // Create label for cost
+                val costLabel = createUniqueLabel(cost.toString(), skin, 1.7f)
+                costLabel.setAlignment(Align.center)
+
+                val costLabelContainer = Container(costLabel)
+                costLabelContainer.padLeft(0f)
+
+                costStack.add(costCoinIcon)
+                costStack.add(costLabelContainer)
+
+                costOverlay.add(costStack).size(55f).padRight(-30f).padTop(-30f)
+
+                stack.add(costOverlay)
 
                 // Store references
                 shopBox.setUserObject("item", unit)
@@ -775,7 +809,7 @@ class EditScreen (
         val spriteDrawable = spriteTextures[key] ?: emptyDrawable
 
         // Re-add the sprite with updated stats
-        addSpriteToBox(box, sprite, spriteDrawable)
+        addSpriteToBox(box, sprite, spriteDrawable, false)
 
         // Update user object
         box.setUserObject("sprite", sprite)

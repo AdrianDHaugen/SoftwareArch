@@ -83,4 +83,10 @@ class PlayerController(private val player: Player) {
     fun getPlayerGold(): Int {
         return player.gold
     }
+
+    fun getUnitCost(unit: GameUnit): Int {
+        // Basic implementation returns the unit's cost
+        // This could be extended to apply discounts, bonuses, etc. based on game state
+        return unit.cost
+    }
 }

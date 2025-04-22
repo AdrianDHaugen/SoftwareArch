@@ -25,6 +25,7 @@ cat-1-red-nb.png
 cat-1.jpg
 chips.png
 coin.png
+costcoin.png
 cowboyhat.png
 crossed_swords.png
 default.fnt
