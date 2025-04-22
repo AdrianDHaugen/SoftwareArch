@@ -20,8 +20,8 @@ import io.github.super_auto_pets.controller.GameMode
 class MainMenuScreen(private val game: Main) : Screen {
     // Define a fixed virtual resolution for consistent layout
     companion object {
-        private const val VIRTUAL_WIDTH = 1920f
-        private const val VIRTUAL_HEIGHT = 1080f
+        const val VIRTUAL_WIDTH = 1920f
+        const val VIRTUAL_HEIGHT = 1080f
     }
 
     private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
@@ -66,7 +66,7 @@ class MainMenuScreen(private val game: Main) : Screen {
         val btnW = VIRTUAL_WIDTH * 0.25f
         val btnH = VIRTUAL_HEIGHT * 0.25f
 
-// Load button textures
+        // Load button textures
         val singleTexture = Texture(Gdx.files.internal("singleplayer.png"))
         val multiTexture = Texture(Gdx.files.internal("multiplayer.png"))
         val exitTexture = Texture(Gdx.files.internal("exit.png"))
@@ -101,7 +101,7 @@ class MainMenuScreen(private val game: Main) : Screen {
         val tutorialBtn = Image(TextureRegionDrawable(TextureRegion(tutorialTexture))).apply {
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    //game.screen = TutorialScreen(game)
+                    game.screen = TutorialScreen(game)
                 }
             })
         }

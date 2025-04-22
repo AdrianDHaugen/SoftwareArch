@@ -115,8 +115,8 @@ class GameScreen(
     }
 
     override fun render(delta: Float) {
-        Gdx.gl.glClearColor(0f,0f,0f,1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        //Gdx.gl.glClearColor(0f,0f,0f,1f)
+        //Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         stage.act(delta)
         stage.draw()
     }
@@ -124,7 +124,10 @@ class GameScreen(
     override fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
     }
-    override fun hide() { stage.dispose() }
+    override fun hide() {
+        stage.dispose()
+        Gdx.input.inputProcessor = null
+    }
     override fun pause() {}
     override fun resume() {}
     override fun dispose() {
