@@ -404,6 +404,30 @@ class EditScreen (
         }
 
         stack.add(statOverlay)
+
+        val costOverlay = Table()
+        costOverlay.setFillParent(true)
+        costOverlay.top().right()
+
+        // Cost stack (coin + number)
+        val costStack = Stack()
+        val costCoinIcon =
+            Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("costcoin.png")))))
+        costCoinIcon.setSize(55f, 55f)
+
+        // Create label for cost
+        val costLabel = createUniqueLabel(sprite.cost.toString(), skin, 1.7f)
+        costLabel.setAlignment(Align.center)
+
+        val costLabelContainer = Container(costLabel)
+        costLabelContainer.padLeft(0f)
+
+        costStack.add(costCoinIcon)
+        costStack.add(costLabelContainer)
+
+        costOverlay.add(costStack).size(55f).padRight(-33f).padTop(-33f)
+
+        stack.add(costOverlay)
     }
 
     // Set up a drag source for a single unit box
