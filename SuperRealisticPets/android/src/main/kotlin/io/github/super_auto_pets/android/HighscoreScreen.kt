@@ -52,9 +52,9 @@ class HighscoreScreen(private val game: Main) : Screen {
         val scrollPane = ScrollPane(scoresTable, skin).apply {
             setFadeScrollBars(false)
             setScrollingDisabled(true, false)
-            style.background = null // <- fixes grey color
+            style.background = null
         }
-        scoresTable.setBackground(null as Drawable?) // <- just to be sure
+        scoresTable.setBackground(null as Drawable?)
         boxTable.add(scrollPane).expand().fill()
 
 
@@ -94,7 +94,7 @@ class HighscoreScreen(private val game: Main) : Screen {
         val exitTexture = Texture(Gdx.files.internal("exit.png"))
         val exitBtn = ImageButton(TextureRegionDrawable(TextureRegion(exitTexture)))
 
-        val btnW = 400f  // Match this with your other screens if needed
+        val btnW = 400f
         val btnH = 200f
         val verticalPad = 100f
 
@@ -104,7 +104,6 @@ class HighscoreScreen(private val game: Main) : Screen {
             }
         })
 
-// Apply same padding and size as main menu style
         root.row().padTop(verticalPad * 0.65f)
         root.add(exitBtn).width(btnW * 0.5f).height(btnH * 0.8f).colspan(2).padBottom(30f)
 
