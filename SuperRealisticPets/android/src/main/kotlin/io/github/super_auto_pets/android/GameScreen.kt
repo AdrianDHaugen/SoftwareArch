@@ -21,6 +21,7 @@ import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import io.github.super_auto_pets.controller.GameMode
 
 
@@ -44,6 +45,9 @@ class GameScreen(
 
     private val heartTexture = Texture(Gdx.files.internal("heart.png"))
     private val swordTexture = Texture(Gdx.files.internal("crossed_swords.png"))
+    private val startTexture = Texture(Gdx.files.internal("start.png"))
+    private val backTexture  = Texture(Gdx.files.internal("back.png"))
+
     private val statTableMap = mutableMapOf<Sprite, Table>()
     private lateinit var battleController: BattleController
 
@@ -60,7 +64,7 @@ class GameScreen(
     private var waitingForAnimation = false
 
     // Start battle button
-    private lateinit var startBattleButton: TextButton
+    private lateinit var startBattleButton: ImageButton
     private lateinit var buttonTable: Table
 
     override fun show() {
@@ -100,21 +104,28 @@ class GameScreen(
 
 
         // Add a Start Battle button
-        startBattleButton = TextButton("Start Battle", skin)
-        startBattleButton.addListener(object : ClickListener() {
-            override fun clicked(event: InputEvent, x: Float, y: Float) {
-                battleStarted = true
-                startBattleButton.remove()  // Remove the button once battle starts
-                performBattleStep()         // Start the first battle step
-            }
-        })
+        // — Create Start‐Battle ImageButton
+        val startDrawable = TextureRegionDrawable(TextureRegion(startTexture))
+        startBattleButton = ImageButton(startDrawable).apply {
+            // size it to your png's proportions (here: 200×60)
+            this.imageCell.size(400f, 120f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent, x: Float, y: Float) {
+                    battleStarted = true
+                    this@GameScreen.startBattleButton.remove()
+                    performBattleStep()
+                }
+            })
+        }
 
-        // Add the button to the stage
-        buttonTable = Table(skin)
-        buttonTable.setFillParent(true)
-        buttonTable.bottom().center()
-        buttonTable.add(startBattleButton).pad(20f).height(60f).width(200f)
+        // add to bottom‐center
+        buttonTable = Table(skin).apply {
+            setFillParent(true)
+            bottom().center()
+            add(startBattleButton).pad(20f)
+        }
         stage.addActor(buttonTable)
+
     }
 
     override fun render(delta: Float) {
@@ -409,9 +420,10 @@ class GameScreen(
             setFontScale(4f)
         }
 
-        // back‑to‑menu button
-        val menuBtn = TextButton("Back to Menu", skin).apply {
-            label.setFontScale(2f)
+        // — Back‐to‐Menu ImageButton
+        val backDrawable = TextureRegionDrawable(TextureRegion(backTexture))
+        val menuBtn = ImageButton(backDrawable).apply {
+            this.imageCell.size(150f, 150f)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     game.screen = MainMenuScreen(game)
