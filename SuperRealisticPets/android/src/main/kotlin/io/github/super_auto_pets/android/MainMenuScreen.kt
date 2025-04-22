@@ -140,7 +140,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     private fun addTutorialButton(table: Table, btnWidth: Float, btnHeight: Float) {
         val texture = loadTexture("tutorial.png")
         val button = createMenuButton(texture, btnWidth, btnHeight * 1.3f) {
-            // Commented in original: game.screen = TutorialScreen(game)
+             game.screen = TutorialScreen(game)
         }
         table.add(button).width(btnWidth).height(btnHeight * 1.3f).padRight(BUTTON_HORIZONTAL_PADDING)
     }

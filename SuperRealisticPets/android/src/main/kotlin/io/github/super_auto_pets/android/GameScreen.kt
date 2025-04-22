@@ -13,7 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
@@ -21,41 +20,35 @@ import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
-import io.github.super_auto_pets.firebase.FirebaseHighscoreService
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import io.github.super_auto_pets.controller.GameMode
 
 
-
-    /**
-    class GameScreen(
-    }
+class GameScreen(
     private val game: Main,
     private val gameMode: GameMode,
     private val teamA: List<Sprite> = emptyList(),
     private val teamB: List<Sprite> = emptyList()
-    ) : Screen {
-     */
-    class GameScreen(
-        private val game: Main,
-        private val gameMode: GameMode,
-        private val teamA: List<Sprite> = emptyList(),
-        private val teamB: List<Sprite> = emptyList()
-    ) : Screen {
+) : Screen {
 
 
-        companion object {
-            private const val VIRTUAL_WIDTH = 1920f
-            private const val VIRTUAL_HEIGHT = 1080f
-        }
+    companion object {
+        private const val VIRTUAL_WIDTH = 1920f
+        private const val VIRTUAL_HEIGHT = 1080f
+        private const val AUTO_ATTACK_DELAY = 1.5f  // Time between auto attacks in seconds
+    }
 
         private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
         private val stage = Stage(viewport)
         private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
-        private val heartTexture = Texture(Gdx.files.internal("heart.png"))
-        private val swordTexture = Texture(Gdx.files.internal("crossed_swords.png"))
-        private val statTableMap = mutableMapOf<Sprite, Table>()
-        private lateinit var battleController: BattleController
+    private val heartTexture = Texture(Gdx.files.internal("heart.png"))
+    private val swordTexture = Texture(Gdx.files.internal("crossed_swords.png"))
+    private val startTexture = Texture(Gdx.files.internal("start.png"))
+    private val backTexture  = Texture(Gdx.files.internal("back.png"))
+
+    private val statTableMap = mutableMapOf<Sprite, Table>()
+    private lateinit var battleController: BattleController
 
         private val cellPositions = mutableListOf<Pair<Float, Float>>()
 
@@ -63,8 +56,15 @@ import io.github.super_auto_pets.controller.GameMode
         private val battleFieldActors: MutableList<Image?> = MutableList(9) { null }
         private lateinit var battleFieldTable: Table
 
-        // The Next Attack button.
-        private lateinit var nextAttackButton: TextButton
+    // Auto battle variables
+    private var battleStarted = false
+    private var timeSinceLastAttack = 0f
+    private var battleInProgress = true
+    private var waitingForAnimation = false
+
+    // Start battle button
+    private lateinit var startBattleButton: ImageButton
+    private lateinit var buttonTable: Table
 
         override fun show() {
             Gdx.input.inputProcessor = stage
@@ -101,48 +101,62 @@ import io.github.super_auto_pets.controller.GameMode
             // Populate initial UI based on the current model state.
             refreshBattleFieldUI()
 
-            // Add a Next Attack button
-            nextAttackButton = TextButton("Next Attack", skin)
-            nextAttackButton.addListener(object :
-                com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
-                override fun clicked(
-                    event: com.badlogic.gdx.scenes.scene2d.InputEvent,
-                    x: Float,
-                    y: Float
-                ) {
-                    if (nextAttackButton.isDisabled) return
+
+        // Add a Start Battle button
+        // — Create Start‐Battle ImageButton
+        val startDrawable = TextureRegionDrawable(TextureRegion(startTexture))
+        startBattleButton = ImageButton(startDrawable).apply {
+            // size it to your png's proportions (here: 200×60)
+            this.imageCell.size(400f, 120f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent, x: Float, y: Float) {
+                    battleStarted = true
+                    this@GameScreen.startBattleButton.remove()
                     performBattleStep()
                 }
             })
-            // Add the button to the stage
-            val buttonTable = Table(skin)
-            buttonTable.setFillParent(true)
-            buttonTable.bottom().center()
-            buttonTable.add(nextAttackButton).pad(20f)
-            stage.addActor(buttonTable)
         }
 
-        override fun render(delta: Float) {
-            Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-            stage.act(delta)
-            stage.draw()
+        // add to bottom‐center
+        buttonTable = Table(skin).apply {
+            setFillParent(true)
+            bottom().center()
+            add(startBattleButton).pad(20f)
+        }
+        stage.addActor(buttonTable)
+
+    }
+
+    override fun render(delta: Float) {
+        Gdx.gl.glClearColor(0f,0f,0f,1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+
+        // Handle auto battle logic - only if battle has started
+        if (battleStarted && battleInProgress && !waitingForAnimation) {
+            timeSinceLastAttack += delta
+            if (timeSinceLastAttack >= AUTO_ATTACK_DELAY) {
+                timeSinceLastAttack = 0f
+                performBattleStep()
+            }
         }
 
-        override fun resize(width: Int, height: Int) {
-            stage.viewport.update(width, height, true)
-        }
+        stage.act(delta)
+        stage.draw()
+    }
 
-        override fun hide() {
-            stage.dispose()
-        }
-
-        override fun pause() {}
-        override fun resume() {}
-        override fun dispose() {
-            stage.dispose()
-            skin.dispose()
-        }
+    override fun resize(width: Int, height: Int) {
+        stage.viewport.update(width, height, true)
+    }
+    override fun hide() {
+        stage.dispose()
+        skin.dispose()
+    }
+    override fun pause() {}
+    override fun resume() {}
+    override fun dispose() {
+        stage.dispose()
+        skin.dispose()
+    }
 
         private fun refreshBattleFieldUI() {
             // 1) remove old pet Images…
@@ -162,15 +176,21 @@ import io.github.super_auto_pets.controller.GameMode
             teamLeft.take(4).forEachIndexed { i, s -> slots[3 - i] = s }
             teamRight.take(4).forEachIndexed { i, s -> slots[5 + i] = s }
 
-            // 5) now place each Sprite's Image (and stats table) at the precalculated x,y
-            slots.forEachIndexed { idx, sprite ->
-                if (sprite != null) {
-                    // — Image
-                    val img = createPetImage(sprite)
-                    val (x, y) = cellPositions[idx]
-                    img.setPosition(x, y)
-                    stage.addActor(img)
-                    battleFieldActors.add(img)
+        // 5) now place each Sprite's Image (and stats table) at the precalculated x,y
+        slots.forEachIndexed { idx, sprite ->
+            if (sprite != null) {
+                // — Image
+                val img = createPetImage(sprite)
+                if (idx >= 5) {
+                    // set the origin to the center of the image
+                    img.setOrigin(img.width/2f, img.height/2f)
+                    // flip horizontally
+                    img.setScaleX(-1f)
+                }
+                val (x, y) = cellPositions[idx]
+                img.setPosition(x, y)
+                stage.addActor(img)
+                battleFieldActors.add(img)
 
                     // — Stats Table (♥ HP   ⚔ ATK), positioned just under the 200×200 sprite
                     val statT = Table().apply { userObject = sprite }
@@ -221,96 +241,80 @@ import io.github.super_auto_pets.controller.GameMode
             }
         }
 
-        /**
-         * Called when the user presses the Next Attack button.
-         * Processes one battle step.
-         */
-        private fun performBattleStep() {
-            // 1) Disable the button to prevent spamming
-            nextAttackButton.isDisabled = true
+    /**
+     * Processes one battle step.
+     */
+    private fun performBattleStep() {
+        // Set flag to prevent starting another animation while one is in progress
+        waitingForAnimation = true
 
-            // 2) Process one battle step
-            val event = battleController.nextAttackStep()
-            if (event == null) {
-                println("Battle is over!")
-                showBattleResult()
-                return
-            }
+        // Process one battle step
+        val event = battleController.nextAttackStep()
+        if (event == null) {
+            println("Battle is over!")
+            battleInProgress = false
+            showBattleResult()
+            return
+        }
 
-            // 3) Find UI actors for attacker/defender (images + stats tables)
-            val attackerActor = findUIActorFor(event.attacker)
-            val defenderActor = findUIActorFor(event.defender)
-            val attackerStats = statTableMap[event.attacker]
-            val defenderStats = statTableMap[event.defender]
+        // Find UI actors for attacker/defender (images + stats tables)
+        val attackerActor = findUIActorFor(event.attacker)
+        val defenderActor = findUIActorFor(event.defender)
+        val attackerStats = statTableMap[event.attacker]
+        val defenderStats = statTableMap[event.defender]
 
-            // 4) Timing parameters
-            val moveDist = 100f
-            val moveDur = 0.3f
-            val flashDur = 0.2f
-            val fadeDur = 0.5f
+        // Timing parameters
+        val moveDist = 100f
+        val moveDur  = 0.3f
+        val flashDur = 0.2f
+        val fadeDur  = 0.5f
 
-            // 5) Build wiggle sequences for images (with color flash)
-            val baseSeq = Actions.sequence(
-                Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
-                Actions.color(Color.RED, flashDur, Interpolation.fade),
-                Actions.color(Color.WHITE, flashDur, Interpolation.fade),
-                Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine)
-            )
-            val revSeq = Actions.sequence(
-                Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine),
-                Actions.color(Color.RED, flashDur, Interpolation.fade),
-                Actions.color(Color.WHITE, flashDur, Interpolation.fade),
-                Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine)
-            )
+        // Build wiggle sequences for images (with color flash)
+        val baseSeq = Actions.sequence(
+            Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.color(Color.RED,   flashDur, Interpolation.fade),
+            Actions.color(Color.WHITE, flashDur, Interpolation.fade),
+            Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine)
+        )
+        val revSeq = Actions.sequence(
+            Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.color(Color.RED,   flashDur, Interpolation.fade),
+            Actions.color(Color.WHITE, flashDur, Interpolation.fade),
+            Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine)
+        )
 
-            // 6) Helper to append fade-out if the sprite died this round
-            fun wrapWithFade(seq: Action, died: Boolean) =
-                if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
+        // Helper to append fade-out if the sprite died this round
+        fun wrapWithFade(seq: Action, died: Boolean) =
+            if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
 
-            // 7) Apply actions to pet images
-            attackerActor?.addAction(
-                wrapWithFade(
-                    baseSeq,
-                    event.diedSprites.contains(event.attacker)
-                )
-            )
-            defenderActor?.addAction(
-                wrapWithFade(
-                    revSeq,
-                    event.diedSprites.contains(event.defender)
-                )
-            )
+        // Apply actions to pet images
+        attackerActor?.addAction(wrapWithFade(baseSeq, event.diedSprites.contains(event.attacker)))
+        defenderActor?.addAction(wrapWithFade(revSeq,  event.diedSprites.contains(event.defender)))
 
-            // 8) Build matching wiggle sequences for stats (no color, but same timing)
-            val statSeq = Actions.sequence(
-                Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
-                Actions.delay(flashDur * 2),
-                Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine)
-            )
-            val statRevSeq = Actions.sequence(
-                Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine),
-                Actions.delay(flashDur * 2),
-                Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine)
-            )
+        // Build matching wiggle sequences for stats (no color, but same timing)
+        val statSeq = Actions.sequence(
+            Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.delay(flashDur * 2),
+            Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine)
+        )
+        val statRevSeq = Actions.sequence(
+            Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.delay(flashDur * 2),
+            Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine)
+        )
+        fun wrapStat(seq: Action, died: Boolean) =
+            if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
 
-            fun wrapStat(seq: Action, died: Boolean) =
-                if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
+        // Apply actions to stat tables
+        attackerStats?.addAction(wrapStat(statSeq, event.diedSprites.contains(event.attacker)))
+        defenderStats?.addAction(wrapStat(statRevSeq, event.diedSprites.contains(event.defender)))
 
-            // 9) Apply actions to stat tables
-            attackerStats?.addAction(wrapStat(statSeq, event.diedSprites.contains(event.attacker)))
-            defenderStats?.addAction(
-                wrapStat(
-                    statRevSeq,
-                    event.diedSprites.contains(event.defender)
-                )
-            )
-
-            // 10) Schedule post-animation updates
-            val totalTime = moveDur * 2 + flashDur * 2 + fadeDur
-            stage.addAction(
-                Actions.sequence(
-                    // wait for wiggle + fade to finish
-                    Actions.delay(totalTime),
+        // Schedule post-animation updates
+        val totalTime = moveDur * 2 + flashDur * 2 + fadeDur
+        stage.addAction(
+            Actions.sequence(
+                // wait for wiggle + fade to finish
+                Actions.delay(totalTime),
 
                     // then:
                     Actions.run {
@@ -358,43 +362,40 @@ import io.github.super_auto_pets.controller.GameMode
                                 val slot = 5 + i
                                 val (x, y) = cellPositions[slot]
 
-                                findUIActorFor(sprite)
-                                    ?.addAction(Actions.moveTo(x, y, slideTime, Interpolation.sine))
+                            findUIActorFor(sprite)
+                                ?.addAction(Actions.moveTo(x, y, slideTime, Interpolation.sine))
 
-                                statTableMap[sprite]?.let { tbl ->
-                                    val statX = x + (200f - tbl.width) / 2f
-                                    val statY = y - tbl.height - 8f
-                                    tbl.addAction(
-                                        Actions.moveTo(
-                                            statX,
-                                            statY,
-                                            slideTime,
-                                            Interpolation.sine
-                                        )
-                                    )
-                                }
+                            statTableMap[sprite]?.let { tbl ->
+                                val statX = x + (200f - tbl.width) / 2f
+                                val statY = y - tbl.height - 8f
+                                tbl.addAction(Actions.moveTo(statX, statY, slideTime, Interpolation.sine))
                             }
-
-                        // c) Re-enable button if battle still ongoing
-                        val leftAlive = battleController.battle.playerA.team.teams
-                            .filterIsInstance<Sprite>().any { it.health > 0 }
-                        val rightAlive = battleController.battle.playerB.team.teams
-                            .filterIsInstance<Sprite>().any { it.health > 0 }
-                        nextAttackButton.isDisabled = !(leftAlive && rightAlive)
-                        if (!leftAlive || !rightAlive) {
-                            showBattleResult()
                         }
 
-                    },
+                    // c) Check if battle is still ongoing
+                    val leftAlive  = battleController.battle.playerA.team.teams
+                        .filterIsInstance<Sprite>().any { it.health > 0 }
+                    val rightAlive = battleController.battle.playerB.team.teams
+                        .filterIsInstance<Sprite>().any { it.health > 0 }
+
+                    if (!leftAlive || !rightAlive) {
+                        battleInProgress = false
+                        showBattleResult()
+                    }
+                },
 
                     // wait for the slide to complete
                     Actions.delay(0.5f),
 
-                    // finally, update numbers on all remaining stats tables
-                    Actions.run { updateStats() }
-                )
+                // finally, update numbers on all remaining stats tables
+                Actions.run {
+                    updateStats()
+                    // Animation is complete, reset flag to allow next attack
+                    waitingForAnimation = false
+                }
             )
-        }
+        )
+    }
 
 
         private fun updateStats() {
@@ -420,29 +421,27 @@ import io.github.super_auto_pets.controller.GameMode
                 else -> "Draw!"
             }
 
-            // disable further attacks
-            nextAttackButton.isDisabled = true
-
-            // build an overlay table, full‑screen
-            val overlay = Table(skin).apply {
-                setFillParent(true)
-                top()
-            }
+        // build an overlay table, full‑screen
+        val overlay = Table(skin).apply {
+            setFillParent(true)
+            top()
+        }
 
             // large label
             val resultLabel = Label(resultText, skin).apply {
                 setFontScale(4f)
             }
 
-            // back‑to‑menu button
-            val menuBtn = TextButton("Back to Menu", skin).apply {
-                label.setFontScale(2f)
-                addListener(object : ClickListener() {
-                    override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                        game.screen = MainMenuScreen(game)
-                    }
-                })
-            }
+        // — Back‐to‐Menu ImageButton
+        val backDrawable = TextureRegionDrawable(TextureRegion(backTexture))
+        val menuBtn = ImageButton(backDrawable).apply {
+            this.imageCell.size(150f, 150f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    game.screen = MainMenuScreen(game)
+                }
+            })
+        }
 
             // layout it: label, then a bit of space, then button
             overlay.add(resultLabel).center().padTop(200f)
@@ -474,21 +473,18 @@ import io.github.super_auto_pets.controller.GameMode
             }
         }
     }
+    }
 
 
-
-        private fun generateRandomTeam(): List<Sprite> {
-            val options = listOf("cat", "dog", "bird")
-            return List(4) {
-                val name = options.random()
-                when (name) {
-                    "cat" -> Sprite().apply { this.name = "cat"; health = 10; attack = 2 }
-                    "dog" -> Sprite().apply { this.name = "dog"; health = 5; attack = 2 }
-                    "bird" -> Sprite().apply { this.name = "bird"; health = 5; attack = 2 }
-                    else -> Sprite().apply { this.name = "???"; health = 1; attack = 1 }
-                }
+    private fun generateRandomTeam(): List<Sprite> {
+        val options = listOf("cat", "dog", "bird")
+        return List(4) {
+            val name = options.random()
+            when (name) {
+                "cat"  -> Sprite().apply { this.name = "cat";  health = 10; attack = 2 }
+                "dog"  -> Sprite().apply { this.name = "dog";  health = 5;  attack = 2 }
+                "bird" -> Sprite().apply { this.name = "bird"; health = 5;  attack = 2 }
+                else   -> Sprite().apply { this.name = "???";  health = 1;  attack = 1 }
             }
         }
-
-
-}
+    }
