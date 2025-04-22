@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
+import io.github.super_auto_pets.controller.GameMode
 
 class MainMenuScreen(private val game: Main) : Screen {
     // Define a fixed virtual resolution for consistent layout
@@ -34,12 +35,14 @@ class MainMenuScreen(private val game: Main) : Screen {
         val bg = Texture(Gdx.files.internal("main_menu_bg.png"))
         val bgImg = Image(TextureRegionDrawable(TextureRegion(bg))).apply {
             setSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
-            addAction(Actions.forever(
-                Actions.sequence(
-                    Actions.moveBy(20f, 0f, 30f),
-                    Actions.moveBy(-20f, 0f, 30f)
+            addAction(
+                Actions.forever(
+                    Actions.sequence(
+                        Actions.moveBy(20f, 0f, 30f),
+                        Actions.moveBy(-20f, 0f, 30f)
+                    )
                 )
-            ))
+            )
         }
         stage.addActor(bgImg)
 
@@ -48,7 +51,6 @@ class MainMenuScreen(private val game: Main) : Screen {
             setFillParent(true)
             top()
             center()
-            defaults().pad(VIRTUAL_HEIGHT * 0.02f)
         }
         stage.addActor(table)
 
@@ -57,60 +59,82 @@ class MainMenuScreen(private val game: Main) : Screen {
             setFontScale(VIRTUAL_WIDTH / 800f) // scales font based on resolution
             addAction(Actions.sequence(Actions.alpha(0f), Actions.fadeIn(1f)))
         }
-        table.add(title).colspan(1).row()
+        title.setFontScale(7f)
+        table.add(title).colspan(1).padBottom(30f).row()
 
-        // Button sizes relative to virtual dimensions
+        // Button sizes
         val btnW = VIRTUAL_WIDTH * 0.25f
-        val btnH = VIRTUAL_HEIGHT * 0.1f
+        val btnH = VIRTUAL_HEIGHT * 0.25f
 
-        // Single player
-        val singleBtn = TextButton("Single Player", skin).apply {
-            label.setFontScale(VIRTUAL_WIDTH / 1200f)
+// Load button textures
+        val singleTexture = Texture(Gdx.files.internal("singleplayer.png"))
+        val multiTexture = Texture(Gdx.files.internal("multiplayer.png"))
+        val exitTexture = Texture(Gdx.files.internal("exit.png"))
+        val tutorialTexture = Texture(Gdx.files.internal("tutorial.png"))
+
+        val singleBtn = Image(TextureRegionDrawable(TextureRegion(singleTexture))).apply {
+            setSize(btnW, btnH)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    game.screen = EditScreen(game)
+                    game.screen = EditScreen(game, GameMode.SINGLEPLAYER)
                 }
             })
         }
-        table.add(singleBtn).width(btnW).height(btnH).row()
 
-        // Multiplayer
-        val multiBtn = TextButton("Multiplayer", skin).apply {
-            label.setFontScale(VIRTUAL_WIDTH / 1200f)
+        val multiBtn = Image(TextureRegionDrawable(TextureRegion(multiTexture))).apply {
+            setSize(btnW, btnH)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    // TODO: Multiplayer screen transition
+                    game.screen = EditScreen(game, GameMode.LOCAL_MULTIPLAYER)
                 }
             })
         }
-        table.add(multiBtn).width(btnW).height(btnH).row()
 
-        // Exit
-        val exitBtn = TextButton("Exit", skin).apply {
-            label.setFontScale(VIRTUAL_WIDTH / 1600f)
+        val exitBtn = Image(TextureRegionDrawable(TextureRegion(exitTexture))).apply {
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     Gdx.app.exit()
                 }
             })
         }
-        table.add(exitBtn).width(btnW * 0.5f).height(btnH * 0.75f)
 
+        val tutorialBtn = Image(TextureRegionDrawable(TextureRegion(tutorialTexture))).apply {
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    //game.screen = TutorialScreen(game)
+                }
+            })
+        }
         // Highscore
-        val highscoreBtn = TextButton("Highscores", skin).apply {
-            label.setFontScale(VIRTUAL_WIDTH / 1200f)
+        val highscoreTexture = Texture(Gdx.files.internal("highscore.png"))
+
+        val highscoreBtn = Image(TextureRegionDrawable(TextureRegion(highscoreTexture))).apply {
+            setSize(btnW, btnH)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     game.screen = HighscoreScreen(game)
                 }
             })
         }
-        table.add(highscoreBtn).width(btnW).height(btnH).row()
+
+
+// Add to table
+        val verticalPad = 20f
+        val buttonHeight = btnH * 1.2f
+        val buttonWidth = btnW
+
+        table.add(singleBtn).width(buttonWidth).height(buttonHeight).padBottom(verticalPad).row()
+        table.add(multiBtn).width(buttonWidth).height(buttonHeight).padBottom(verticalPad).row()
+        table.add(tutorialBtn).width(buttonWidth).height(buttonHeight).padBottom(verticalPad).row()
+        table.add(highscoreBtn).width(buttonWidth).height(buttonHeight).padBottom(verticalPad).row()
+        table.add(exitBtn).width(buttonWidth * 0.6f).height(buttonHeight * 0.8f).padTop(verticalPad).row()
+
+
 
     }
 
 
-    override fun render(delta: Float) {
+        override fun render(delta: Float) {
         stage.act(delta)
         stage.draw()
     }

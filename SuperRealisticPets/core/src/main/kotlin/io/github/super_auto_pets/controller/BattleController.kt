@@ -7,7 +7,7 @@ import io.github.super_auto_pets.models.Sprite
 
 class BattleController(
     val battle: Battle = Battle(),
-    private val highscoreService: HighscoreService  // 💡 inject the highscore logic
+    private val highscoreService: HighscoreService
 ) {
 
     fun nextAttackStep(): AttackEvent? {

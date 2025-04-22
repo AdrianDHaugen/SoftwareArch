@@ -1,0 +1,58 @@
+@startuml
+class models.Empty {
+    + String name
+    + Int cost
+    + Boolean isFrozen
+}
+
+class models.Sprite {
+    + String name
+    + Int attack
+    + Int health
+    + Int tier
+    + Item? item
+    + Int level
+    + Int cost
+    + Boolean isFrozen
+    + String color
+}
+
+class models.Battle {
+    + Player playerA
+    + Player playerB
+}
+
+class models.Shop {
+    + MutableList<GameUnit> slots
+    + MutableSet<Int> frozenUnits
+}
+
+class models.Item {
+    + String name
+    + Int cost
+    + Boolean isFrozen
+}
+
+class models.Player {
+    + String name
+    + Int gold
+    + Int turn
+    + Team team
+    + Shop shop
+    + ShopController shopController
+}
+
+class models.Team {
+    + MutableList<GameUnit> teams
+}
+
+
+models.Battle "1" -- "2" models.Player
+models.Player "1" -- "1" models.Team
+models.Team "1" -- "0..*" models.Sprite
+models.Shop "1" *-- "0..*" models.Sprite
+models.Shop "1" *-- "0..*" models.Item
+models.Shop "1" *-- "0..*" models.Empty
+models.Team "1" *-- "0..2" models.Empty
+models.Sprite "1" -- "1" models.Item
+@enduml

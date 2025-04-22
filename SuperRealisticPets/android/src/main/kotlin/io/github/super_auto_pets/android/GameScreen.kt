@@ -22,17 +22,24 @@ import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
 import io.github.super_auto_pets.firebase.FirebaseHighscoreService
+import io.github.super_auto_pets.controller.GameMode
 
-
-class GameScreen(private val game: Main) : Screen {
-
-    /**
-    class GameScreen(
+/**
+class GameScreen(
 }
-            private val game: Main,
-            private val battleController: BattleController
-        ) : Screen {
-    */
+private val game: Main,
+private val gameMode: GameMode,
+private val teamA: List<Sprite> = emptyList(),
+private val teamB: List<Sprite> = emptyList()
+) : Screen {
+ */
+class GameScreen(
+    private val game: Main,
+    private val gameMode: GameMode,
+    private val teamA: List<Sprite> = emptyList(),
+    private val teamB: List<Sprite> = emptyList()
+    ) : Screen {
+
 
     companion object {
         private const val VIRTUAL_WIDTH = 1920f
@@ -43,7 +50,9 @@ class GameScreen(private val game: Main) : Screen {
     private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
-    //For testing, should be removed
+    private val heartTexture = Texture(Gdx.files.internal("heart.png"))
+    private val swordTexture = Texture(Gdx.files.internal("crossed_swords.png"))
+    private val statTableMap = mutableMapOf<Sprite, Table>()
     private lateinit var battleController: BattleController
 
     private val cellPositions = mutableListOf<Pair<Float,Float>>()
@@ -58,7 +67,7 @@ class GameScreen(private val game: Main) : Screen {
     override fun show() {
         Gdx.input.inputProcessor = stage
 
-        // --- compute the 9 “slots” in a row ---
+        // --- compute the 9 "slots" in a row ---
         val cellW = stage.viewport.worldWidth / 9f
         // pick a Y that centers your 150×150 images vertically:
         val cellY = stage.viewport.worldHeight/2f - 75f
@@ -75,7 +84,7 @@ class GameScreen(private val game: Main) : Screen {
         stage.addActor(bgImage)
 
         // Initialize battle scenario, remove when connecting to shop stage
-        battleController = createTestBattle()
+        battleController = createBattleFromTeams()
 
         // Set up battle field table (9 fixed cells)
         battleFieldTable = Table(skin)
@@ -94,6 +103,7 @@ class GameScreen(private val game: Main) : Screen {
         nextAttackButton = TextButton("Next Attack", skin)
         nextAttackButton.addListener(object : com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             override fun clicked(event: com.badlogic.gdx.scenes.scene2d.InputEvent, x: Float, y: Float) {
+                if (nextAttackButton.isDisabled) return
                 performBattleStep()
             }
         })
@@ -123,39 +133,62 @@ class GameScreen(private val game: Main) : Screen {
         skin.dispose()
     }
 
-    /**
-     * Rebuilds the battle field UI from the current model state.
-     * For team left, maps teamLeft[0] → slot 3, teamLeft[1] → slot 2, etc.
-     * For team right, maps teamRight[0] → slot 5, teamRight[1] → slot 6, etc.
-     * Slot 4 remains empty.
-     */
     private fun refreshBattleFieldUI() {
-        // wipe out any old Images
+        // 1) remove old pet Images…
         battleFieldActors.forEach { it?.remove() }
         battleFieldActors.clear()
 
-        // pull from your controller exactly the same way…
+        // 2) …and also toss any old stat‐tables
+        statTableMap.values.forEach { it.remove() }
+        statTableMap.clear()
+
+        // 3) pull from your controller exactly the same way…
         val teamLeft  = battleController.battle.playerA.team.teams.filterIsInstance<Sprite>()
         val teamRight = battleController.battle.playerB.team.teams.filterIsInstance<Sprite>()
 
-        // build a 9‑slot list of Sprites (or null)
+        // 4) build a 9‑slot list of Sprites (or null)
         val slots = MutableList<Sprite?>(9) { null }
         teamLeft .take(4).forEachIndexed { i, s -> slots[3 - i] = s }
         teamRight.take(4).forEachIndexed { i, s -> slots[5 + i] = s }
 
-        // now place each Sprite’s Image at the precalculated x,y
+        // 5) now place each Sprite's Image (and stats table) at the precalculated x,y
         slots.forEachIndexed { idx, sprite ->
             if (sprite != null) {
+                // — Image
                 val img = createPetImage(sprite)
-                val (x,y) = cellPositions[idx]
+                val (x, y) = cellPositions[idx]
                 img.setPosition(x, y)
                 stage.addActor(img)
                 battleFieldActors.add(img)
+
+                // — Stats Table (♥ HP   ⚔ ATK), positioned just under the 200×200 sprite
+                val statT = Table().apply { userObject = sprite }
+                // heart icon + HP
+                statT.add(Image(TextureRegionDrawable(TextureRegion(heartTexture))))
+                    .size(32f).padRight(4f)
+                val hpLbl = Label(sprite.health.toString(), skin).apply { setFontScale(1f) }
+                statT.add(hpLbl).padRight(12f)
+                // sword icon + ATK
+                statT.add(Image(TextureRegionDrawable(TextureRegion(swordTexture))))
+                    .size(32f).padRight(4f)
+                val atkLbl = Label(sprite.attack.toString(), skin).apply { setFontScale(1f) }
+                statT.add(atkLbl)
+
+                // layout & position
+                statT.pack()
+                val statX = x + (200f - statT.width) / 2f
+                val statY = y - statT.height - 8f
+                statT.setPosition(statX, statY)
+                stage.addActor(statT)
+
+                // remember it so we can animate & update later
+                statTableMap[sprite] = statT
             } else {
                 battleFieldActors.add(null)
             }
         }
     }
+
 
     //think this needs to be changed when connecting to the shop
     private val texCache = mutableMapOf<String, Texture>()
@@ -189,12 +222,15 @@ class GameScreen(private val game: Main) : Screen {
         val event = battleController.nextAttackStep()
         if (event == null) {
             println("Battle is over!")
+            showBattleResult()
             return
         }
 
-        // 3) Find UI actors for attacker/defender
+        // 3) Find UI actors for attacker/defender (images + stats tables)
         val attackerActor = findUIActorFor(event.attacker)
         val defenderActor = findUIActorFor(event.defender)
+        val attackerStats = statTableMap[event.attacker]
+        val defenderStats = statTableMap[event.defender]
 
         // 4) Timing parameters
         val moveDist = 100f
@@ -202,7 +238,7 @@ class GameScreen(private val game: Main) : Screen {
         val flashDur = 0.2f
         val fadeDur  = 0.5f
 
-        // 5) Build wiggle sequences
+        // 5) Build wiggle sequences for images (with color flash)
         val baseSeq = Actions.sequence(
             Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
             Actions.color(Color.RED,   flashDur, Interpolation.fade),
@@ -217,66 +253,162 @@ class GameScreen(private val game: Main) : Screen {
         )
 
         // 6) Helper to append fade-out if the sprite died this round
-        fun wrapWithFade(seq: com.badlogic.gdx.scenes.scene2d.Action, died: Boolean) =
+        fun wrapWithFade(seq: Action, died: Boolean) =
             if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
 
-        // 7) Apply actions
+        // 7) Apply actions to pet images
         attackerActor?.addAction(wrapWithFade(baseSeq, event.diedSprites.contains(event.attacker)))
         defenderActor?.addAction(wrapWithFade(revSeq,  event.diedSprites.contains(event.defender)))
 
-        // 8) Schedule post-animation updates
-        val totalTime = moveDur*2 + flashDur*2 + fadeDur
+        // 8) Build matching wiggle sequences for stats (no color, but same timing)
+        val statSeq = Actions.sequence(
+            Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.delay(flashDur * 2),
+            Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine)
+        )
+        val statRevSeq = Actions.sequence(
+            Actions.moveBy(-moveDist, 0f, moveDur, Interpolation.sine),
+            Actions.delay(flashDur * 2),
+            Actions.moveBy(moveDist, 0f, moveDur, Interpolation.sine)
+        )
+        fun wrapStat(seq: Action, died: Boolean) =
+            if (died) Actions.sequence(seq, Actions.fadeOut(fadeDur)) else seq
+
+        // 9) Apply actions to stat tables
+        attackerStats?.addAction(wrapStat(statSeq, event.diedSprites.contains(event.attacker)))
+        defenderStats?.addAction(wrapStat(statRevSeq, event.diedSprites.contains(event.defender)))
+
+        // 10) Schedule post-animation updates
+        val totalTime = moveDur * 2 + flashDur * 2 + fadeDur
         stage.addAction(
             Actions.sequence(
+                // wait for wiggle + fade to finish
                 Actions.delay(totalTime),
+
+                // then:
                 Actions.run {
-                    // 8a) Remove dead actors
+                    // a) Remove dead pet images + their stats tables
                     event.diedSprites.forEach { dead ->
                         findUIActorFor(dead)?.remove()
+                        statTableMap.remove(dead)?.remove()
                     }
 
-                    // 8b) Slide survivors into their new slots
-                    val moveTime = 0.5f
-                    // Left team: slots 3→2→1→0
+                    // b) Slide survivors (images + stats) into new slots
+                    val slideTime = 0.5f
+
+                    // Left team → slots 3,2,1,0
                     battleController.battle.playerA.team.teams
                         .filterIsInstance<Sprite>()
                         .take(4)
                         .forEachIndexed { i, sprite ->
-                            val targetSlot = 3 - i
-                            findUIActorFor(sprite)?.addAction(
-                                Actions.moveTo(
-                                    cellPositions[targetSlot].first,
-                                    cellPositions[targetSlot].second,
-                                    moveTime,
-                                    Interpolation.sine
-                                )
-                            )
+                            val slot = 3 - i
+                            val (x, y) = cellPositions[slot]
+
+                            // image
+                            findUIActorFor(sprite)
+                                ?.addAction(Actions.moveTo(x, y, slideTime, Interpolation.sine))
+
+                            // stats table
+                            statTableMap[sprite]?.let { tbl ->
+                                val statX = x + (200f - tbl.width) / 2f
+                                val statY = y - tbl.height - 8f
+                                tbl.addAction(Actions.moveTo(statX, statY, slideTime, Interpolation.sine))
+                            }
                         }
-                    // Right team: slots 5→6→7→8
+
+                    // Right team → slots 5,6,7,8
                     battleController.battle.playerB.team.teams
                         .filterIsInstance<Sprite>()
                         .take(4)
                         .forEachIndexed { i, sprite ->
-                            val targetSlot = 5 + i
-                            findUIActorFor(sprite)?.addAction(
-                                Actions.moveTo(
-                                    cellPositions[targetSlot].first,
-                                    cellPositions[targetSlot].second,
-                                    moveTime,
-                                    Interpolation.sine
-                                )
-                            )
+                            val slot = 5 + i
+                            val (x, y) = cellPositions[slot]
+
+                            findUIActorFor(sprite)
+                                ?.addAction(Actions.moveTo(x, y, slideTime, Interpolation.sine))
+
+                            statTableMap[sprite]?.let { tbl ->
+                                val statX = x + (200f - tbl.width) / 2f
+                                val statY = y - tbl.height - 8f
+                                tbl.addAction(Actions.moveTo(statX, statY, slideTime, Interpolation.sine))
+                            }
                         }
 
-                    // 8c) Re-enable button if the battle still has fighters
-                    val leftAlive = battleController.battle.playerA.team.teams
+                    // c) Re-enable button if battle still ongoing
+                    val leftAlive  = battleController.battle.playerA.team.teams
                         .filterIsInstance<Sprite>().any { it.health > 0 }
                     val rightAlive = battleController.battle.playerB.team.teams
                         .filterIsInstance<Sprite>().any { it.health > 0 }
                     nextAttackButton.isDisabled = !(leftAlive && rightAlive)
-                }
+                    if (!leftAlive || !rightAlive) {
+                        showBattleResult()
+                    }
+
+                },
+
+                // wait for the slide to complete
+                Actions.delay(0.5f),
+
+                // finally, update numbers on all remaining stats tables
+                Actions.run { updateStats() }
             )
         )
+    }
+
+
+    private fun updateStats() {
+        statTableMap.forEach { (sprite, table) ->
+            // children: 0=image(♥), 1=hpLabel, 2=image(⚔), 3=atkLabel
+            (table.children[1] as? Label)?.setText(sprite.health.toString())
+            (table.children[3] as? Label)?.setText(sprite.attack.toString())
+        }
+    }
+
+
+    private fun showBattleResult() {
+        // figure out who's left
+        val leftAlive = battleController.battle.playerA.team.teams
+            .filterIsInstance<Sprite>().any { it.health > 0 }
+        val rightAlive = battleController.battle.playerB.team.teams
+            .filterIsInstance<Sprite>().any { it.health > 0 }
+
+        // decide what to say
+        val resultText = when {
+            leftAlive && !rightAlive  -> "You Win!"
+            rightAlive && !leftAlive  -> "You Lose!"
+            else                      -> "Draw!"
+        }
+
+        // disable further attacks
+        nextAttackButton.isDisabled = true
+
+        // build an overlay table, full‑screen
+        val overlay = Table(skin).apply {
+            setFillParent(true)
+            top()
+        }
+
+        // large label
+        val resultLabel = Label(resultText, skin).apply {
+            setFontScale(4f)
+        }
+
+        // back‑to‑menu button
+        val menuBtn = TextButton("Back to Menu", skin).apply {
+            label.setFontScale(2f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    game.screen = MainMenuScreen(game)
+                }
+            })
+        }
+
+        // layout it: label, then a bit of space, then button
+        overlay.add(resultLabel).center().padTop(200f)
+        overlay.row()
+        overlay.add(menuBtn).center().padTop(50f)
+
+        stage.addActor(overlay)
     }
 
 
@@ -288,28 +420,34 @@ class GameScreen(private val game: Main) : Screen {
     }
 
     /**
-     * A minimal test scenario: each team gets up to four sprites. Remove
+     * A minimal test scenario: each team gets up to four sprites.
+     * This is used only if no player is provided from EditScreen.
      */
-    private fun createTestBattle(): BattleController {
-        val highscoreService = FirebaseHighscoreService()
-        val bc = BattleController(highscoreService = highscoreService)
-
-
-        // Team Left (playerA) – shop order is 0..3; assign in reverse.
-        val catA = Sprite().apply { name = "cat"; health = 10; attack = 2 }
-        val dogA = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val birdA = Sprite().apply { name = "bird"; health = 5; attack = 2 }
-        val fishA = Sprite().apply { name = "fish"; health = 5; attack = 2 }
-        bc.battle.playerA.team.teams.addAll(listOf(catA, dogA, birdA, fishA))
-
-        // Team Right (playerB) – shop order 0..3; assignment is natural.
-        val catB = Sprite().apply { name = "cat"; health = 10; attack = 3 }
-        val dogB = Sprite().apply { name = "dog"; health = 5; attack = 2 }
-        val birdB = Sprite().apply { name = "bird"; health = 5; attack = 2 }
-        val fishB = Sprite().apply { name = "fish"; health = 5; attack = 2 }
-        bc.battle.playerB.team.teams.addAll(listOf(catB, dogB, birdB, fishB))
-
-        return bc
+    private fun createBattleFromTeams(): BattleController {
+        return BattleController(highscoreService = game.highscoreService).apply {
+            battle.playerA.team.teams.addAll(teamA)
+            if (gameMode == GameMode.SINGLEPLAYER && teamB.isEmpty()) {
+                battle.playerB.team.teams.addAll(generateRandomTeam())
+            } else {
+                battle.playerB.team.teams.addAll(teamB)
+            }
+        }
     }
-}
 
+
+
+    private fun generateRandomTeam(): List<Sprite> {
+        val options = listOf("cat", "dog", "bird")
+        return List(4) {
+            val name = options.random()
+            when (name) {
+                "cat"  -> Sprite().apply { this.name = "cat";  health = 10; attack = 2 }
+                "dog"  -> Sprite().apply { this.name = "dog";  health = 5;  attack = 2 }
+                "bird" -> Sprite().apply { this.name = "bird"; health = 5;  attack = 2 }
+                else   -> Sprite().apply { this.name = "???";  health = 1;  attack = 1 }
+            }
+        }
+    }
+
+
+}
