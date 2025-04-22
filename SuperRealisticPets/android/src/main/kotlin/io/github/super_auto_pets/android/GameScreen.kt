@@ -23,6 +23,7 @@ import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import io.github.super_auto_pets.controller.GameMode
+import com.badlogic.gdx.scenes.scene2d.Actor
 
 
 class GameScreen(
@@ -182,6 +183,12 @@ class GameScreen(
             if (sprite != null) {
                 // — Image
                 val img = createPetImage(sprite)
+                if (idx >= 5) {
+                    // set the origin to the center of the image
+                    img.setOrigin(img.width/2f, img.height/2f)
+                    // flip horizontally
+                    img.setScaleX(-1f)
+                }
                 val (x, y) = cellPositions[idx]
                 img.setPosition(x, y)
                 stage.addActor(img)
