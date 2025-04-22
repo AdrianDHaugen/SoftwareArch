@@ -8,7 +8,7 @@ class Player {
         get() = _name
         set(value) { _name = value }
 
-    private var _gold: Int = 10
+    private var _gold: Int = 20
     var gold: Int
         get() = _gold
         set(value) { _gold = value }

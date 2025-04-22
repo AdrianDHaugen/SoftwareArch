@@ -477,13 +477,14 @@ class GameScreen(
 
 
     private fun generateRandomTeam(): List<Sprite> {
-        val options = listOf("cat", "dog", "bird")
+        val options = listOf("cat", "dog", "bird", "fish")
         return List(4) {
             val name = options.random()
             when (name) {
-                "cat"  -> Sprite().apply { this.name = "cat";  health = 10; attack = 2 }
-                "dog"  -> Sprite().apply { this.name = "dog";  health = 5;  attack = 2 }
-                "bird" -> Sprite().apply { this.name = "bird"; health = 5;  attack = 2 }
+                "cat"  -> Sprite().apply { this.name = "cat";  health = 2;  attack = 2 }
+                "dog"  -> Sprite().apply { this.name = "dog";  health = 3;  attack = 2 }
+                "bird" -> Sprite().apply { this.name = "bird"; health = 1;  attack = 2 }
+                "fish" -> Sprite().apply { this.name = "fish"; health = 1;  attack = 1 }
                 else   -> Sprite().apply { this.name = "???";  health = 1;  attack = 1 }
             }
         }
