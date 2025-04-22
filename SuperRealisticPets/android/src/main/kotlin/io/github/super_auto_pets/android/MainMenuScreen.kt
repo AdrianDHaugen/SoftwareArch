@@ -69,6 +69,7 @@ class MainMenuScreen(private val game: Main) : Screen {
 // Load button textures
         val singleTexture = Texture(Gdx.files.internal("singleplayer.png"))
         val multiTexture = Texture(Gdx.files.internal("multiplayer.png"))
+        //val highscoreTexture = Texture(Gdx.files.internal("highscore.png"))
         val exitTexture = Texture(Gdx.files.internal("exit.png"))
         val tutorialTexture = Texture(Gdx.files.internal("tutorial.png"))
 
@@ -132,7 +133,6 @@ class MainMenuScreen(private val game: Main) : Screen {
 
 
     }
-
 
         override fun render(delta: Float) {
         stage.act(delta)
