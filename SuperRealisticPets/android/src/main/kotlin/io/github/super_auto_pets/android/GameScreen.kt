@@ -484,11 +484,13 @@ class GameScreen(
      */
     private fun createBattleFromTeams(): BattleController {
         return BattleController(highscoreService = game.highscoreService).apply {
-            battle.playerA.team.teams.addAll(teamA)
+            battle.playerA.team.teams.addAll(teamA.asReversed())
             if (gameMode == GameMode.SINGLEPLAYER && teamB.isEmpty()) {
+                // random "AI" team
                 battle.playerB.team.teams.addAll(generateRandomTeam())
             } else {
-                battle.playerB.team.teams.addAll(teamB)
+                // local-multiplayer
+                battle.playerB.team.teams.addAll(teamB.asReversed())
             }
         }
     }
