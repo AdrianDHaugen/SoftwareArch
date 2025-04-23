@@ -224,22 +224,36 @@ class GameScreen(
     //think this needs to be changed when connecting to the shop
     private val texCache = mutableMapOf<String, Texture>()
 
+    // --- all sprite paths from sprites.json, keyed by "name-color" -------------
+    private val spritePathMap: Map<String, String> by lazy {
+        val jsonText   = Gdx.files.internal("sprites.json").readString()
+        val root       = com.badlogic.gdx.utils.JsonReader().parse(jsonText)
+        val map        = mutableMapOf<String, String>()
+
+        for (i in 0 until root.size) {
+            val obj   = root.get(i)
+            val key   = obj.getString("name") + "-" + obj.getString("color", "base")
+            val path  = obj.getString("path")
+            map[key]  = path
+        }
+        map
+    }
+
+
     private fun createPetImage(sprite: Sprite): Image {
-        val file = when (sprite.name) {
-            "cat" -> "cat-1-base-nb.PNG"
-            "dog" -> "dog-1-base-nb.PNG"
-            "bird" -> "bird-1-base-nb.PNG"
-            "fish" -> "fish-1-base-nb.PNG"
-            else -> "heart.png"
-        }
-        val tex = texCache.getOrPut(file) {
-            Texture(Gdx.files.internal(file))
-        }
+        val colour  = sprite.color?.takeIf { it.isNotBlank() } ?: "base"
+        val key     = "${sprite.name}-$colour"
+        val file    = spritePathMap[key]                       // exact match
+            ?: spritePathMap["${sprite.name}-base"]     // fallback
+            ?: "heart.png"                              // final safety net
+
+        val tex = texCache.getOrPut(file) { Texture(Gdx.files.internal(file)) }
         return Image(TextureRegionDrawable(TextureRegion(tex))).apply {
             setSize(200f, 200f)
             userObject = sprite
         }
     }
+
 
     /**
      * Processes one battle step.
@@ -465,11 +479,11 @@ class GameScreen(
      */
     private fun createBattleFromTeams(): BattleController {
         return BattleController(highscoreService = game.highscoreService).apply {
-            battle.playerA.team.teams.addAll(teamA)
+            battle.playerA.team.teams.addAll(teamA.asReversed())
             if (gameMode == GameMode.SINGLEPLAYER && teamB.isEmpty()) {
                 battle.playerB.team.teams.addAll(generateRandomTeam())
             } else {
-                battle.playerB.team.teams.addAll(teamB)
+                battle.playerB.team.teams.addAll(teamB.asReversed())
             }
         }
     }
