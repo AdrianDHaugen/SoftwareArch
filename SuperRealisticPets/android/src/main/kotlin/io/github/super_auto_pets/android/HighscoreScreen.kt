@@ -22,7 +22,7 @@ class HighscoreScreen(private val game: Main) : Screen {
         Gdx.input.inputProcessor = stage
 
         // --- Background ---
-        val bgTexture = Texture(Gdx.files.internal("victory_bg.png"))
+        val bgTexture = Texture(Gdx.files.internal("backgrounds/victory_bg.png"))
         val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
@@ -34,13 +34,13 @@ class HighscoreScreen(private val game: Main) : Screen {
         stage.addActor(root)
 
         // --- Title Image ---
-        val titleTexture = Texture(Gdx.files.internal("highscore.png"))
+        val titleTexture = Texture(Gdx.files.internal("buttons/highscore.png"))
         val titleImage = Image(TextureRegionDrawable(TextureRegion(titleTexture)))
         titleImage.setSize(500f, 120f)
         root.add(titleImage).padTop(40f).padBottom(30f)
         root.row()
 // --- Box Background ---
-        val boxBg = Texture(Gdx.files.internal("box_bg.png"))
+        val boxBg = Texture(Gdx.files.internal("backgrounds/box_bg.png"))
         val boxTable = Table()
         boxTable.background = TextureRegionDrawable(TextureRegion(boxBg))
         boxTable.pad(40f)
@@ -91,7 +91,7 @@ class HighscoreScreen(private val game: Main) : Screen {
         }
 
         // --- Exit Button ---
-        val exitTexture = Texture(Gdx.files.internal("exit.png"))
+        val exitTexture = Texture(Gdx.files.internal("buttons/exit.png"))
         val exitBtn = ImageButton(TextureRegionDrawable(TextureRegion(exitTexture)))
 
         val btnW = 400f

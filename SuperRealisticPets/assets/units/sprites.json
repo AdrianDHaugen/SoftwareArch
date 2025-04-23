@@ -9,7 +9,7 @@
     "cost": 3,
     "isFrozen": false,
     "color": "base",
-    "path" : "cat-1-base-nb.PNG"
+    "path" : "sprites/cat-1-base-nb.PNG"
   },
   {
     "name": "dog",
@@ -21,7 +21,7 @@
     "cost": 3,
     "isFrozen": false,
     "color": "base",
-    "path" : "dog-1-base-nb.PNG"
+    "path" : "sprites/dog-1-base-nb.PNG"
   },
   {
     "name": "bird",
@@ -33,7 +33,7 @@
     "cost": 3,
     "isFrozen": false,
     "color": "base",
-    "path" : "bird-1-base-nb.PNG"
+    "path" : "sprites/bird-1-base-nb.PNG"
   },
   {
     "name": "fish",
@@ -45,7 +45,7 @@
     "cost": 3,
     "isFrozen": false,
     "color": "base",
-    "path" : "fish-1-base-nb.PNG"
+    "path" : "sprites/fish-1-base-nb.PNG"
   },
   {
     "name": "cat",
@@ -57,7 +57,7 @@
     "cost": 3,
     "isFrozen": false,
     "color": "negative",
-    "path" : "cat-1-negative-nb.png"
+    "path" : "sprites/cat-1-negative-nb.png"
   },
   {
     "name": "dog",
@@ -69,7 +69,7 @@
     "cost": 3,
     "isFrozen": false,
     "color": "negative",
-    "path" : "dog-1-negative-nb.png"
+    "path" : "sprites/dog-1-negative-nb.png"
   },
   {
     "name": "bird",
@@ -81,7 +81,7 @@
     "cost": 3,
     "isFrozen": false,
     "color": "negative",
-    "path" : "bird-1-negative-nb.png"
+    "path" : "sprites/bird-1-negative-nb.png"
   },
   {
     "name": "fish",
@@ -93,6 +93,6 @@
     "cost": 3,
     "isFrozen": false,
     "color": "negative",
-    "path" : "fish-1-negative-nb.png"
+    "path" : "sprites/fish-1-negative-nb.png"
   }
 ]

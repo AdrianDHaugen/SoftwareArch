@@ -71,22 +71,20 @@ class EditScreen (
 
     // Textures
     private val statBackground =
-        TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("statbackground.png"))))
-    private val spriteFrame = TextureRegionDrawable(Texture(Gdx.files.internal("spriteframe.png")))
-    private val currencyIcon = Image(TextureRegion(Texture(Gdx.files.internal("coin.png"))))
-    private val hourglassIcon = Image(TextureRegion(Texture(Gdx.files.internal("hourglass.png"))))
-    private val trophyIcon = Image(TextureRegion(Texture(Gdx.files.internal("trophy.png"))))
+        TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("stats/statbackground.png"))))
+    private val spriteFrame = TextureRegionDrawable(Texture(Gdx.files.internal("backgrounds/spriteframe.png")))
+    private val currencyIcon = Image(TextureRegion(Texture(Gdx.files.internal("stats/coin.png"))))
+    private val hourglassIcon = Image(TextureRegion(Texture(Gdx.files.internal("stats/hourglass.png"))))
+    private val trophyIcon = Image(TextureRegion(Texture(Gdx.files.internal("stats/trophy.png"))))
 
     // Load textures
-    private val birdDrawable =
-        TextureRegionDrawable(Texture(Gdx.files.internal("bird-1-base-nb.PNG")))
-    private val emptyDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("empty.png")))
+    private val emptyDrawable = TextureRegionDrawable(Texture(Gdx.files.internal("sprites/empty.png")))
 
     private val spriteTextures = mutableMapOf<String, TextureRegionDrawable>()
     private val itemTextures = mutableMapOf<String, TextureRegionDrawable>()
 
     //Create buttons
-    private val texture = Texture(Gdx.files.internal("rerollbtn.png"))
+    private val texture = Texture(Gdx.files.internal("buttons/rerollbtn.png"))
     private val drawable = TextureRegionDrawable(TextureRegion(texture))
     private val rerollBtn = ImageButton(drawable)
 
@@ -95,7 +93,6 @@ class EditScreen (
     val spriteSize = 100f
 
     // Player stats
-    private var playerTurn = 1
     private var playerTrophies = 0
 
     // References to UI elements
@@ -360,7 +357,7 @@ class EditScreen (
         // HP stack (heart + number)
         val hpStack = Stack()
         val heartIcon =
-            Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("heart.png")))))
+            Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("stats/heart.png")))))
         heartIcon.setSize(55f, 55f)
 
         // Create a unique label for this sprite's health stat
@@ -376,7 +373,7 @@ class EditScreen (
         // ATK stack (swords + number)
         val atkStack = Stack()
         val atkIcon =
-            Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("crossed_swords.png")))))
+            Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("stats/crossed_swords.png")))))
         atkIcon.setSize(55f, 55f)
 
         // Create a unique label for this sprite's attack stat
@@ -413,7 +410,7 @@ class EditScreen (
             // Cost stack (coin + number)
             val costStack = Stack()
             val costCoinIcon =
-                Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("costcoin.png")))))
+                Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("stats/costcoin.png")))))
             costCoinIcon.setSize(55f, 55f)
 
             val cost = playerController.getUnitCost(sprite)
@@ -588,7 +585,7 @@ class EditScreen (
                 if (unit.addHealth != 0 || unit.addAttack != 0) {
                     // HP stack (heart + number) - same structure as sprite stats
                     val hpStack = Stack()
-                    val heartIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("heart.png")))))
+                    val heartIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("stats/heart.png")))))
                     heartIcon.setSize(55f, 55f)
 
                     // Create a unique label with appropriate color
@@ -610,7 +607,7 @@ class EditScreen (
 
                     // ATK stack (swords + number) - same structure as sprite stats
                     val atkStack = Stack()
-                    val atkIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("crossed_swords.png")))))
+                    val atkIcon = Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("stats/crossed_swords.png")))))
                     atkIcon.setSize(55f, 55f)
 
                     // Create a unique label with appropriate color
@@ -646,7 +643,7 @@ class EditScreen (
                 // Cost stack (coin + number)
                 val costStack = Stack()
                 val costCoinIcon =
-                    Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("costcoin.png")))))
+                    Image(TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("stats/costcoin.png")))))
                 costCoinIcon.setSize(55f, 55f)
 
                 // Get cost through the controller
@@ -832,7 +829,7 @@ class EditScreen (
     // Add this new method to load textures
     private fun loadSpriteTextures() {
         // Load all available sprite textures
-        val spritesJson = Gdx.files.internal("sprites.json").readString()
+        val spritesJson = Gdx.files.internal("units/sprites.json").readString()
         val sprites = parseSpritesFromJson(spritesJson)
 
         // Create texture drawables for each unique sprite
@@ -854,7 +851,7 @@ class EditScreen (
 
     private fun loadItemTextures() {
         // Load all available item textures
-        val itemsJson = Gdx.files.internal("items.json").readString()
+        val itemsJson = Gdx.files.internal("units/items.json").readString()
         val items = parseItemsFromJson(itemsJson)
 
         // Create texture drawables for each unique item
@@ -892,7 +889,7 @@ class EditScreen (
                 cost = spriteJson.getInt("cost", 3)
                 isFrozen = spriteJson.getBoolean("isFrozen", false)
                 color = spriteJson.getString("color", "base")
-                path = spriteJson.getString("path", "empty.png")
+                path = spriteJson.getString("path", "sprites/empty.png")
             }
 
             sprites.add(sprite)
@@ -917,7 +914,7 @@ class EditScreen (
                 isFrozen = itemJson.getBoolean("isFrozen", false)
                 addHealth = itemJson.getInt("addHealth", 0)
                 addAttack = itemJson.getInt("addAttack", 0)
-                path = itemJson.getString("path", "empty.png")
+                path = itemJson.getString("path", "sprites/empty.png")
             }
 
             items.add(item)
@@ -969,7 +966,7 @@ class EditScreen (
         loadItemTextures()
 
         // --- Background ---
-        val bgTexture = Texture(Gdx.files.internal("editorbackground.png"))
+        val bgTexture = Texture(Gdx.files.internal("backgrounds/editorbackground.png"))
         val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
@@ -1090,7 +1087,7 @@ class EditScreen (
 
         // Create button for starting the battle
         // Load your custom texture
-        val startBattleTexture = Texture(Gdx.files.internal("startbattlebtn.png"))
+        val startBattleTexture = Texture(Gdx.files.internal("buttons/startbattlebtn.png"))
 
         // Create drawable from the texture
         val startBattleDrawable = TextureRegionDrawable(TextureRegion(startBattleTexture))

@@ -42,10 +42,10 @@ class GameScreen(
     private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
-    private val heartTexture = Texture(Gdx.files.internal("heart.png"))
-    private val swordTexture = Texture(Gdx.files.internal("crossed_swords.png"))
-    private val startTexture = Texture(Gdx.files.internal("start.png"))
-    private val backTexture  = Texture(Gdx.files.internal("back.png"))
+    private val heartTexture = Texture(Gdx.files.internal("stats/heart.png"))
+    private val swordTexture = Texture(Gdx.files.internal("stats/crossed_swords.png"))
+    private val startTexture = Texture(Gdx.files.internal("buttons/start.png"))
+    private val backTexture  = Texture(Gdx.files.internal("backgrounds/back.png"))
 
     private val statTableMap = mutableMapOf<Sprite, Table>()
     private lateinit var battleController: BattleController
@@ -82,7 +82,7 @@ class GameScreen(
         }
 
         // Background
-        val bgTexture = Texture(Gdx.files.internal("battle_bg.png"))
+        val bgTexture = Texture(Gdx.files.internal("backgrounds/battle_bg.png"))
         val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
@@ -247,7 +247,7 @@ class GameScreen(
 
     // --- all sprite paths from sprites.json, keyed by "name-color" -------------
     private val spritePathMap: Map<String, String> by lazy {
-        val jsonText   = Gdx.files.internal("sprites.json").readString()
+        val jsonText   = Gdx.files.internal("units/sprites.json").readString()
         val root       = com.badlogic.gdx.utils.JsonReader().parse(jsonText)
         val map        = mutableMapOf<String, String>()
 
@@ -266,7 +266,7 @@ class GameScreen(
         val key     = "${sprite.name}-$colour"
         val file    = spritePathMap[key]                       // exact match
             ?: spritePathMap["${sprite.name}-base"]     // fallback
-            ?: "heart.png"                              // final safety net
+            ?: "stats/heart.png"                              // final safety net
 
         val tex = texCache.getOrPut(file) { Texture(Gdx.files.internal(file)) }
         return Image(TextureRegionDrawable(TextureRegion(tex))).apply {
