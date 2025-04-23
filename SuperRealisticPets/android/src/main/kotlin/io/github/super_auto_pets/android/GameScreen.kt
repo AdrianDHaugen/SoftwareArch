@@ -62,9 +62,11 @@ class GameScreen(
     private var battleInProgress = true
     private var waitingForAnimation = false
 
-    // Start battle button
+    // Start- and abort-battle buttons
     private lateinit var startBattleButton: ImageButton
+    private lateinit var abortBattleButton: ImageButton
     private lateinit var buttonTable: Table
+    //private  lateinit var abortTable: Table
 
     override fun show() {
         Gdx.input.inputProcessor = stage
@@ -123,6 +125,25 @@ class GameScreen(
             bottom().center()
             add(startBattleButton).pad(20f)
         }
+
+        val abortDrawable = TextureRegionDrawable(TextureRegion(backTexture))
+        abortBattleButton = ImageButton(abortDrawable).apply {
+            this.imageCell.size(150f, 150f)           // same size you use elsewhere
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    // Simply return to the main menu; LibGDX will call hide()/dispose() for us
+                    game.screen = MainMenuScreen(game)
+                }
+            })
+        }
+
+        val abortTable = Table(skin).apply {
+            setFillParent(true)
+            top().left()
+            add(abortBattleButton).pad(20f)
+        }
+        stage.addActor(abortTable)
+
         stage.addActor(buttonTable)
 
     }
@@ -446,21 +467,8 @@ class GameScreen(
             setFontScale(4f)
         }
 
-        // — Back‐to‐Menu ImageButton
-        val backDrawable = TextureRegionDrawable(TextureRegion(backTexture))
-        val menuBtn = ImageButton(backDrawable).apply {
-            this.imageCell.size(150f, 150f)
-            addListener(object : ClickListener() {
-                override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    game.screen = MainMenuScreen(game)
-                }
-            })
-        }
-
-        // layout it: label, then a bit of space, then button
+        // layout it: label
         overlay.add(resultLabel).center().padTop(200f)
-        overlay.row()
-        overlay.add(menuBtn).center().padTop(50f)
 
         stage.addActor(overlay)
     }
