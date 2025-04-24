@@ -613,7 +613,7 @@ class GameScreen(
 }
 
 
-private fun generateRandomTeam(): List<Sprite> {
+fun generateRandomTeam(): List<Sprite> {
     val options = listOf("cat", "dog", "bird", "fish")
     return List(4) {
         val name = options.random()

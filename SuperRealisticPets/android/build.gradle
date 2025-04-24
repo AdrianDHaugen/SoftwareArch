@@ -27,12 +27,12 @@ android {
     }
   }
   packagingOptions {
-		resources {
-			excludes += ['META-INF/robovm/ios/robovm.xml', 'META-INF/DEPENDENCIES.txt', 'META-INF/DEPENDENCIES',
+    resources {
+      excludes += ['META-INF/robovm/ios/robovm.xml', 'META-INF/DEPENDENCIES.txt', 'META-INF/DEPENDENCIES',
                    'META-INF/dependencies.txt', '**/*.gwt.xml']
-			pickFirsts += ['META-INF/LICENSE.txt', 'META-INF/LICENSE', 'META-INF/license.txt', 'META-INF/LGPL2.1',
+      pickFirsts += ['META-INF/LICENSE.txt', 'META-INF/LICENSE', 'META-INF/license.txt', 'META-INF/LGPL2.1',
                      'META-INF/NOTICE.txt', 'META-INF/NOTICE', 'META-INF/notice.txt']
-		}
+    }
   }
   defaultConfig {
     applicationId 'io.github.super_auto_pets'
@@ -66,6 +66,8 @@ repositories {
 configurations { natives }
 
 dependencies {
+  implementation 'com.google.android.gms:play-services-fitness:21.2.0'
+  implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.3'
   coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
   implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
   implementation project(':core')
@@ -87,6 +89,21 @@ dependencies {
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
 
+  // Testing dependencies
+  testImplementation "org.jetbrains.kotlin:kotlin-test:1.8.10"
+  testImplementation "io.mockk:mockk:1.13.5"
+  testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+  testRuntimeOnly   "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:5.9.3"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.9.3"
+  testImplementation "org.junit.vintage:junit-vintage-engine:5.9.3"
+  testImplementation 'org.mockito:mockito-core:5.10.0'
+  testImplementation 'org.mockito.kotlin:mockito-kotlin:5.2.1'
+
+}
+
+tasks.withType(Test) {
+  useJUnitPlatform()
 }
 
 // Called every time gradle gets executed, takes the native dependencies of
