@@ -33,7 +33,7 @@ class TutorialScreen(private val game: Main) : Screen {
 
     override fun show() {
         Gdx.input.inputProcessor = stage
-        val bgTexture = Texture(Gdx.files.internal("tutorial_bg.png"))
+        val bgTexture = Texture(Gdx.files.internal("backgrounds/tutorial_bg.png"))
         val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
@@ -82,7 +82,7 @@ class TutorialScreen(private val game: Main) : Screen {
         val btnH = VIRTUAL_HEIGHT * 0.15f
 
         // Load button textures
-        val backTexture = Texture(Gdx.files.internal("back.png"))
+        val backTexture = Texture(Gdx.files.internal("backgrounds/back.png"))
 
         val backBtn = Image(TextureRegionDrawable(TextureRegion(backTexture))).apply {
             setSize(btnW, btnH)

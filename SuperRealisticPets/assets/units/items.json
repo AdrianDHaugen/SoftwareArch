@@ -5,7 +5,7 @@
     "isFrozen": false,
     "addHealth": 1,
     "addAttack": 1,
-    "path": "cowboyhat.png"
+    "path": "items/cowboyhat.png"
   },
   {
     "name": "stick",
@@ -13,7 +13,7 @@
     "isFrozen": false,
     "addHealth": 1,
     "addAttack": 2,
-    "path": "Stick.png"
+    "path": "items/Stick.png"
   },
   {
     "name": "bomb",
@@ -21,7 +21,7 @@
     "isFrozen": false,
     "addHealth": 2,
     "addAttack": 1,
-    "path": "bomb.png"
+    "path": "items/bomb.png"
   },
   {
     "name": "fork",
@@ -29,7 +29,7 @@
     "isFrozen": false,
     "addHealth": 0,
     "addAttack": 1,
-    "path": "fork.png"
+    "path": "items/fork.png"
   },
   {
     "name": "canvas",
@@ -37,7 +37,7 @@
     "isFrozen": false,
     "addHealth": 0,
     "addAttack": 1,
-    "path": "canvas.png"
+    "path": "items/canvas.png"
   },
   {
     "name": "leash",
@@ -45,7 +45,7 @@
     "isFrozen": false,
     "addHealth": 0,
     "addAttack": 2,
-    "path": "leash.png"
+    "path": "items/leash.png"
   },
   {
     "name": "chips",
@@ -53,7 +53,7 @@
     "isFrozen": false,
     "addHealth": 1,
     "addAttack": 0,
-    "path": "chips.png"
+    "path": "items/chips.png"
   },
   {
     "name": "seeds",
@@ -61,7 +61,7 @@
     "isFrozen": false,
     "addHealth": 2,
     "addAttack": 0,
-    "path": "seed.png"
+    "path": "items/seed.png"
   }
 ]
 

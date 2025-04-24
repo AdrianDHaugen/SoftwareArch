@@ -48,7 +48,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     }
 
     private fun setupBackground() {
-        val bgTexture = loadTexture("main_menu_bg.png")
+        val bgTexture = loadTexture("backgrounds/main_menu_bg.png")
         val bgImg = Image(TextureRegionDrawable(TextureRegion(bgTexture))).apply {
             setSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
             addAction(
@@ -71,7 +71,7 @@ class MainMenuScreen(private val game: Main) : Screen {
         }
         stage.addActor(logoTable)
 
-        val logoTexture = loadTexture("logo.png")
+        val logoTexture = loadTexture("backgrounds/logo.png")
         val logoHeight = 612f * 1.1f
         val logoWidth = 918f * 1.1f
 
@@ -122,7 +122,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     }
 
     private fun addSingleplayerButton(table: Table, btnWidth: Float, btnHeight: Float) {
-        val texture = loadTexture("singleplayer.png")
+        val texture = loadTexture("buttons/singleplayer.png")
         val button = createMenuButton(texture, btnWidth * 1.1f, btnHeight) {
             game.screen = EditScreen(game, GameMode.SINGLEPLAYER)
         }
@@ -130,7 +130,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     }
 
     private fun addMultiplayerButton(table: Table, btnWidth: Float, btnHeight: Float) {
-        val texture = loadTexture("multiplayer.png")
+        val texture = loadTexture("buttons/multiplayer.png")
         val button = createMenuButton(texture, btnWidth, btnHeight * 1.55f) {
             game.screen = EditScreen(game, GameMode.LOCAL_MULTIPLAYER)
         }
@@ -138,7 +138,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     }
 
     private fun addTutorialButton(table: Table, btnWidth: Float, btnHeight: Float) {
-        val texture = loadTexture("tutorial.png")
+        val texture = loadTexture("buttons/tutorial.png")
         val button = createMenuButton(texture, btnWidth, btnHeight * 1.3f) {
              game.screen = TutorialScreen(game)
         }
@@ -146,7 +146,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     }
 
     private fun addHighscoreButton(table: Table, btnWidth: Float, btnHeight: Float) {
-        val texture = loadTexture("highscore.png")
+        val texture = loadTexture("buttons/highscore.png")
         val button = createMenuButton(texture, btnWidth, btnHeight * 1.1f) {
             game.screen = HighscoreScreen(game)
         }
@@ -154,7 +154,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     }
 
     private fun addExitButton(table: Table, btnWidth: Float, btnHeight: Float) {
-        val texture = loadTexture("exit.png")
+        val texture = loadTexture("buttons/exit.png")
         val button = createMenuButton(texture, btnWidth * 0.5f, btnHeight * 0.8f) {
             Gdx.app.exit()
         }
