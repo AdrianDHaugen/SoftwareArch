@@ -74,7 +74,7 @@ class GameScreen(
     private lateinit var startBattleButton: ImageButton
     private lateinit var abortBattleButton: ImageButton
     private lateinit var buttonTable: Table
-    //private  lateinit var abortTable: Table
+
 
     //Pause variables
     private val pauseTexture = Texture(Gdx.files.internal("buttons/pause.png"))
@@ -82,6 +82,7 @@ class GameScreen(
     private lateinit var pauseButton: ImageButton
     private lateinit var resumeButton: ImageButton
     private var isPaused = false
+    private var buttonSafePadding = 0f
 
     override fun show() {
         Gdx.input.inputProcessor = stage
@@ -196,15 +197,21 @@ class GameScreen(
         // 3) BUILD YOUR BUTTON TABLE (one single table for ALL modes)
         //
 
+        // after computing cellW and cellY:
+        val buttonHeight = 200f   // the size you give your ImageButtons
+        // +300f because that matched your trial — adjust to taste
+        buttonSafePadding = (cellY - buttonHeight + 300f).coerceAtLeast(0f)
+
         buttonTable = Table(skin).apply {
             setFillParent(true)
             bottom().center()
-            padBottom(50f)                // lift everything 50px above bottom
+            padBottom(buttonSafePadding)
             add(autoPlayButton).pad(20f)
             add(manualPlayButton).pad(20f)
-            // pause/resume/next go here later in beginBattle() or their own listeners
         }
         stage.addActor(buttonTable)
+
+
 
         //
         // 4) BACK/ABORT BUTTON
@@ -270,7 +277,7 @@ class GameScreen(
         manualPlayButton.remove()
 
         buttonTable.clear()
-        buttonTable.padBottom(50f)   // ← re-apply
+        buttonTable.padBottom(buttonSafePadding)
 
         if (isAutoPlayMode) {
             buttonTable.add(pauseButton).pad(20f)
