@@ -88,6 +88,11 @@ class EditScreen (
     private val drawable = TextureRegionDrawable(TextureRegion(texture))
     private val rerollBtn = ImageButton(drawable)
 
+    // Cancel button
+    private val cancelTexture = Texture(Gdx.files.internal("buttons/cancel.png"))
+    private val cancelDrawable = TextureRegionDrawable(TextureRegion(cancelTexture))
+    private val cancelBtn = ImageButton(cancelDrawable)
+
     //Sizes
     val boxSize = 180f
     val spriteSize = 100f
@@ -923,6 +928,18 @@ class EditScreen (
         return items
     }
 
+    private fun collectTeamFromBoxes(): List<Sprite> {
+        val team = mutableListOf<Sprite>()
+        for (box in unitTable.children) {
+            if (box is Table && box.children.size > 0) {
+                val image = box.children.first() as? Image
+                val sprite = box.getUserObject("sprite") as? Sprite
+                sprite?.let { team.add(it) }
+            }
+        }
+        return team
+    }
+
     override fun show() {
         // Input goes to our stage so buttons can be clicked
         Gdx.input.inputProcessor = stage
@@ -1021,6 +1038,17 @@ class EditScreen (
         statsTable.setFillParent(true)
         statsTable.top().left()
         statsTable.add(container).top().left()
+
+        // Position the button in the top right corner
+        cancelBtn.setSize(400f,400f)
+        cancelBtn.setPosition(stage.viewport.worldWidth - cancelBtn.width - 20f, stage.viewport.worldHeight - cancelBtn.height + 70f)
+
+        cancelBtn.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                game.screen = MainMenuScreen(game)
+            }
+        })
+
 
         // === Button Table ===
         val buttonTable = Table()
@@ -1127,6 +1155,7 @@ class EditScreen (
         buttonTable.add(startBattleBtn).width(400f).height(400f).pad(30f)
 
         // Add tables to the stage
+        stage.addActor(cancelBtn)
         stage.addActor(statsTable)
         stage.addActor(buttonTable)
         stage.addActor(unitTable)
@@ -1170,17 +1199,6 @@ class EditScreen (
         stage.dispose()
         skin.dispose()
         stopCountdown()
+        cancelTexture.dispose()
     }
-    private fun collectTeamFromBoxes(): List<Sprite> {
-        val team = mutableListOf<Sprite>()
-        for (box in unitTable.children) {
-            if (box is Table && box.children.size > 0) {
-                val image = box.children.first() as? Image
-                val sprite = box.getUserObject("sprite") as? Sprite
-                sprite?.let { team.add(it) }
-            }
-        }
-        return team
-    }
-
 }

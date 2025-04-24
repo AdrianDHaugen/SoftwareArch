@@ -68,6 +68,13 @@ class GameScreen(
     private lateinit var buttonTable: Table
     //private  lateinit var abortTable: Table
 
+    //Pause variables
+    private val pauseTexture = Texture(Gdx.files.internal("buttons/pause.png"))
+    private val resumeTexture = Texture(Gdx.files.internal("buttons/resume.png"))
+    private lateinit var pauseButton: ImageButton
+    private lateinit var resumeButton: ImageButton
+    private var isPaused = false
+
     override fun show() {
         Gdx.input.inputProcessor = stage
 
@@ -103,6 +110,32 @@ class GameScreen(
         // Populate initial UI based on the current model state.
         refreshBattleFieldUI()
 
+        val pauseDrawable = TextureRegionDrawable(TextureRegion(pauseTexture))
+        pauseButton = ImageButton(pauseDrawable).apply {
+            this.imageCell.size(150f, 150f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    isPaused = true
+                    pauseButton.remove()
+                    buttonTable.clear()
+                    buttonTable.add(resumeButton).pad(20f)
+                }
+            })
+        }
+
+        val resumeDrawable = TextureRegionDrawable(TextureRegion(resumeTexture))
+        resumeButton = ImageButton(resumeDrawable).apply {
+            this.imageCell.size(150f, 150f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    isPaused = false
+                    resumeButton.remove()
+                    buttonTable.clear()
+                    buttonTable.add(pauseButton).pad(20f)
+                }
+            })
+        }
+
 
         // Add a Start Battle button
         // — Create Start‐Battle ImageButton
@@ -113,7 +146,9 @@ class GameScreen(
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent, x: Float, y: Float) {
                     battleStarted = true
-                    this@GameScreen.startBattleButton.remove()
+                    startBattleButton.remove()
+                    buttonTable.clear()
+                    buttonTable.add(pauseButton).pad(20f)
                     performBattleStep()
                 }
             })
@@ -125,6 +160,7 @@ class GameScreen(
             bottom().center()
             add(startBattleButton).pad(20f)
         }
+        buttonTable.padBottom(400f)
 
         val abortDrawable = TextureRegionDrawable(TextureRegion(backTexture))
         abortBattleButton = ImageButton(abortDrawable).apply {
@@ -153,7 +189,7 @@ class GameScreen(
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
         // Handle auto battle logic - only if battle has started
-        if (battleStarted && battleInProgress && !waitingForAnimation) {
+        if (battleStarted && battleInProgress && !waitingForAnimation && !isPaused) {
             timeSinceLastAttack += delta
             if (timeSinceLastAttack >= AUTO_ATTACK_DELAY) {
                 timeSinceLastAttack = 0f
@@ -177,6 +213,8 @@ class GameScreen(
     override fun dispose() {
         stage.dispose()
         skin.dispose()
+        pauseTexture.dispose()
+        resumeTexture.dispose()
     }
 
     private fun refreshBattleFieldUI() {
@@ -443,6 +481,8 @@ class GameScreen(
 
 
     private fun showBattleResult() {
+        buttonTable.clear()
+
         // figure out who's left
         val leftAlive = battleController.battle.playerA.team.teams
             .filterIsInstance<Sprite>().any { it.health > 0 }
