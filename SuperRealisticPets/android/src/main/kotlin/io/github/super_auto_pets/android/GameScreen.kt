@@ -22,6 +22,8 @@ import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import io.github.super_auto_pets.controller.GameMode
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+
 
 
 class GameScreen(
@@ -56,6 +58,12 @@ class GameScreen(
     private val battleFieldActors: MutableList<Image?> = MutableList(9) { null }
     private lateinit var battleFieldTable: Table
 
+    private var isAutoPlayMode = true
+    private lateinit var nextAttackButton: ImageButton
+    private lateinit var autoPlayButton: ImageButton
+    private lateinit var manualPlayButton: ImageButton
+
+
     // Auto battle variables
     private var battleStarted = false
     private var timeSinceLastAttack = 0f
@@ -66,7 +74,7 @@ class GameScreen(
     private lateinit var startBattleButton: ImageButton
     private lateinit var abortBattleButton: ImageButton
     private lateinit var buttonTable: Table
-    //private  lateinit var abortTable: Table
+
 
     //Pause variables
     private val pauseTexture = Texture(Gdx.files.internal("buttons/pause.png"))
@@ -74,122 +82,166 @@ class GameScreen(
     private lateinit var pauseButton: ImageButton
     private lateinit var resumeButton: ImageButton
     private var isPaused = false
+    private var buttonSafePadding = 0f
 
     override fun show() {
         Gdx.input.inputProcessor = stage
 
-        // --- compute the 9 "slots" in a row ---
-        val cellW = stage.viewport.worldWidth / 9f
-        // pick a Y that centers your 150×150 images vertically:
-        val cellY = stage.viewport.worldHeight / 2f - 75f
-        for (i in 0 until 9) {
-            // center each 150px image in its cell
-            val x = i * cellW + (cellW - 150f) / 2
-            cellPositions.add(x to cellY)
+        //
+        // 1) CREATE & ASSIGN ALL BUTTONS
+        //
+
+        // Auto-Play
+        autoPlayButton = ImageButton(
+            TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("buttons/auto_play.png"))))
+        ).apply {
+            imageCell.size(200f, 200f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    isAutoPlayMode = true
+                    beginBattle()
+                }
+            })
         }
 
-        // Background
-        val bgTexture = Texture(Gdx.files.internal("backgrounds/battle_bg.png"))
-        val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
-        bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
-        stage.addActor(bgImage)
-
-        // Initialize battle scenario, remove when connecting to shop stage
-        battleController = createBattleFromTeams()
-
-        // Set up battle field table (9 fixed cells)
-        battleFieldTable = Table(skin)
-        battleFieldTable.setFillParent(true)
-        stage.addActor(battleFieldTable)
-        val cellWidth = stage.viewport.worldWidth / 9f
-        for (i in 0 until 9) {
-            battleFieldTable.add().width(cellWidth).height(220f).pad(10f)
+        // Step-by-Step
+        manualPlayButton = ImageButton(
+            TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("buttons/step_by_step.png"))))
+        ).apply {
+            imageCell.size(200f, 200f)
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    isAutoPlayMode = false
+                    beginBattle()
+                }
+            })
         }
-        battleFieldTable.row()
 
-        // Populate initial UI based on the current model state.
-        refreshBattleFieldUI()
+        // Next Attack (manual only)
+        nextAttackButton = ImageButton(
+            TextureRegionDrawable(TextureRegion(Texture(Gdx.files.internal("buttons/next_attack.png"))))
+        ).apply {
+            imageCell.size(200f, 200f)
+            isVisible = false
+            addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    if (battleInProgress && !waitingForAnimation && !isPaused) {
+                        performBattleStep()
+                    }
+                }
+            })
+        }
 
-        val pauseDrawable = TextureRegionDrawable(TextureRegion(pauseTexture))
-        pauseButton = ImageButton(pauseDrawable).apply {
-            this.imageCell.size(150f, 150f)
+        // Pause
+        pauseButton = ImageButton(TextureRegionDrawable(TextureRegion(pauseTexture))).apply {
+            imageCell.size(150f, 150f)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     isPaused = true
                     pauseButton.remove()
                     buttonTable.clear()
+                    buttonTable.padBottom(50f)
                     buttonTable.add(resumeButton).pad(20f)
                 }
             })
         }
 
-        val resumeDrawable = TextureRegionDrawable(TextureRegion(resumeTexture))
-        resumeButton = ImageButton(resumeDrawable).apply {
-            this.imageCell.size(150f, 150f)
+        // Resume
+        resumeButton = ImageButton(TextureRegionDrawable(TextureRegion(resumeTexture))).apply {
+            imageCell.size(150f, 150f)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     isPaused = false
                     resumeButton.remove()
                     buttonTable.clear()
-                    buttonTable.add(pauseButton).pad(20f)
+                    buttonTable.padBottom(50f)
+                    if (isAutoPlayMode) {
+                        buttonTable.add(pauseButton).pad(20f)
+                    } else {
+                        buttonTable.add(nextAttackButton).pad(20f)
+                    }
                 }
             })
         }
 
+        //
+        // 2) SET UP BATTLEFIELD
+        //
 
-        // Add a Start Battle button
-        // — Create Start‐Battle ImageButton
-        val startDrawable = TextureRegionDrawable(TextureRegion(startTexture))
-        startBattleButton = ImageButton(startDrawable).apply {
-            // size it to your png's proportions (here: 200×60)
-            this.imageCell.size(400f, 120f)
-            addListener(object : ClickListener() {
-                override fun clicked(event: InputEvent, x: Float, y: Float) {
-                    battleStarted = true
-                    startBattleButton.remove()
-                    buttonTable.clear()
-                    buttonTable.add(pauseButton).pad(20f)
-                    performBattleStep()
-                }
-            })
+        // compute 9 cell positions
+        val cellW = viewport.worldWidth  / 9f
+        val cellY = viewport.worldHeight / 2f - 75f
+        cellPositions.clear()
+        for (i in 0 until 9) {
+            cellPositions.add(i * cellW + (cellW - 150f) / 2 to cellY)
         }
 
-        // add to bottom‐center
+        // background
+        val bgTex = Texture(Gdx.files.internal("backgrounds/battle_bg.png"))
+        val bg    = Image(TextureRegionDrawable(TextureRegion(bgTex))).apply {
+            setSize(viewport.worldWidth, viewport.worldHeight)
+        }
+        stage.addActor(bg)
+
+        // battle model + UI
+        battleController = createBattleFromTeams()
+        battleFieldTable = Table(skin).apply { setFillParent(true) }
+        stage.addActor(battleFieldTable)
+        repeat(9) {
+            battleFieldTable.add().width(cellW).height(220f).pad(10f)
+        }
+        battleFieldTable.row()
+        refreshBattleFieldUI()
+
+        //
+        // 3) BUILD YOUR BUTTON TABLE (one single table for ALL modes)
+        //
+
+        // after computing cellW and cellY:
+        val buttonHeight = 200f   // the size you give your ImageButtons
+        // +300f because that matched your trial — adjust to taste
+        buttonSafePadding = (cellY - buttonHeight + 300f).coerceAtLeast(0f)
+
         buttonTable = Table(skin).apply {
             setFillParent(true)
             bottom().center()
-            add(startBattleButton).pad(20f)
+            padBottom(buttonSafePadding)
+            add(autoPlayButton).pad(20f)
+            add(manualPlayButton).pad(20f)
         }
-        buttonTable.padBottom(400f)
+        stage.addActor(buttonTable)
+
+
+
+        //
+        // 4) BACK/ABORT BUTTON
+        //
 
         val abortDrawable = TextureRegionDrawable(TextureRegion(backTexture))
         abortBattleButton = ImageButton(abortDrawable).apply {
-            this.imageCell.size(150f, 150f)           // same size you use elsewhere
+            imageCell.size(150f, 150f)
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    // Simply return to the main menu; LibGDX will call hide()/dispose() for us
                     game.screen = MainMenuScreen(game)
                 }
             })
         }
-
         val abortTable = Table(skin).apply {
             setFillParent(true)
             top().left()
             add(abortBattleButton).pad(20f)
         }
         stage.addActor(abortTable)
-
-        stage.addActor(buttonTable)
-
     }
+
+
 
     override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f,0f,0f,1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-        // Handle auto battle logic - only if battle has started
-        if (battleStarted && battleInProgress && !waitingForAnimation && !isPaused) {
+        // Only auto-advance when in auto-play mode
+        if (battleStarted && battleInProgress && !waitingForAnimation && !isPaused && isAutoPlayMode) {
             timeSinceLastAttack += delta
             if (timeSinceLastAttack >= AUTO_ATTACK_DELAY) {
                 timeSinceLastAttack = 0f
@@ -200,6 +252,7 @@ class GameScreen(
         stage.act(delta)
         stage.draw()
     }
+
 
     override fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
@@ -216,6 +269,28 @@ class GameScreen(
         pauseTexture.dispose()
         resumeTexture.dispose()
     }
+
+    private fun beginBattle() {
+        battleStarted = true
+
+        autoPlayButton.remove()
+        manualPlayButton.remove()
+
+        buttonTable.clear()
+        buttonTable.padBottom(buttonSafePadding)
+
+        if (isAutoPlayMode) {
+            buttonTable.add(pauseButton).pad(20f)
+        }
+        if (!isAutoPlayMode) {
+            nextAttackButton.isVisible = true
+            buttonTable.add(nextAttackButton).pad(20f)
+        }
+    }
+
+
+
+
 
     private fun refreshBattleFieldUI() {
         // 1) remove old pet Images…
