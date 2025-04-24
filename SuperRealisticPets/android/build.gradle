@@ -11,6 +11,7 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'jacoco'
 
 android {
   namespace "io.github.super_auto_pets"
@@ -48,7 +49,8 @@ android {
     coreLibraryDesugaringEnabled true
   }
   buildTypes {
-    release {
+    debug {
+      testCoverageEnabled true
       minifyEnabled true
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
@@ -157,6 +159,41 @@ tasks.register('run', Exec) {
 
   def adb = path + "/platform-tools/adb"
   commandLine "$adb", 'shell', 'am', 'start', '-n', 'io.github.super_auto_pets/io.github.super_auto_pets.android.AndroidLauncher'
+}
+
+jacoco { toolVersion = '0.8.8' }
+
+tasks.register('jacocoTestReportDebug', JacocoReport) {
+  group = "Verification"
+  description = "Generate Jacoco coverage for Debug unit tests"
+  dependsOn 'testDebugUnitTest'
+
+  // pick up both Java and Kotlin class outputs
+  def javaClasses = fileTree("$buildDir/intermediates/javac/debug/classes") {
+    exclude "**/R.class", "**/R\$*.class", "**/BuildConfig.*", "**/Manifest*.*"
+  }
+  def kotlinClasses = fileTree("$buildDir/tmp/kotlin-classes/debug") {
+    exclude "**/R.class", "**/R\$*.class", "**/BuildConfig.*", "**/Manifest*.*"
+  }
+  classDirectories.setFrom(files(javaClasses, kotlinClasses))
+
+  // your app sources
+  sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+
+  // grab the exec file(s)
+  executionData.setFrom(
+    fileTree("$buildDir") {
+      include "jacoco/*.exec"
+      include "**/*.exec"
+    }
+  )
+
+  reports {
+    xml.required.set(true)
+    html.required.set(true)
+    // optional: put the HTML in a simpler path
+    html.outputLocation.set(layout.buildDirectory.dir("reports/coverage/html"))
+  }
 }
 
 eclipse.project.name = appName + "-android"
