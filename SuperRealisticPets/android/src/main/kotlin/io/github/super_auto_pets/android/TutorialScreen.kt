@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
@@ -25,27 +26,31 @@ class TutorialScreen(private val game: Main) : Screen {
     private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
-
-    override fun dispose() {
-        stage.dispose()
-        skin.dispose()
-    }
-
     override fun show() {
         Gdx.input.inputProcessor = stage
+
+        // Background image
         val bgTexture = Texture(Gdx.files.internal("backgrounds/tutorial_bg.png"))
         val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
         bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
         stage.addActor(bgImage)
 
-        val table = Table(skin).apply {
+        // Root table
+        val root = Table(skin).apply {
             setFillParent(true)
-            top().padTop(50f)
-            defaults().pad(10f)
+            top().center()
+            padTop(50f)
         }
-        stage.addActor(table)
+        stage.addActor(root)
 
-        // Tutorial text
+        // Box background for tutorial text (same as HighscoreScreen)
+        val boxBg = Texture(Gdx.files.internal("backgrounds/box_bg.png"))
+        val boxTable = Table().apply {
+            background = TextureRegionDrawable(TextureRegion(boxBg))
+            pad(40f)
+        }
+
+        // Tutorial text content
         val tutorialText = """
             Welcome to Super Realistic Pets!
 
@@ -62,7 +67,8 @@ class TutorialScreen(private val game: Main) : Screen {
 
             4. Battle Phase
                • Battles play out front‑to‑back.
-               • Click “Next Attack” to step through each attack.
+               • Click Step-By-Step to manually click through battle
+               • Click Auto Play to fast forward though battle
 
             5. How to the Game
                • Survive to win.
@@ -70,20 +76,29 @@ class TutorialScreen(private val game: Main) : Screen {
             Good luck, may the best pets win!
         """
 
+        // Content table and scroll pane
+        val content = Table()
         val label = Label(tutorialText, skin).apply {
-            setFontScale(VIRTUAL_WIDTH/1000f)
+            setFontScale(VIRTUAL_WIDTH / 1000f)
+            setWrap(true)
         }
+        content.add(label).expand().fill().padRight(20f)
 
-        table.add(label)
-        table.row()
+        val scroll = ScrollPane(content, skin).apply {
+            setFadeScrollBars(false)
+            setScrollingDisabled(true, false)
+            style.background = null
+        }
+        boxTable.add(scroll).expand().fill()
 
-        // Button sizes
+        // Add boxed text to root
+        root.add(boxTable).width(VIRTUAL_WIDTH * 0.8f).height(VIRTUAL_HEIGHT * 0.6f)
+        root.row().padTop(30f)
+
+        // Back button
         val btnW = VIRTUAL_WIDTH * 0.15f
         val btnH = VIRTUAL_HEIGHT * 0.15f
-
-        // Load button textures
         val backTexture = Texture(Gdx.files.internal("backgrounds/back.png"))
-
         val backBtn = Image(TextureRegionDrawable(TextureRegion(backTexture))).apply {
             setSize(btnW, btnH)
             addListener(object : ClickListener() {
@@ -92,9 +107,7 @@ class TutorialScreen(private val game: Main) : Screen {
                 }
             })
         }
-
-        table.add(backBtn).width(btnW).height(btnH).pad(-50f)
-
+        root.add(backBtn).width(btnW).height(btnH)
     }
 
     override fun render(delta: Float) {
@@ -106,17 +119,15 @@ class TutorialScreen(private val game: Main) : Screen {
         stage.viewport.update(width, height, true)
     }
 
-    override fun pause() {
-        TODO("Not yet implemented")
-    }
-
-    override fun resume() {
-        TODO("Not yet implemented")
-    }
+    override fun pause() {}
+    override fun resume() {}
 
     override fun hide() {
         Gdx.input.inputProcessor = null
     }
 
-
+    override fun dispose() {
+        stage.dispose()
+        skin.dispose()
+    }
 }
