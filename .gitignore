@@ -1,5 +1,5 @@
 ## Gradle:
-.gradle/
+SuperRealisticPets/.gradle/
 gradle-app.setting
 /gradle/gradle-daemon-jvm.properties
 /build/
