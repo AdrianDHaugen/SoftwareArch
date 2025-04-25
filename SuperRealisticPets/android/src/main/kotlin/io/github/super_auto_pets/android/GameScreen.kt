@@ -22,7 +22,10 @@ import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import io.github.super_auto_pets.controller.GameMode
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import io.github.super_auto_pets.firebase.HighscoreManager
+import io.github.super_auto_pets.managers.PlayerManager
+
+
 
 
 
@@ -558,35 +561,55 @@ class GameScreen(
     private fun showBattleResult() {
         buttonTable.clear()
 
-        // figure out who's left
         val leftAlive = battleController.battle.playerA.team.teams
             .filterIsInstance<Sprite>().any { it.health > 0 }
         val rightAlive = battleController.battle.playerB.team.teams
             .filterIsInstance<Sprite>().any { it.health > 0 }
 
-        // decide what to say
-        val resultText = when {
-            leftAlive && !rightAlive -> "You Win!"
-            rightAlive && !leftAlive -> "You Lose!"
-            else -> "Draw!"
+        // --- Decide who won ---
+        val resultText: String = when {
+            leftAlive && !rightAlive -> {
+                // Player A wins
+                HighscoreManager.appendWin(PlayerManager.playerAName)
+                if (gameMode == GameMode.LOCAL_MULTIPLAYER) {
+                    HighscoreManager.resetStreak(PlayerManager.playerBName)
+                    "Winner: ${PlayerManager.playerAName}"
+
+                } else {
+                    "You Win!"
+                }
+            }
+            rightAlive && !leftAlive -> {
+                // Player B wins
+                if (gameMode == GameMode.LOCAL_MULTIPLAYER && PlayerManager.playerBName.isNotBlank()) {
+                    HighscoreManager.appendWin(PlayerManager.playerBName)
+                    HighscoreManager.resetStreak(PlayerManager.playerAName)
+                    "Winner: ${PlayerManager.playerBName}"
+                } else {
+                    "You Lose!"
+                }
+            }
+            else -> {
+                "Draw!"
+            }
         }
 
-        // build an overlay table, full‑screen
+        // --- Build the result overlay ---
         val overlay = Table(skin).apply {
             setFillParent(true)
             top()
         }
 
-        // large label
         val resultLabel = Label(resultText, skin).apply {
             setFontScale(4f)
         }
 
-        // layout it: label
         overlay.add(resultLabel).center().padTop(200f)
 
         stage.addActor(overlay)
     }
+
+
 
 
     /**
@@ -597,8 +620,9 @@ class GameScreen(
     }
 
     /**
-     * A minimal test scenario: each team gets up to four sprites.
-     * This is used only if no player is provided from EditScreen.
+     * This function creates battle between the teams made in editscreen.
+     * If game == singleplayer it creates a randomteam with the helpfunctin
+     * generateRandomTeam
      */
     private fun createBattleFromTeams(): BattleController {
         return BattleController(highscoreService = game.highscoreService).apply {
@@ -612,7 +636,9 @@ class GameScreen(
     }
 }
 
-
+/**
+ * Helperfunction for createBattleFromTeams in singleplayer-mode.
+ */
 private fun generateRandomTeam(): List<Sprite> {
     val options = listOf("cat", "dog", "bird", "fish")
     return List(4) {
