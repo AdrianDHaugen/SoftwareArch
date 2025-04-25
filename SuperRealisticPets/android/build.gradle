@@ -41,6 +41,7 @@ android {
     versionCode 1
     versionName "1.0"
     multiDexEnabled true
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
   }
   compileOptions {
     sourceCompatibility "8"
@@ -61,6 +62,7 @@ android {
 repositories {
   // needed for AAPT2, may be needed for other tools
   google()
+  mavenCentral()
 }
 
 configurations { natives }
@@ -87,7 +89,26 @@ dependencies {
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
 
+  // Integration testing
+  androidTestImplementation "androidx.test.ext:junit:1.1.5"
+  androidTestImplementation "androidx.test:runner:1.6.1"
+  androidTestImplementation "androidx.test.espresso:espresso-core:3.5.1"
+  androidTestImplementation "androidx.test.espresso:espresso-contrib:3.5.1"
+  androidTestImplementation "androidx.test.espresso:espresso-idling-resource:3.5.1"
+  androidTestImplementation "androidx.fragment:fragment-testing:1.5.7"
+  //androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:3.6.1"
+  //implementation 'com.google.android.gms:play-services-fitness:21.2.0'
+  //androidTestImplementation "androidx.test.espresso:espresso-idling-resource:3.6.2"
+  //implementation "androidx.test.espresso:espresso-idling-resource:3.6.2"
 }
+
+// Force the test runner version to 1.6.1 everywhere:
+configurations.all {
+  resolutionStrategy {
+    force "androidx.test:runner:1.6.1"
+  }
+}
+
 
 // Called every time gradle gets executed, takes the native dependencies of
 // the natives configuration, and extracts them to the proper libs/ folders
