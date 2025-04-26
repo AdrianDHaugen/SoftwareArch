@@ -152,8 +152,11 @@ class GameScreen(
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     isPaused = true
-                    pauseButton.remove()
                     buttonTable.clearChildren()
+                    buttonTable.padBottom(buttonSafePadding)
+                    buttonTable.add(speedIcon).padRight(8f).size(150f, 150f)
+                    buttonTable.add(speedSlider).width(400f).height(40f)
+                    buttonTable.row().padTop(10f)
                     buttonTable.add(resumeButton).pad(20f)
                 }
             })
@@ -165,13 +168,22 @@ class GameScreen(
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     isPaused = false
-                    resumeButton.remove()
+                    // clear everything…
                     buttonTable.clearChildren()
+                    buttonTable.padBottom(buttonSafePadding)
+
+                    // …re-add speed row
+                    buttonTable.add(speedIcon).padRight(8f).size(150f, 150f)
+                    buttonTable.add(speedSlider).width(400f).height(40f)
+                    buttonTable.row().padTop(10f)
+
+                    // …and then put back either pause or next-attack
                     if (isAutoPlayMode) {
                         buttonTable.add(pauseButton).pad(20f)
-                    } else {
+                        } else {
+                        nextAttackButton.isVisible = true
                         buttonTable.add(nextAttackButton).pad(20f)
-                    }
+                        }
                 }
             })
         }
