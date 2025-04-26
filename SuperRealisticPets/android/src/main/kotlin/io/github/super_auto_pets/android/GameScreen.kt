@@ -139,8 +139,7 @@ class GameScreen(
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     isPaused = true
                     pauseButton.remove()
-                    buttonTable.clear()
-                    buttonTable.padBottom(50f)
+                    buttonTable.clearChildren()
                     buttonTable.add(resumeButton).pad(20f)
                 }
             })
@@ -153,8 +152,7 @@ class GameScreen(
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     isPaused = false
                     resumeButton.remove()
-                    buttonTable.clear()
-                    buttonTable.padBottom(50f)
+                    buttonTable.clearChildren()
                     if (isAutoPlayMode) {
                         buttonTable.add(pauseButton).pad(20f)
                     } else {
