@@ -1,0 +1,33 @@
+<variant
+    name="release"
+    package="io.github.super_auto_pets"
+    minSdkVersion="21"
+    targetSdkVersion="34"
+    shrinking="true"
+    mergedManifest="build\intermediates\merged_manifest\release\processReleaseMainManifest\AndroidManifest.xml"
+    manifestMergeReport="build\outputs\logs\manifest-merger-release-report.txt"
+    proguardFiles="build\intermediates\default_proguard_files\global\proguard-android.txt-8.5.2;proguard-rules.pro"
+    partialResultsDir="build\intermediates\lint_vital_partial_results\release\lintVitalAnalyzeRelease\out">
+  <buildFeatures
+      coreLibraryDesugaring="true"
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+    <sourceProvider
+        manifests="AndroidManifest.xml"
+        javaDirectories="src\main\java;src\main\kotlin;src\release\java;src\release\kotlin"
+        resDirectories="res;src\release\res"
+        assetsDirectories="C:\Users\adria\StudioProjects\SoftwareArch\SuperRealisticPets\assets;src\release\assets"/>
+  </sourceProviders>
+  <testSourceProviders>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <artifact
+      classOutputs="build\intermediates\javac\release\compileReleaseJavaWithJavac\classes;build\tmp\kotlin-classes\release;build\kotlinToolingMetadata;build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\release\processReleaseResources\R.jar"
+      type="MAIN"
+      applicationId="io.github.super_auto_pets"
+      generatedSourceFolders="build\generated\ap_generated_sources\release\out"
+      generatedResourceFolders="build\generated\res\processReleaseGoogleServices;build\generated\res\resValues\release"
+      desugaredMethodsFiles="C:\Users\adria\.gradle\caches\8.12\transforms\e6f290e1923fc068e8a61e1faf121446\transformed\desugar_jdk_libs_configuration-2.0.4-desugar-lint.txt;C:\Users\adria\.gradle\caches\8.12\transforms\dd80f3180dcede6d254f21d52f28c4a5\transformed\D8BackportedDesugaredMethods.txt">
+  </artifact>
+</variant>

@@ -18,6 +18,9 @@ class Main : Game() {
     lateinit var battleController : BattleController
     lateinit var highscoreService: HighscoreService
 
+    var playerNameA: String = ""
+    var playerNameB: String = ""
+
     override fun create() {
         Gdx.app.log("DEBUG", "Main().create() runs!")
         highscoreService = FirebaseHighscoreService()

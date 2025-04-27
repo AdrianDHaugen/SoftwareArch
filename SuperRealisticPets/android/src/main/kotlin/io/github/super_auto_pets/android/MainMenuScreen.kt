@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
 import io.github.super_auto_pets.controller.GameMode
+import io.github.super_auto_pets.android.EnterNameScreen
 
 /**
  * Main menu screen for Super Realistic Pets.
@@ -124,15 +125,16 @@ class MainMenuScreen(private val game: Main) : Screen {
     private fun addSingleplayerButton(table: Table, btnWidth: Float, btnHeight: Float) {
         val texture = loadTexture("buttons/singleplayer.png")
         val button = createMenuButton(texture, btnWidth * 1.1f, btnHeight) {
-            game.screen = EditScreen(game, GameMode.SINGLEPLAYER)
+            game.screen = EnterNameScreen(game, GameMode.SINGLEPLAYER)
         }
         table.add(button).width(btnWidth * 1.1f).height(btnHeight).padRight(BUTTON_HORIZONTAL_PADDING)
     }
 
+
     private fun addMultiplayerButton(table: Table, btnWidth: Float, btnHeight: Float) {
         val texture = loadTexture("buttons/multiplayer.png")
         val button = createMenuButton(texture, btnWidth, btnHeight * 1.55f) {
-            game.screen = EditScreen(game, GameMode.LOCAL_MULTIPLAYER)
+            game.screen = EnterNameScreen(game, GameMode.LOCAL_MULTIPLAYER)
         }
         table.add(button).width(btnWidth).height(btnHeight * 1.55f).padLeft(BUTTON_HORIZONTAL_PADDING)
     }

@@ -27,6 +27,8 @@ import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
 import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.controller.ShopController
+import io.github.super_auto_pets.firebase.HighscoreManager
+import io.github.super_auto_pets.managers.PlayerManager
 import io.github.super_auto_pets.models.Item
 import io.github.super_auto_pets.models.Player
 import io.github.super_auto_pets.models.Shop
@@ -98,7 +100,7 @@ class EditScreen (
     val spriteSize = 100f
 
     // Player stats
-    private var playerTrophies = 0
+    private var playerStreak = 0
 
     // References to UI elements
     private lateinit var currencyLabel: Label
@@ -749,7 +751,7 @@ class EditScreen (
     private fun updateStatsDisplay() {
         currencyLabel.setText(playerController.getPlayerGold().toString() + " ")
         hourglassLabel.setText("$countdownSeconds ")
-        trophyLabel.setText("$playerTrophies ")
+        trophyLabel.setText("$playerStreak ")
     }
 
     private fun startCountdown() {
@@ -1022,7 +1024,7 @@ class EditScreen (
 
         miniTable.add(trophyIcon).size(iconSize, iconSize).padLeft(spaceBetweenObjects)
         trophyLabel = createUniqueLabel(
-            playerTrophies.toString(),
+            playerStreak.toString(),
             skin,
             fontScale,
             statBackground
@@ -1164,6 +1166,13 @@ class EditScreen (
 
         // Update the stats display initially
         updateStatsDisplay()
+
+        HighscoreManager.getCurrentStreak(PlayerManager.playerAName) { streak ->
+            Gdx.app.postRunnable {
+                playerStreak = streak
+                updateStatsDisplay()
+            }
+        }
 
         //Start hourglass countdown
         if (gameMode == GameMode.SINGLEPLAYER || gameMode == GameMode.LOCAL_MULTIPLAYER) {

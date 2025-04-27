@@ -1,0 +1,31 @@
+<variant
+    name="debug"
+    package="io.github.super_auto_pets"
+    minSdkVersion="21"
+    targetSdkVersion="34"
+    debuggable="true"
+    mergedManifest="build\intermediates\merged_manifest\debug\processDebugMainManifest\AndroidManifest.xml"
+    partialResultsDir="build\intermediates\android_test_lint_partial_results\debug\lintAnalyzeDebugAndroidTest\out"
+    desugaredMethodsFiles="C:\Users\adria\.gradle\caches\8.12\transforms\e6f290e1923fc068e8a61e1faf121446\transformed\desugar_jdk_libs_configuration-2.0.4-desugar-lint.txt;C:\Users\adria\.gradle\caches\8.12\transforms\dd80f3180dcede6d254f21d52f28c4a5\transformed\D8BackportedDesugaredMethods.txt">
+  <buildFeatures
+      coreLibraryDesugaring="true"
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+  </sourceProviders>
+  <testSourceProviders>
+    <sourceProvider
+        manifests="src\androidTest\AndroidManifest.xml"
+        javaDirectories="src\androidTest\java;src\androidTestDebug\java;src\androidTest\kotlin;src\androidTestDebug\kotlin"
+        resDirectories="src\androidTest\res;src\androidTestDebug\res"
+        assetsDirectories="src\androidTest\assets;src\androidTestDebug\assets"
+        androidTest="true"/>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <artifact
+      type="INSTRUMENTATION_TEST"
+      applicationId="io.github.super_auto_pets.test"
+      generatedResourceFolders="build\generated\res\resValues\androidTest\debug"
+      desugaredMethodsFiles="C:\Users\adria\.gradle\caches\8.12\transforms\e6f290e1923fc068e8a61e1faf121446\transformed\desugar_jdk_libs_configuration-2.0.4-desugar-lint.txt;C:\Users\adria\.gradle\caches\8.12\transforms\dd80f3180dcede6d254f21d52f28c4a5\transformed\D8BackportedDesugaredMethods.txt">
+  </artifact>
+</variant>
