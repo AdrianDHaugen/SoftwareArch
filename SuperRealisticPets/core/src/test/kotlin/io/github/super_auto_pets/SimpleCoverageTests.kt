@@ -4,7 +4,8 @@ import com.badlogic.gdx.Files
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Files.FileType
 import com.badlogic.gdx.files.FileHandle
-import io.github.super_auto_pets.controller.*
+import io.github.super_auto_pets.controller.ShopController
+import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.factories.ItemFactory
 import io.github.super_auto_pets.factories.SpriteFactory
 import io.github.super_auto_pets.interfaces.GameUnit
@@ -32,7 +33,6 @@ class SimpleCoverageTests {
         "path":"p"
       }]
     """.trimIndent()
-
         private val itemJson = """
       [{
         "name":"stubItem",
@@ -58,8 +58,6 @@ class SimpleCoverageTests {
                 override fun external(path: String): FileHandle = stubHandle(path)
                 override fun absolute(path: String): FileHandle = stubHandle(path)
                 override fun local(path: String): FileHandle = stubHandle(path)
-
-                // required by Files interface
                 override fun getFileHandle(path: String, type: FileType): FileHandle =
                     stubHandle(path)
 
@@ -76,9 +74,9 @@ class SimpleCoverageTests {
         }
     }
 
-    // -------------------------
-    // Models / Factories
-    // -------------------------
+    // ------------------------------------
+    // Models / Factories / Interfaces
+    // ------------------------------------
 
     @Test fun testEmptyModel() {
         val e = Empty()
@@ -140,7 +138,6 @@ class SimpleCoverageTests {
         assertEquals(s.isFrozen,    copy.isFrozen)
         assertEquals(s.color,       copy.color)
         assertEquals(s.path,        copy.path)
-        // deep‐copied item
         assertNotSame(s.item,       copy.item)
         assertEquals(baseItem.path, copy.item!!.path)
         assertTrue(copy.toString().contains("Sprite(name='bar'"))
@@ -153,9 +150,9 @@ class SimpleCoverageTests {
         assertTrue(sp.isFrozen)
     }
 
-    // -------------------------
-    // Domain Models
-    // -------------------------
+    // ------------------------------------
+    // Domain Models (Battle, Team, Player, Shop)
+    // ------------------------------------
 
     @Test fun testBattleAndTeamModels() {
         val b  = Battle()
@@ -179,45 +176,44 @@ class SimpleCoverageTests {
 
     @Test fun testPlayerModelDefaults() {
         val p = Player()
-        // parseGameUnits() ran in the ShopController ctor, so no NPE
+        // ShopController init & parseGameUnits() ran successfully
         assertEquals(20, p.gold)
-        assertEquals(1, p.turn)
+        assertEquals(1,  p.turn)
         assertNotNull(p.team)
         assertNotNull(p.shop)
         assertNotNull(p.shopController)
     }
 
-    // -------------------------
+    // ------------------------------------
     // PlayerController
-    // -------------------------
-    /**
+    // ------------------------------------
+
     @Test fun testPlayerControllerStartTurn() {
         val p    = Player().apply { gold = 3; turn = 5 }
         val ctrl = PlayerController(p)
         ctrl.startTurn()
-        assertEquals(6,  p.turn)
-        assertEquals(10, p.gold)
+        assertEquals(6, p.turn)
+        // reroll after setting to 10 ⇒ 10−1 = 9
+        assertEquals(9, p.gold)
     }
 
     @Test fun testPlayerControllerBuySellMoveCombineAndHelpers() {
         val p    = Player()
         val ctrl = PlayerController(p)
 
-        // sell on empty → IndexOutOfBounds
-        assertThrows<IndexOutOfBoundsException> { ctrl.sell(0) }
+        // sell on initial (Empty) slot → -1
+        assertEquals(-1, ctrl.sell(0))
 
-        // add one sprite, then sell
+        // place a real sprite at slot 0, then sell → 0
         val one = Sprite().apply { level = 2; cost = 1; attack = 1; health = 1 }
-        p.team.teams.add(one)
+        p.team.teams[0] = one
         assertEquals(0, ctrl.sell(0))
         assertEquals(20 + one.level, p.gold)
 
         // move same index → -1
         assertEquals(-1, ctrl.move(0, 0))
 
-        // invalid combine → IndexOutOfBounds or mismatched → -1
-        assertFailsWith<IndexOutOfBoundsException> { ctrl.combine(0, 1) }
-        p.team.teams.add(Empty())
+        // combine on any slot with an Empty → -1
         assertEquals(-1, ctrl.combine(0, 1))
 
         // helpers
@@ -225,17 +221,17 @@ class SimpleCoverageTests {
         assertEquals(one.cost, ctrl.getUnitCost(one))
         ctrl.endTurn()
     }
-    */
-    // -------------------------
+
+    // ------------------------------------
     // ShopController
-    // -------------------------
+    // ------------------------------------
 
     @Test fun testShopControllerToggleFreezeRerollAndBuyFail() {
         val p        = Player()
         val shopCtrl = ShopController(p)
-        // now slots[0..3] are sprites, [4..5] are items
+        // slots 0–3 are sprites, 4–5 items
 
-        // freeze a sprite slot
+        // freeze slot 0
         assertEquals(0, shopCtrl.toggleFreeze(0))
         assertTrue(p.shop.frozenUnits.contains(0))
 
@@ -244,24 +240,23 @@ class SimpleCoverageTests {
         assertEquals(0, shopCtrl.reroll())
         assertEquals(before - 1, p.gold)
 
-        // buy on an item slot into empty team → -1
+        // buy an item (slot 4) onto empty team[0] → -1
         assertEquals(-1, shopCtrl.buy(4, 0))
     }
 
-    // -------------------------
+    // ------------------------------------
     // Utilities
-    // -------------------------
+    // ------------------------------------
 
-    @Test fun testJsonParserParsesEmpty() {
+    @Test fun testJsonParserParsesOneElement() {
         val parser = JsonParser()
-        // JSON is a single-element array, so we get one result
         assertEquals(1, parser.parseSprites().size)
         assertEquals(1, parser.parseItems().size)
     }
 
-    // -------------------------
+    // ------------------------------------
     // Main
-    // -------------------------
+    // ------------------------------------
 
     @Test fun testMainInstantiation() {
         Main()
