@@ -35,6 +35,8 @@ Useful Gradle tasks and flags:
 - `lwjgl3:jar`: builds runnable jar.
 - `lwjgl3:run`: runs the desktop application.
 - `test`: runs unit tests (if any).
+- `./gradlew :core:clean :core:test :core:jacocoTestReport` : run test, and generate Jacoco test coverage
+
 
 ---
 
@@ -109,4 +111,13 @@ Open the project in Android Studio and run the `android` module.
 
 ---
 
+## Test
+
+### Run tests
+- `./gradlew :core:clean :core:test :core:jacocoTestReport` : run test, and generate Jacoco test coverage
+
+
+### Test reports
+- `core/build/reports/coverage/html/index.html` for code coverage report
+-  `core/build/reports/tests/test/index.html` for test report
 
