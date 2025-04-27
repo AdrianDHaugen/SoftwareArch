@@ -17,7 +17,15 @@ dependencies {
   }
 
   // Testing
-  testImplementation 'junit:junit:4.13.2'
+  testImplementation "org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
+  testImplementation 'org.testng:testng:6.9.6'
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
+  testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+}
+
+tasks.test {
+  useJUnitPlatform()
 }
 
 // JaCoCo
