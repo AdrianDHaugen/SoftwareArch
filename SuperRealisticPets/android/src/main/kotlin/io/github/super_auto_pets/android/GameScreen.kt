@@ -20,8 +20,12 @@ import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Action
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
+import com.badlogic.gdx.scenes.scene2d.ui.Slider
 import io.github.super_auto_pets.controller.GameMode
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import io.github.super_auto_pets.firebase.HighscoreManager
 import io.github.super_auto_pets.managers.PlayerManager
 
@@ -40,8 +44,17 @@ class GameScreen(
     companion object {
         private const val VIRTUAL_WIDTH = 1920f
         private const val VIRTUAL_HEIGHT = 1080f
-        private const val AUTO_ATTACK_DELAY = 1.5f  // Time between auto attacks in seconds
+        private const val BASE_ATTACK_DELAY   = 1.5f    // seconds between attacks at 1×
+        private const val BASE_MOVE_DUR       = 0.3f    // default wiggle move time
+        private const val BASE_FLASH_DUR      = 0.2f    // default flash time
+        private const val BASE_FADE_DUR       = 0.5f    // default fade-out time
+        private const val BASE_SLIDE_DUR      = 0.5f    // default slide time
+
+        private var speedMultiplier = 1f               // 1× speed by default
+        private var attackDelay: Float = 0.0f
+            get() = BASE_ATTACK_DELAY / speedMultiplier
     }
+
 
     private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
     private val stage = Stage(viewport)
@@ -65,6 +78,9 @@ class GameScreen(
     private lateinit var nextAttackButton: ImageButton
     private lateinit var autoPlayButton: ImageButton
     private lateinit var manualPlayButton: ImageButton
+
+    private lateinit var speedIcon: Image
+    private lateinit var speedSlider: Slider
 
 
     // Auto battle variables
@@ -141,9 +157,11 @@ class GameScreen(
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     isPaused = true
-                    pauseButton.remove()
-                    buttonTable.clear()
-                    buttonTable.padBottom(50f)
+                    buttonTable.clearChildren()
+                    buttonTable.padBottom(buttonSafePadding)
+                    buttonTable.add(speedIcon).padRight(8f).size(150f, 150f)
+                    buttonTable.add(speedSlider).width(400f).height(40f)
+                    buttonTable.row().padTop(10f)
                     buttonTable.add(resumeButton).pad(20f)
                 }
             })
@@ -155,14 +173,22 @@ class GameScreen(
             addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     isPaused = false
-                    resumeButton.remove()
-                    buttonTable.clear()
-                    buttonTable.padBottom(50f)
+                    // clear everything…
+                    buttonTable.clearChildren()
+                    buttonTable.padBottom(buttonSafePadding)
+
+                    // …re-add speed row
+                    buttonTable.add(speedIcon).padRight(8f).size(150f, 150f)
+                    buttonTable.add(speedSlider).width(400f).height(40f)
+                    buttonTable.row().padTop(10f)
+
+                    // …and then put back either pause or next-attack
                     if (isAutoPlayMode) {
                         buttonTable.add(pauseButton).pad(20f)
-                    } else {
+                        } else {
+                        nextAttackButton.isVisible = true
                         buttonTable.add(nextAttackButton).pad(20f)
-                    }
+                        }
                 }
             })
         }
@@ -215,6 +241,21 @@ class GameScreen(
         stage.addActor(buttonTable)
 
 
+        // 4) PREPARE (but don’t add!) our Speed slider
+        //
+        speedIcon = Image(Texture(Gdx.files.internal("buttons/speed.png"))).apply {
+            // choose whatever icon size you like
+            setSize(150f, 150f)
+            }
+        speedSlider = Slider(0.5f, 3f, 0.1f, false, skin).apply {
+            value = 1f
+            addListener(object: ChangeListener() {
+                override fun changed(event: ChangeEvent?, actor: Actor?) {
+                    speedMultiplier = value
+                    }
+                })
+            }
+
 
         //
         // 4) BACK/ABORT BUTTON
@@ -235,6 +276,9 @@ class GameScreen(
             add(abortBattleButton).pad(20f)
         }
         stage.addActor(abortTable)
+
+
+
     }
 
 
@@ -246,7 +290,7 @@ class GameScreen(
         // Only auto-advance when in auto-play mode
         if (battleStarted && battleInProgress && !waitingForAnimation && !isPaused && isAutoPlayMode) {
             timeSinceLastAttack += delta
-            if (timeSinceLastAttack >= AUTO_ATTACK_DELAY) {
+            if (timeSinceLastAttack >= attackDelay) {
                 timeSinceLastAttack = 0f
                 performBattleStep()
             }
@@ -281,6 +325,13 @@ class GameScreen(
 
         buttonTable.clear()
         buttonTable.padBottom(buttonSafePadding)
+
+
+        // 1) Speed icon + slider
+        buttonTable.add(speedIcon).padRight(8f).size(150f, 150f)
+        buttonTable.add(speedSlider).width(400f).height(40f)
+        // new row for the play controls
+        buttonTable.row().padTop(10f)
 
         if (isAutoPlayMode) {
             buttonTable.add(pauseButton).pad(20f)
@@ -416,9 +467,10 @@ class GameScreen(
 
         // Timing parameters
         val moveDist = 100f
-        val moveDur  = 0.3f
-        val flashDur = 0.2f
-        val fadeDur  = 0.5f
+        val moveDur  = BASE_MOVE_DUR  / speedMultiplier
+        val flashDur = BASE_FLASH_DUR / speedMultiplier
+        val fadeDur  = BASE_FADE_DUR  / speedMultiplier
+        val slideDur = BASE_SLIDE_DUR / speedMultiplier
 
         // Build wiggle sequences for images (with color flash)
         val baseSeq = Actions.sequence(
