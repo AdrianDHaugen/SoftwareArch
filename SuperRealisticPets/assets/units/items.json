@@ -62,6 +62,14 @@
     "addHealth": 2,
     "addAttack": 0,
     "path": "items/seed.png"
+  },
+  {
+    "name": "toyball",
+    "cost": 3,
+    "isFrozen": false,
+    "addHealth": 1,
+    "addAttack": 2,
+    "path": "items/toyball.png"
   }
 ]
 

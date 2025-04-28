@@ -39,6 +39,7 @@ items/fork.png
 items/leash.png
 items/seed.png
 items/seeds.png
+items/toyball.png
 sprites/bird-1-base-nb.PNG
 sprites/bird-1-base.png
 sprites/bird-1-blue-nb.png
@@ -76,6 +77,7 @@ sprites/fish-1-orange-nb.png
 sprites/fish-1-purple-nb.png
 sprites/fish-1-red-nb.png
 sprites/fish-1.jpg
+sprites/fox.png
 stats/coin.png
 stats/costcoin.png
 stats/crossed_swords.png
