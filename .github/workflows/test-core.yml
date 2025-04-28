@@ -1,4 +1,4 @@
-name: Test Core
+name: Code Quality Check
 
 on:
   pull_request:
@@ -19,12 +19,32 @@ jobs:
         distribution: 'temurin'  # Use Eclipse Temurin distribution
         java-version: '17'       # Use Java 17, adjust as needed for your project
         cache: gradle
-
-    - name: Cd into right folder to run commands
+    
+    - name: Change to project directory
       run: cd SuperRealisticPets
         
-    - name: Make Gradle wrapper executable
-      run: chmod +x ./gradlew
+    - name: Check if Gradle wrapper exists
+      id: gradle-wrapper-check
+      run: |
+        if [ -f "SuperRealisticPets/gradlew" ]; then
+          echo "wrapper_exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "wrapper_exists=false" >> $GITHUB_OUTPUT
+          echo "Gradle wrapper not found. Will use installed Gradle instead."
+        fi
+        
+    - name: Make Gradle wrapper executable (if exists)
+      if: steps.gradle-wrapper-check.outputs.wrapper_exists == 'true'
+      run: chmod +x SuperRealisticPets/gradlew
       
-    - name: Run core tests
-      run: ./gradlew core:test
+    - name: Run core tests with wrapper
+      if: steps.gradle-wrapper-check.outputs.wrapper_exists == 'true'
+      run: cd SuperRealisticPets && ./gradlew core:test
+      
+    - name: Setup Gradle (if wrapper doesn't exist)
+      if: steps.gradle-wrapper-check.outputs.wrapper_exists == 'false'
+      uses: gradle/gradle-build-action@v2
+      
+    - name: Run core tests with Gradle
+      if: steps.gradle-wrapper-check.outputs.wrapper_exists == 'false'
+      run: cd SuperRealisticPets && gradle core:test
