@@ -114,6 +114,7 @@ Open the project in Android Studio and run the `android` module.
 ## Test
 
 ### Run tests
+- if running on mac or linux, run this first: `chmod +x gradlew`
 - `./gradlew :core:clean :core:test :core:jacocoTestReport` : run test, and generate Jacoco test coverage
 
 
