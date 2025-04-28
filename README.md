@@ -142,7 +142,7 @@ Open the project in Android Studio and run the `android` module.
 
 ### Run tests
 - `./gradlew :core:clean :core:test :core:jacocoTestReport` : run tests, and generate Jacoco test coverage
-- `./gradlew :core:clean :core:test :core:jacocoIntegrationTestReport` :  run tests, and generate Jacoco test coverage
+- `./gradlew :core:clean :core:jacocoIntegrationTestReport` :  run tests, and generate Jacoco test coverage
 
 
 ### Test reports
