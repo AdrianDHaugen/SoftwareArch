@@ -10,10 +10,14 @@ backgrounds/spriteframe.png
 backgrounds/tutorial_bg.png
 backgrounds/victory_bg.png
 backgrounds/white_pixel.png
+buttons/auto_play.png
 buttons/cancel.png
+buttons/continue.png
 buttons/exit.png
 buttons/highscore.png
+buttons/input_field.png
 buttons/multiplayer.png
+buttons/next_attack.png
 buttons/nextattack.png
 buttons/pause.png
 buttons/rerollbtn.png
@@ -21,6 +25,7 @@ buttons/resume.png
 buttons/singleplayer.png
 buttons/start.png
 buttons/startbattlebtn.png
+buttons/step_by_step.png
 buttons/tutorial.png
 default.fnt
 default.png
