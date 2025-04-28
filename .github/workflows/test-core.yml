@@ -19,12 +19,12 @@ jobs:
         distribution: 'temurin'  # Use Eclipse Temurin distribution
         java-version: '17'       # Use Java 17, adjust as needed for your project
         cache: gradle
-        
-    - name: Make Gradle wrapper executable
-      run: chmod +x ./gradlew
 
     - name: Cd into right folder to run commands
       run: cd SuperRealisticPets
+        
+    - name: Make Gradle wrapper executable
+      run: chmod +x ./gradlew
       
     - name: Run core tests
       run: ./gradlew core:test
