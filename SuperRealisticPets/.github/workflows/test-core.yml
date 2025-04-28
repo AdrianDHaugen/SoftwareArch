@@ -1,0 +1,37 @@
+name: Test Core
+description: |
+  This workflow runs the core tests of the project using Gradle.
+  It is triggered on pull requests to the main or dev branches and can also be run manually.
+
+on:
+  pull_request:
+    branches: [main, dev] # Trigger on PRs to main or dev branches
+  workflow_dispatch: # Allow manual triggering from GitHub UI
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin" # Use Eclipse Temurin distribution
+          java-version: "17" # Use Java 17, adjust as needed for your project
+          cache: gradle
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run core tests
+        run: ./gradlew core:test
+
+      - name: Upload test results
+        if: always() # Upload even if tests fail
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: core/build/reports/tests/
