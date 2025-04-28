@@ -11,11 +11,19 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
+import io.github.super_auto_pets.android.MainMenuScreen.Companion
 import io.github.super_auto_pets.firebase.HighscoreManager
 
 class HighscoreScreen(private val game: Main) : Screen {
 
-    private val stage = Stage(FitViewport(Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat()))
+    companion object {
+        // Define a fixed virtual resolution for consistent layout
+        private const val VIRTUAL_WIDTH = 1920f
+        private const val VIRTUAL_HEIGHT = 1080f
+    }
+
+    private val viewport = FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+    private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
     override fun show() {
@@ -23,8 +31,9 @@ class HighscoreScreen(private val game: Main) : Screen {
 
         // --- Background ---
         val bgTexture = Texture(Gdx.files.internal("backgrounds/victory_bg.png"))
-        val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture)))
-        bgImage.setSize(stage.viewport.worldWidth, stage.viewport.worldHeight)
+        val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture))).apply {
+            setSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+        }
         stage.addActor(bgImage)
 
         // --- Root Table ---
