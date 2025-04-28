@@ -14,10 +14,9 @@ import io.github.super_auto_pets.models.*
 import io.github.super_auto_pets.utilities.JsonParser
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import kotlin.test.assertFailsWith
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SimpleCoverageTests {
+class CoreModelFactoryAndControllerBasicsTests {
 
     companion object {
         private val spriteJson = """

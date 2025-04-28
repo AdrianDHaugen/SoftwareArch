@@ -7,7 +7,6 @@ import com.badlogic.gdx.files.FileHandle
 import io.github.super_auto_pets.controller.ShopController
 import io.github.super_auto_pets.controller.spritesDB
 import io.github.super_auto_pets.controller.itemsDB
-import io.github.super_auto_pets.factories.ItemFactory
 import io.github.super_auto_pets.factories.SpriteFactory
 import io.github.super_auto_pets.interfaces.GameUnit
 import io.github.super_auto_pets.main.main

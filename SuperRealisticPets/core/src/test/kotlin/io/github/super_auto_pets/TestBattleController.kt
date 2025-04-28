@@ -1,4 +1,4 @@
-package io.github.super_auto_pets.controller
+package io.github.super_auto_pets
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessFiles
