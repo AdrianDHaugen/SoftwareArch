@@ -54,7 +54,7 @@ SuperRealisticPets/
 │           ├── GameScreen.kt
 │           ├── HighscoreScreen.kt
 │           ├── Main.kt
-│           ├── MainMenuScreen.kt
+│           └── MainMenuScreen.kt
 ├── core/
 │   ├── build.gradle
 │   └── src/
@@ -84,23 +84,29 @@ SuperRealisticPets/
 │       │           └── utilities/
 │       │               └── JsonParser.kt
 │       ├── test/
-│           ├── kotlin/
-│           │   └── io/github/super_auto_pets/
-│           │       ├── unit/
-│           │       │   ├── CoreModelFactoryAndControllerBasicsTests.kt
-│           │       │   ├── MainLoopFactoryAndBuyTests.kt
-│           │       │   ├── ModelSettersJsonParserAndMainFlowTests.kt
-│           │       │   ├── TestAttackEvent.kt
-│           │       │   └── TestBattleController.kt
-│           │       └── integration/
-│           │           └── ShopBattleIntegrationTest.kt 
-│           │
-│           └── resources/      
+│       │   └── kotlin/
+│       │       └── io/github/super_auto_pets/unit/
+│       │           ├── CoreModelFactoryAndControllerBasicsTests.kt
+│       │           ├── MainLoopFactoryAndBuyTests.kt
+│       │           ├── ModelSettersJsonParserAndMainFlowTests.kt
+│       │           ├── TestAttackEvent.kt
+│       │           └── TestBattleController.kt
+│       └── integrationTest/
+│           ├── java/
+│           │   └── io/github/super_auto_pets/integration/
+│           │       ├── BattleIntegrationTest.kt
+│           │       ├── ItemFactoryIntegrationTest.kt
+│           │       ├── MainIntegrationTest.kt
+│           │       ├── PlayerControllerIntegrationTest.kt
+│           │       ├── ShopBattleIntegrationTest.kt
+│           │       ├── ShopControllerIntegrationTest.kt
+│           │       └── SpriteFactoryIntegrationTest.kt
+│           └── resources/
 │               └── units/
-│                   ├── sprites.json 
-│                   └── items.json
+│                   ├── items.json
+│                   └── sprites.json
 ├── ios/ (not used)
-├── lwjgl3/  (not used)
+├── lwjgl3/ (not used)
 │   ├── build.gradle
 │   └── src/
 │       └── io/github/super_auto_pets/lwjgl3/
@@ -108,6 +114,7 @@ SuperRealisticPets/
 ├── build.gradle
 ├── settings.gradle
 └── README.md
+
 ```
 
 ---
@@ -135,9 +142,11 @@ Open the project in Android Studio and run the `android` module.
 
 ### Run tests
 - `./gradlew :core:clean :core:test :core:jacocoTestReport` : run tests, and generate Jacoco test coverage
+- `./gradlew :core:clean :core:test :core:jacocoIntegrationTestReport` :  run tests, and generate Jacoco test coverage
 
 
 ### Test reports
 - `core/build/reports/coverage/html/index.html` for code coverage report
--  `core/build/reports/tests/test/index.html` for test report
+- `core/build/reports/tests/test/index.html` for test report
+- `core/build/reports/coverage/integration/index.html` for integration coverage report
 
