@@ -1,0 +1,60 @@
+@startuml
+interface io.github.super_auto_pets.interfaces.GameUnit {
+}
+class io.github.super_auto_pets.models.Empty {
+}
+class io.github.super_auto_pets.models.Sprite {
+}
+class io.github.super_auto_pets.controller.BattleController {
+}
+class io.github.super_auto_pets.controller.PlayerController {
+}
+class io.github.super_auto_pets.models.Battle {
+}
+class io.github.super_auto_pets.main.Main {
+}
+class io.github.super_auto_pets.main.null {
+}
+enum io.github.super_auto_pets.controller.BuildPhase {
+}
+interface io.github.super_auto_pets.interfaces.ISprite {
+}
+class io.github.super_auto_pets.managers.PlayerManager {
+}
+class io.github.super_auto_pets.factories.SpriteFactory$Companion {
+}
+class io.github.super_auto_pets.factories.SpriteFactory {
+}
+class io.github.super_auto_pets.factories.ItemFactory$Companion {
+}
+class io.github.super_auto_pets.factories.ItemFactory {
+}
+class io.github.super_auto_pets.controller.ShopController {
+}
+interface io.github.super_auto_pets.interfaces.HighscoreService {
+}
+class io.github.super_auto_pets.utilities.JsonParser {
+}
+class io.github.super_auto_pets.controller.AttackEvent {
+}
+class io.github.super_auto_pets.models.Shop {
+}
+class io.github.super_auto_pets.models.Item {
+}
+class io.github.super_auto_pets.models.Player {
+}
+class io.github.super_auto_pets.models.Team {
+}
+enum io.github.super_auto_pets.controller.GameMode {
+}
+
+
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.models.Empty
+io.github.super_auto_pets.interfaces.ISprite <|.. io.github.super_auto_pets.models.Sprite
+com.badlogic.gdx.ApplicationAdapter <|-- io.github.super_auto_pets.main.Main
+io.github.super_auto_pets.main.HighscoreService <|.. io.github.super_auto_pets.main.null
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.interfaces.ISprite
+io.github.super_auto_pets.factories.SpriteFactory +.. io.github.super_auto_pets.factories.SpriteFactory$Companion
+io.github.super_auto_pets.factories.ItemFactory +.. io.github.super_auto_pets.factories.ItemFactory$Companion
+io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.models.Item
+@enduml

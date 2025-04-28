@@ -12,6 +12,7 @@ class io.github.super_auto_pets.models.Empty {
 + String name
 + Int cost
 + Boolean isFrozen
++ String path
 }
 
 class io.github.super_auto_pets.models.Sprite {
@@ -43,16 +44,32 @@ class io.github.super_auto_pets.controller.PlayerController {
 + Int sell(Int)
 + Int move(Int,Int)
 + Int combine(Int,Int)
++ Boolean canAffordUnit(GameUnit)
++ Boolean canAffordReroll()
 + void endTurn()
++ Int getPlayerGold()
++ Int getUnitCost(GameUnit)
 }
 
 class io.github.super_auto_pets.models.Battle {
+-  _playerA
 + Player playerA
+-  _playerB
 + Player playerB
 }
 
 class io.github.super_auto_pets.main.Main {
 }
+class io.github.super_auto_pets.main.null {
++ void updateHighscore(String,Int)
+}
+
+enum io.github.super_auto_pets.controller.BuildPhase {
++  PLAYER_A
++  PLAYER_B
++  BATTLE
+}
+
 interface io.github.super_auto_pets.interfaces.ISprite {
 + String name
 + Int attack
@@ -66,6 +83,27 @@ interface io.github.super_auto_pets.interfaces.ISprite {
 + String path
 }
 
+class io.github.super_auto_pets.managers.PlayerManager {
++ String playerAName
++ String playerBName
++ void resetPlayers()
+}
+
+
+class io.github.super_auto_pets.factories.SpriteFactory$Companion {
++ Sprite createCopy(Sprite)
++ Sprite createSprite(String,Int,Int,Int,Int,Int,Boolean,String,String,Item?)
+}
+
+class io.github.super_auto_pets.factories.SpriteFactory {
+}
+class io.github.super_auto_pets.factories.ItemFactory$Companion {
++ Item createCopy(Item)
++ Item createItem(String,Int,Int,Int,Boolean,String)
+}
+
+class io.github.super_auto_pets.factories.ItemFactory {
+}
 class io.github.super_auto_pets.controller.ShopController {
 - void parseGameUnits()
 + Int toggleFreeze(Int)
@@ -83,6 +121,10 @@ class io.github.super_auto_pets.controller.ShopController {
 - Sprite generateRandomSprite()
 - Item generateRandomItem()
 + void endTurn()
+}
+
+interface io.github.super_auto_pets.interfaces.HighscoreService {
++ void updateHighscore(String,Int)
 }
 
 class io.github.super_auto_pets.utilities.JsonParser {
@@ -112,13 +154,20 @@ class io.github.super_auto_pets.models.Player {
 + String name
 + Int gold
 + Int turn
++ Int winStreak
 + Team team
 + Shop shop
 + ShopController shopController
 }
 
 class io.github.super_auto_pets.models.Team {
+- MutableList<GameUnit> _teams
 + MutableList<GameUnit> teams
+}
+
+enum io.github.super_auto_pets.controller.GameMode {
++  SINGLEPLAYER
++  LOCAL_MULTIPLAYER
 }
 
 
@@ -126,8 +175,9 @@ class io.github.super_auto_pets.models.Team {
 io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.models.Empty
 io.github.super_auto_pets.interfaces.ISprite <|.. io.github.super_auto_pets.models.Sprite
 com.badlogic.gdx.ApplicationAdapter <|-- io.github.super_auto_pets.main.Main
+io.github.super_auto_pets.main.HighscoreService <|.. io.github.super_auto_pets.main.null
 io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.interfaces.ISprite
+io.github.super_auto_pets.factories.SpriteFactory +.. io.github.super_auto_pets.factories.SpriteFactory$Companion
+io.github.super_auto_pets.factories.ItemFactory +.. io.github.super_auto_pets.factories.ItemFactory$Companion
 io.github.super_auto_pets.interfaces.GameUnit <|.. io.github.super_auto_pets.models.Item
-io.github.super_auto_pets.controller --|> "UPDATE MODEL"io.github.super_auto_pets.models
-io.github.super_auto_pets.main --|> "UPDATE CONTROLLER" io.github.super_auto_pets.controller
 @enduml

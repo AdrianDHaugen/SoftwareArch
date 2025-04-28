@@ -1,0 +1,275 @@
+@startuml
+class io.github.super_auto_pets.firebase.FirebaseHighscoreService {
++ void updateHighscore(String,Int)
+}
+
+class io.github.super_auto_pets.android.AndroidLauncher {
++ void onCreate(Bundle?)
+}
+
+class io.github.super_auto_pets.firebase.HighscoreManager {
+-  db
++ void fetchTopHighscores(Long,(List<HighscoreEntry>) -> Unit)
++ void appendWin(String)
++ void getCurrentStreak(String,(Int) -> Unit)
++ void resetStreak(String)
+}
+
+
+class io.github.super_auto_pets.android.Main {
++ Battle battle
++ BattleController battleController
++ HighscoreService highscoreService
++ String playerNameA
++ String playerNameB
++ void create()
++ void render()
++ void dispose()
+}
+
+
+class io.github.super_auto_pets.firebase.HighscoreEntry {
+}
+class io.github.super_auto_pets.android.EditScreen$Companion {
+-  VIRTUAL_WIDTH
+-  VIRTUAL_HEIGHT
+}
+
+class io.github.super_auto_pets.android.EditScreen$DragPayload {
+}
+class io.github.super_auto_pets.android.EditScreen {
+- Table unitTable
+-  viewport
+-  stage
+-  skin
+-  dragAndDrop
+- Player player
+- PlayerController playerController
+- Shop shop
+- ShopController shopController
+- Table shopUnitTable
+-  countdownSeconds
+- Timer.Task? countdownTimer
+-  isCountdownRunning
+-  statBackground
+-  spriteFrame
+-  currencyIcon
+-  hourglassIcon
+-  trophyIcon
+-  emptyDrawable
+-  spriteTextures
+-  itemTextures
+-  texture
+-  drawable
+-  rerollBtn
+-  cancelTexture
+-  cancelDrawable
+-  cancelBtn
++  boxSize
++  spriteSize
+-  playerStreak
+- Label currencyLabel
+- Label hourglassLabel
+- Label trophyLabel
+- Label createUniqueLabel(String,Skin,Float,Drawable?,Color)
+- void debugShopContents()
+- DragAndDrop.Target createUnitBoxTarget(Table,Float,TextureRegionDrawable,Skin)
+- Int getTeamPositionFromBox(Table)
+- void addSpriteToBox(Table,Sprite,Drawable,Boolean)
+- void setupDragSourceForUnitBox(Table,Float)
+- void setupDragSourcesForUnitBoxes(Table,Float)
+- void populateShopFromModel(Table,Float)
+- void rerollShop(Table,Float)
+- void updateStatsDisplay()
+- void startCountdown()
+- void stopCountdown()
+- void startBattle()
+- void updateSpriteDisplay(Table,Sprite)
+- void setUserObject(String,Any?)
+- Any? getUserObject(String)
+- void loadSpriteTextures()
+- void loadItemTextures()
+- List<Sprite> parseSpritesFromJson(String)
+- List<Item> parseItemsFromJson(String)
+- List<Sprite> collectTeamFromBoxes()
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void pause()
++ void resume()
++ void hide()
++ void dispose()
+}
+
+
+class io.github.super_auto_pets.android.TutorialScreen$Companion {
+-  VIRTUAL_WIDTH
+-  VIRTUAL_HEIGHT
+}
+
+class io.github.super_auto_pets.android.TutorialScreen {
+-  viewport
+-  stage
+-  skin
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void pause()
++ void resume()
++ void hide()
++ void dispose()
+}
+
+
+class io.github.super_auto_pets.android.GameScreen$Companion {
+-  VIRTUAL_WIDTH
+-  VIRTUAL_HEIGHT
+-  BASE_ATTACK_DELAY
+-  BASE_MOVE_DUR
+-  BASE_FLASH_DUR
+-  BASE_FADE_DUR
+-  BASE_SLIDE_DUR
+-  speedMultiplier
+- Float attackDelay
+}
+
+class io.github.super_auto_pets.android.GameScreen {
+-  viewport
+-  stage
+-  skin
+-  heartTexture
+-  swordTexture
+-  startTexture
+-  backTexture
+-  statTableMap
+- BattleController battleController
+-  cellPositions
+- MutableList<Image?> battleFieldActors
+- Table battleFieldTable
+-  isAutoPlayMode
+- ImageButton nextAttackButton
+- ImageButton autoPlayButton
+- ImageButton manualPlayButton
+- Image speedIcon
+- Slider speedSlider
+-  battleStarted
+-  timeSinceLastAttack
+-  battleInProgress
+-  waitingForAnimation
+- ImageButton startBattleButton
+- ImageButton abortBattleButton
+- Table buttonTable
+-  pauseTexture
+-  resumeTexture
+- ImageButton pauseButton
+- ImageButton resumeButton
+-  isPaused
+-  buttonSafePadding
+-  texCache
+- Map<String, String> spritePathMap
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void hide()
++ void pause()
++ void resume()
++ void dispose()
+- void beginBattle()
+- void refreshBattleFieldUI()
+- Image createPetImage(Sprite)
+- void performBattleStep()
+- void updateStats()
+- void showBattleResult()
+- Image? findUIActorFor(Sprite)
+- BattleController createBattleFromTeams()
+}
+
+
+class io.github.super_auto_pets.android.EnterNameScreen {
+-  viewport
+-  stage
+-  skin
+- TextField nameFieldA
+- TextField nameFieldB
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void pause()
++ void resume()
++ void hide()
++ void dispose()
+}
+
+
+class io.github.super_auto_pets.android.HighscoreScreen$Companion {
+-  VIRTUAL_WIDTH
+-  VIRTUAL_HEIGHT
+}
+
+class io.github.super_auto_pets.android.HighscoreScreen {
+-  viewport
+-  stage
+-  skin
++ void show()
++ void render(Float)
++ void resize(Int,Int)
++ void pause()
++ void resume()
++ void hide()
++ void dispose()
+}
+
+
+class io.github.super_auto_pets.android.MainMenuScreen$Companion {
+-  VIRTUAL_WIDTH
+-  VIRTUAL_HEIGHT
+-  LOGO_PADDING_TOP
+-  MENU_PADDING_TOP
+-  BUTTON_VERTICAL_PADDING
+-  BUTTON_HORIZONTAL_PADDING
+}
+
+class io.github.super_auto_pets.android.MainMenuScreen {
+-  viewport
+-  stage
+-  skin
+-  textures
++ void show()
+- void setupBackground()
+- void setupLogo()
+- void setupButtons()
+- Table createButtonTable(Float,Float)
+- void addSingleplayerButton(Table,Float,Float)
+- void addMultiplayerButton(Table,Float,Float)
+- void addTutorialButton(Table,Float,Float)
+- void addHighscoreButton(Table,Float,Float)
+- void addExitButton(Table,Float,Float)
+- Image createMenuButton(Texture,Float,Float,() -> Unit)
+- Texture loadTexture(String)
++ void render(Float)
++ void resize(Int,Int)
++ void pause()
++ void resume()
++ void hide()
++ void dispose()
+}
+
+
+
+
+io.github.super_auto_pets.interfaces.HighscoreService <|.. io.github.super_auto_pets.firebase.FirebaseHighscoreService
+com.badlogic.gdx.backends.android.AndroidApplication <|-- io.github.super_auto_pets.android.AndroidLauncher
+com.badlogic.gdx.Game <|-- io.github.super_auto_pets.android.Main
+io.github.super_auto_pets.android.EditScreen +.. io.github.super_auto_pets.android.EditScreen$Companion
+io.github.super_auto_pets.android.EditScreen +.. io.github.super_auto_pets.android.EditScreen$DragPayload
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.EditScreen
+io.github.super_auto_pets.android.TutorialScreen +.. io.github.super_auto_pets.android.TutorialScreen$Companion
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.TutorialScreen
+io.github.super_auto_pets.android.GameScreen +.. io.github.super_auto_pets.android.GameScreen$Companion
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.GameScreen
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.EnterNameScreen
+io.github.super_auto_pets.android.HighscoreScreen +.. io.github.super_auto_pets.android.HighscoreScreen$Companion
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.HighscoreScreen
+io.github.super_auto_pets.android.MainMenuScreen +.. io.github.super_auto_pets.android.MainMenuScreen$Companion
+com.badlogic.gdx.Screen <|.. io.github.super_auto_pets.android.MainMenuScreen
+@enduml
