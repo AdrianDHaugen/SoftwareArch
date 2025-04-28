@@ -1,4 +1,4 @@
-package io.github.super_auto_pets
+package io.github.super_auto_pets.unit
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessFiles
@@ -22,12 +22,12 @@ class BattleControllerTest {
             Gdx.files = HeadlessFiles()
             // create minimal JSON stores
             val unitsDir = File("units").apply { if (!exists()) mkdirs() }
-            File(unitsDir, "sprites.json").writeText(
+            File(unitsDir, "/sprites.json").writeText(
                 """[
                   {"name":"cat","attack":2,"health":2,"tier":1,"item":null,"level":1,"cost":3,"isFrozen":false,"color":"base","path":"cat-1-base-nb.PNG"}
                 ]"""
             )
-            File(unitsDir, "items.json").writeText(
+            File(unitsDir, "/items.json").writeText(
                 """[
                   {"name":"hat","cost":3,"isFrozen":false,"addHealth":1,"addAttack":1,"path":"cowboyhat.png"}
                 ]"""

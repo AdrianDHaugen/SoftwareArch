@@ -10,14 +10,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.FitViewport
-import io.github.super_auto_pets.android.MainMenuScreen.Companion
 import io.github.super_auto_pets.firebase.HighscoreManager
+import java.net.InetSocketAddress
+import java.net.Socket
 
 class HighscoreScreen(private val game: Main) : Screen {
 
     companion object {
-        // Define a fixed virtual resolution for consistent layout
         private const val VIRTUAL_WIDTH = 1920f
         private const val VIRTUAL_HEIGHT = 1080f
     }
@@ -26,77 +27,55 @@ class HighscoreScreen(private val game: Main) : Screen {
     private val stage = Stage(viewport)
     private val skin = Skin(Gdx.files.internal("uiskin.json"))
 
+    private lateinit var scoresScrollPane: ScrollPane
+    private lateinit var noInternetLabel: Label
+    private lateinit var scoresTable: Table
+    private lateinit var boxTable: Table
+
+
     override fun show() {
         Gdx.input.inputProcessor = stage
 
-        // --- Background ---
         val bgTexture = Texture(Gdx.files.internal("backgrounds/victory_bg.png"))
         val bgImage = Image(TextureRegionDrawable(TextureRegion(bgTexture))).apply {
             setSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
         }
         stage.addActor(bgImage)
 
-        // --- Root Table ---
         val root = Table()
         root.setFillParent(true)
         root.top().center()
         stage.addActor(root)
 
-        // --- Title Image ---
         val titleTexture = Texture(Gdx.files.internal("buttons/highscore.png"))
         val titleImage = Image(TextureRegionDrawable(TextureRegion(titleTexture)))
         titleImage.setSize(500f, 120f)
         root.add(titleImage).padTop(40f).padBottom(30f)
         root.row()
-// --- Box Background ---
+
+        // --- Box Background ---
         val boxBg = Texture(Gdx.files.internal("backgrounds/box_bg.png"))
-        val boxTable = Table()
-        boxTable.background = TextureRegionDrawable(TextureRegion(boxBg))
-        boxTable.pad(40f)
+        boxTable = Table().apply {
+            background = TextureRegionDrawable(TextureRegion(boxBg))
+            pad(40f)
+        }
+
         root.add(boxTable).width(700f).height(500f).padBottom(30f)
         root.row()
 
-// --- Scores Table (inside box) ---
-        val scoresTable = Table()
-        val scrollPane = ScrollPane(scoresTable, skin).apply {
+        // --- Scores Table ---
+        scoresTable = Table()
+        scoresScrollPane = ScrollPane(scoresTable, skin).apply {
             setFadeScrollBars(false)
             setScrollingDisabled(true, false)
             style.background = null
         }
         scoresTable.setBackground(null as Drawable?)
-        boxTable.add(scrollPane).expand().fill()
 
-
-
-        // --- Populate scores ---
-        HighscoreManager.fetchTopHighscores { entries ->
-            Gdx.app.postRunnable {
-                scoresTable.clear()
-
-                val headerPlayer = Label("Player", skin).apply {
-                    setFontScale(2f)
-                }
-                val headerStreak = Label("Streak", skin).apply {
-                    setFontScale(2f)
-                }
-
-                scoresTable.add(headerPlayer).expandX().left().padBottom(20f).padLeft(20f)
-                scoresTable.add(headerStreak).right().padRight(20f).padBottom(20f)
-                scoresTable.row()
-
-                entries.forEach { entry ->
-                    val playerLabel = Label(entry.playerName, skin).apply {
-                        setFontScale(1.6f)
-                    }
-                    val scoreLabel = Label(entry.bestStreak.toString(), skin).apply {
-                        setFontScale(1.6f)
-                    }
-
-                    scoresTable.add(playerLabel).expandX().left().padLeft(30f).padBottom(15f)
-                    scoresTable.add(scoreLabel).right().padRight(30f).padBottom(15f)
-                    scoresTable.row()
-                }
-            }
+        // --- No Internet Label ---
+        noInternetLabel = Label("⚠ No internet connection!\nPlease check your network.", skin).apply {
+            setFontScale(1.8f)
+            setAlignment(Align.center)
         }
 
         // --- Exit Button ---
@@ -116,6 +95,61 @@ class HighscoreScreen(private val game: Main) : Screen {
         root.row().padTop(verticalPad * 0.65f)
         root.add(exitBtn).width(btnW * 0.5f).height(btnH * 0.8f).colspan(2).padBottom(30f)
 
+        // Load highscores or show no-internet warning
+        checkInternetAndLoadScores()
+    }
+
+    private fun checkInternetAndLoadScores() {
+        Thread {
+            val connected = isInternetAvailable()
+
+            Gdx.app.postRunnable {
+                if (connected) {
+                    boxTable.clear()
+                    boxTable.add(scoresScrollPane).expand().fill()
+                    loadHighscores()
+                } else {
+                    boxTable.clear()
+                    boxTable.add(noInternetLabel).expand().center()
+                }
+            }
+        }.start()
+    }
+
+
+    private fun loadHighscores() {
+        HighscoreManager.fetchTopHighscores { entries ->
+            Gdx.app.postRunnable {
+                scoresTable.clear()
+
+                val headerPlayer = Label("Player", skin).apply { setFontScale(2f) }
+                val headerStreak = Label("Streak", skin).apply { setFontScale(2f) }
+
+                scoresTable.add(headerPlayer).expandX().left().padBottom(20f).padLeft(20f)
+                scoresTable.add(headerStreak).right().padRight(20f).padBottom(20f)
+                scoresTable.row()
+
+                entries.forEach { entry ->
+                    val playerLabel = Label(entry.playerName, skin).apply { setFontScale(1.6f) }
+                    val scoreLabel = Label(entry.bestStreak.toString(), skin).apply { setFontScale(1.6f) }
+
+                    scoresTable.add(playerLabel).expandX().left().padLeft(30f).padBottom(15f)
+                    scoresTable.add(scoreLabel).right().padRight(30f).padBottom(15f)
+                    scoresTable.row()
+                }
+            }
+        }
+    }
+
+    private fun isInternetAvailable(): Boolean {
+        return try {
+            Socket().use { socket ->
+                socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
+                true
+            }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     override fun render(delta: Float) {
@@ -129,7 +163,10 @@ class HighscoreScreen(private val game: Main) : Screen {
 
     override fun pause() {}
     override fun resume() {}
-    override fun hide() { Gdx.input.inputProcessor = null }
+    override fun hide() {
+        Gdx.input.inputProcessor = null
+    }
+
     override fun dispose() {
         stage.dispose()
         skin.dispose()

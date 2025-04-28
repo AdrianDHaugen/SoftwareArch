@@ -20,9 +20,52 @@ dependencies {
   testImplementation "org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion"
   testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
   testImplementation 'org.testng:testng:6.9.6'
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
   testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
 }
+
+// 🛠 SourceSets must be created FIRST
+sourceSets {
+  integrationTest {
+    java.srcDir file('src/integrationTest/java')
+    resources.srcDir file('src/integrationTest/resources')
+    compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+    runtimeClasspath += output + compileClasspath
+  }
+}
+
+tasks.withType(ProcessResources).configureEach {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+
+// 🛠 Create integrationTest task
+tasks.register('integrationTest', Test) {
+  description = 'Runs integration tests.'
+  group = 'verification'
+  testClassesDirs = sourceSets.integrationTest.output.classesDirs
+  classpath = sourceSets.integrationTest.runtimeClasspath
+  useJUnitPlatform()
+}
+
+// Configure unit test to have its own coverage exec file
+tasks.test {
+  useJUnitPlatform()
+  finalizedBy jacocoTestReport
+  jacoco {
+    destinationFile = file("$buildDir/jacoco/test.exec")
+  }
+}
+
+// Configure integration test to have its own coverage exec file
+tasks.integrationTest {
+  useJUnitPlatform()
+  jacoco {
+    destinationFile = file("$buildDir/jacoco/integrationTest.exec")
+  }
+}
+
 
 tasks.test {
   useJUnitPlatform()
@@ -35,11 +78,11 @@ jacoco {
 
 // 5) configure the existing report task
 jacocoTestReport {
-  dependsOn test
-  group       = 'verification'
-  description = 'Generate JaCoCo coverage report for the core module'
+  dependsOn tasks.named("test"), tasks.named("integrationTest")
 
-  // 5.a) point at your compiled Kotlin classes
+  group = 'verification'
+  description = 'Generate JaCoCo coverage report for core (unit + integration)'
+
   classDirectories.setFrom fileTree(
     dir: "$buildDir/classes/kotlin/main",
     exclude: [
@@ -50,27 +93,44 @@ jacocoTestReport {
     ]
   )
 
-  // 5.b) include both Kotlin & Java sources
   sourceDirectories.setFrom files(
-    "src/main/kotlin",
-    "src/main/java"
+    "src/main/kotlin", "src/main/java"
   )
 
-  // 5.c) pick up all .exec coverage files
-  executionData.setFrom fileTree(
-    dir: "$buildDir",
-    include: [
-      "jacoco/*.exec",
-      "**/*.exec"
-    ]
-  )
+  executionData.setFrom(file("$buildDir/jacoco/test.exec"))
 
-  // 5.d) output formats
+
   reports {
     xml.required.set(true)
     html.required.set(true)
-    // write HTML here:
     html.outputLocation.set(file("$buildDir/reports/coverage/html"))
+  }
+}
+
+task jacocoIntegrationTestReport(type: JacocoReport) {
+  dependsOn integrationTest
+  group = 'verification'
+  description = 'Generate JaCoCo coverage report for integration tests'
+
+  classDirectories.setFrom fileTree(
+    dir: "$buildDir/classes/kotlin/main",
+    exclude: ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*']
+  )
+  sourceDirectories.setFrom files("src/main/kotlin", "src/main/java")
+  executionData.setFrom(file("$buildDir/jacoco/integrationTest.exec"))
+
+
+  reports {
+    xml.required.set(true)
+    html.required.set(true)
+    html.outputLocation.set(file("$buildDir/reports/coverage/integration"))
+  }
+}
+
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+  kotlinOptions {
+    jvmTarget = "1.8"
   }
 }
 

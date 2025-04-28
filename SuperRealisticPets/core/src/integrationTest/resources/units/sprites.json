@@ -1,0 +1,98 @@
+[
+  {
+    "name": "cat",
+    "attack": 2,
+    "health": 2,
+    "tier": 1,
+    "item": null,
+    "level": 1,
+    "cost": 3,
+    "isFrozen": false,
+    "color": "base",
+    "path" : "cat-1-base-nb.PNG"
+  },
+  {
+    "name": "dog",
+    "attack": 2,
+    "health": 3,
+    "tier": 1,
+    "item": null,
+    "level": 1,
+    "cost": 3,
+    "isFrozen": false,
+    "color": "base",
+    "path" : "dog-1-base-nb.PNG"
+  },
+  {
+    "name": "bird",
+    "attack": 1,
+    "health": 1,
+    "tier": 1,
+    "item": null,
+    "level": 1,
+    "cost": 3,
+    "isFrozen": false,
+    "color": "base",
+    "path" : "bird-1-base-nb.PNG"
+  },
+  {
+    "name": "fish",
+    "attack": 1,
+    "health": 1,
+    "tier": 1,
+    "item": null,
+    "level": 1,
+    "cost": 3,
+    "isFrozen": false,
+    "color": "base",
+    "path" : "fish-1-base-nb.PNG"
+  },
+  {
+    "name": "cat",
+    "attack": 2,
+    "health": 2,
+    "tier": 1,
+    "item": null,
+    "level": 1,
+    "cost": 3,
+    "isFrozen": false,
+    "color": "negative",
+    "path" : "cat-1-negative-nb.png"
+  },
+  {
+    "name": "dog",
+    "attack": 3,
+    "health": 2,
+    "tier": 1,
+    "item": null,
+    "level": 1,
+    "cost": 3,
+    "isFrozen": false,
+    "color": "negative",
+    "path" : "dog-1-negative-nb.png"
+  },
+  {
+    "name": "bird",
+    "attack": 1,
+    "health": 1,
+    "tier": 1,
+    "item": null,
+    "level": 1,
+    "cost": 3,
+    "isFrozen": false,
+    "color": "negative",
+    "path" : "bird-1-negative-nb.png"
+  },
+  {
+    "name": "fish",
+    "attack": 1,
+    "health": 1,
+    "tier": 1,
+    "item": null,
+    "level": 1,
+    "cost": 3,
+    "isFrozen": false,
+    "color": "negative",
+    "path" : "fish-1-negative-nb.png"
+  }
+]
