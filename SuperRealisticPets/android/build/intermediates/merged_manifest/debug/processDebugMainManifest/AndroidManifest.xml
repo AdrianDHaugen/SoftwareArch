@@ -34,6 +34,7 @@
         android:icon="@drawable/ic_launcher"
         android:isGame="true"
         android:label="@string/app_name"
+        android:testOnly="true"
         android:theme="@style/GdxTheme" >
         <activity
             android:name="io.github.super_auto_pets.android.AndroidLauncher"

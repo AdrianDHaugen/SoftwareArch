@@ -178,4 +178,9 @@ class ShopController(private val player: Player) {
     fun endTurn() {
         //player.team.teams.forEach { it.onTurnStart() }
     }
+
+    fun getShopSlots(): List<GameUnit> {
+        return player.shop.slots
+    }
+
 }

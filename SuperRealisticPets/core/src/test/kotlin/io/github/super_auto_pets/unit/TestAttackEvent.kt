@@ -1,4 +1,4 @@
-package io.github.super_auto_pets
+package io.github.super_auto_pets.unit
 
 import io.github.super_auto_pets.controller.AttackEvent
 import io.github.super_auto_pets.models.Sprite

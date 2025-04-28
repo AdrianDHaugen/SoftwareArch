@@ -1,4 +1,4 @@
-package io.github.super_auto_pets
+package io.github.super_auto_pets.unit
 
 import com.badlogic.gdx.Files
 import com.badlogic.gdx.Gdx
@@ -28,7 +28,7 @@ class ExtraCoverageTests {
             Gdx.files = object : Files {
                 private fun fh(path: String) = object : FileHandle(path) {
                     override fun readString(): String =
-                        if (path.contains("sprites.json")) spriteJson else itemJson
+                        if (path.contains("units/sprites.json")) spriteJson else itemJson
                 }
 
                 override fun internal(path: String): FileHandle = fh(path)

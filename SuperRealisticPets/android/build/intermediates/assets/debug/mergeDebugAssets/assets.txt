@@ -23,6 +23,7 @@ buttons/pause.png
 buttons/rerollbtn.png
 buttons/resume.png
 buttons/singleplayer.png
+buttons/speed.png
 buttons/start.png
 buttons/startbattlebtn.png
 buttons/step_by_step.png

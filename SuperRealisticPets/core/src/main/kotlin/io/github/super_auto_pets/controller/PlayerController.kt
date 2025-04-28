@@ -7,6 +7,9 @@ import io.github.super_auto_pets.models.Sprite
 
 class PlayerController(private val player: Player) {
 
+    val currentPlayer: Player
+        get() = player
+
     fun startTurn() {
         player.turn++
         player.gold = 10
@@ -89,4 +92,7 @@ class PlayerController(private val player: Player) {
         // This could be extended to apply discounts, bonuses, etc. based on game state
         return unit.cost
     }
+    fun getTeam() = player.team
+
+
 }
