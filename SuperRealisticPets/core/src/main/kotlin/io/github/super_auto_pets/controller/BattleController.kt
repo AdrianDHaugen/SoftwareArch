@@ -1,17 +1,42 @@
 package io.github.super_auto_pets.controller
 
 import io.github.super_auto_pets.interfaces.GameUnit
+import io.github.super_auto_pets.interfaces.HighscoreService
 import io.github.super_auto_pets.models.Battle
 import io.github.super_auto_pets.models.Sprite
 
-class BattleController(val battle: Battle = Battle()) {
+class BattleController(
+    val battle: Battle = Battle(),
+    private val highscoreService: HighscoreService
+) {
 
     fun nextAttackStep(): AttackEvent? {
-        // Check if both teams still have living sprites.
         val teamALive = battle.playerA.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
         val teamBLive = battle.playerB.team.teams.filterIsInstance<Sprite>().any { it.health > 0 }
+
         if (!teamALive || !teamBLive) {
             println("Battle is over.")
+
+            when {
+                teamALive && !teamBLive -> {
+                    println("${battle.playerA.name} wins!")
+                    battle.playerA.winStreak++
+                    highscoreService.updateHighscore(battle.playerA.name, battle.playerA.winStreak)
+                    battle.playerB.winStreak = 0
+                }
+                teamBLive && !teamALive -> {
+                    println("${battle.playerB.name} wins!")
+                    battle.playerB.winStreak++
+                    highscoreService.updateHighscore(battle.playerB.name, battle.playerB.winStreak)
+                    battle.playerA.winStreak = 0
+                }
+                else -> {
+                    println("It's a draw!")
+                    battle.playerA.winStreak = 0
+                    battle.playerB.winStreak = 0
+                }
+            }
+
             return null
         }
 

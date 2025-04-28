@@ -1,17 +1,78 @@
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
 eclipse.project.name = appName + '-core'
 
-dependencies {
-  implementation 'com.beust:klaxon:5.5' // Replace with the latest version
-}
+// Plugins
+apply plugin: 'kotlin'     // shorthand for org.jetbrains.kotlin.jvm
+apply plugin: 'jacoco'
 
-
+// Dependencies
 dependencies {
+  implementation 'com.beust:klaxon:5.5'
   api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-
-  if(enableGraalNative == 'true') {
+  if (enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
   }
+
+  // Testing
+  testImplementation "org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
+  testImplementation 'org.testng:testng:6.9.6'
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
+  testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
 }
+
+tasks.test {
+  useJUnitPlatform()
+}
+
+// JaCoCo
+jacoco {
+  toolVersion = "0.8.10"
+}
+
+// 5) configure the existing report task
+jacocoTestReport {
+  dependsOn test
+  group       = 'verification'
+  description = 'Generate JaCoCo coverage report for the core module'
+
+  // 5.a) point at your compiled Kotlin classes
+  classDirectories.setFrom fileTree(
+    dir: "$buildDir/classes/kotlin/main",
+    exclude: [
+      '**/R.class',
+      '**/R$*.class',
+      '**/BuildConfig.*',
+      '**/Manifest*.*'
+    ]
+  )
+
+  // 5.b) include both Kotlin & Java sources
+  sourceDirectories.setFrom files(
+    "src/main/kotlin",
+    "src/main/java"
+  )
+
+  // 5.c) pick up all .exec coverage files
+  executionData.setFrom fileTree(
+    dir: "$buildDir",
+    include: [
+      "jacoco/*.exec",
+      "**/*.exec"
+    ]
+  )
+
+  // 5.d) output formats
+  reports {
+    xml.required.set(true)
+    html.required.set(true)
+    // write HTML here:
+    html.outputLocation.set(file("$buildDir/reports/coverage/html"))
+  }
+}
+
+// (Optional) if you want coverage to run with `check`:
+// check.dependsOn jacocoTestReport

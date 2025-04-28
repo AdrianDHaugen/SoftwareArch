@@ -25,6 +25,9 @@ android {
       assets.setSrcDirs(['../assets'])
       jniLibs.setSrcDirs(['libs'])
     }
+    test {
+      java.srcDirs = ['src/test/kotlin']
+    }
   }
   packagingOptions {
 		resources {
@@ -86,6 +89,9 @@ dependencies {
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
   natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
+
+  testImplementation 'junit:junit:4.13.2'
+
 
 }
 

@@ -1,5 +1,7 @@
 package io.github.super_auto_pets.controller
 
+import io.github.super_auto_pets.factories.ItemFactory
+import io.github.super_auto_pets.factories.SpriteFactory
 import io.github.super_auto_pets.interfaces.GameUnit
 import io.github.super_auto_pets.models.Empty
 import io.github.super_auto_pets.models.Item
@@ -81,7 +83,14 @@ class ShopController(private val player: Player) {
         } }
 
     private fun buyToEmptyResponse(gameUnit: GameUnit, targetPos: Int): Int {
-        player.team.teams[targetPos] = gameUnit
+        // Create a deep copy if it's a sprite
+        val unitToAdd = if (gameUnit is Sprite) {
+            SpriteFactory.createCopy(gameUnit)
+        } else {
+            gameUnit
+        }
+
+        player.team.teams[targetPos] = unitToAdd
         player.gold -= gameUnit.cost
 
         player.shop.slots[player.shop.slots.indexOf(gameUnit)] = Empty()
@@ -121,8 +130,12 @@ class ShopController(private val player: Player) {
         player.gold -= item.cost
 
         val sprite = player.team.teams[targetPos] as Sprite
-        sprite.item = item
 
+        // Create a deep copy of the item when applying
+        val itemCopy = ItemFactory.createCopy(item)
+        sprite.item = itemCopy
+
+        // Update the sprite's stats with the item's bonuses
         sprite.attack += item.addAttack
         sprite.health += item.addHealth
 
@@ -137,12 +150,12 @@ class ShopController(private val player: Player) {
 
     private fun generateInitialShop() {
         player.shop.slots.clear()
-        repeat(5) { player.shop.slots.add(generateRandomSprite()) }  // Assuming 5 shop slots
+        repeat(4) { player.shop.slots.add(generateRandomSprite()) }  // Assuming 5 shop slots
         repeat(2) { player.shop.slots.add(generateRandomItem()) }
     }
 
     private fun generateShopSlot(pos : Int): GameUnit {
-        return if (pos < 5) {
+        return if (pos < 4) {
             generateRandomSprite()
         } else {
             generateRandomItem()
@@ -150,16 +163,16 @@ class ShopController(private val player: Player) {
     }
 
     private fun generateRandomSprite(): Sprite {
-        val sprite = spritesDB.random()
-
-        return sprite
+        // Get a random sprite from database and create a copy
+        val originalSprite = spritesDB.random()
+        return SpriteFactory.createCopy(originalSprite)
     }
 
 
     private fun generateRandomItem(): Item {
-        val item = itemsDB.random()
-
-        return item
+        // Get a random item from database and create a copy
+        val originalItem = itemsDB.random()
+        return ItemFactory.createCopy(originalItem)
     }
 
     fun endTurn() {

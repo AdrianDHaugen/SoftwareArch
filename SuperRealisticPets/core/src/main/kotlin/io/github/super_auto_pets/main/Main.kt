@@ -4,6 +4,8 @@ import com.badlogic.gdx.ApplicationAdapter
 import io.github.super_auto_pets.controller.BattleController
 import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.models.Player
+import io.github.super_auto_pets.interfaces.HighscoreService
+
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms. */
 class Main : ApplicationAdapter()
@@ -15,6 +17,13 @@ fun main() {
     val playerAController = PlayerController(playerA)
     val playerBController = PlayerController(playerB)
 
+    val highscoreService = object : HighscoreService {
+        override fun updateHighscore(playerName: String, winStreak: Int) {
+            println("[Mock] Highscore updated for $playerName: $winStreak wins")
+        }
+    }
+
+
     // Start turns
     playerAController.startTurn()
     playerBController.startTurn()
@@ -24,7 +33,7 @@ fun main() {
     handleTurn("Player B", playerB, playerBController)
 
     // Start battle
-    val battle = BattleController()
+    val battle = BattleController(highscoreService = highscoreService)
     battle.nextAttackStep()
 }
 

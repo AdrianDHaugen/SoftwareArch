@@ -1,5 +1,6 @@
 package io.github.super_auto_pets.controller
 
+import io.github.super_auto_pets.interfaces.GameUnit
 import io.github.super_auto_pets.models.Empty
 import io.github.super_auto_pets.models.Player
 import io.github.super_auto_pets.models.Sprite
@@ -67,7 +68,25 @@ class PlayerController(private val player: Player) {
         return 0
     }
 
+    fun canAffordUnit(unit: GameUnit): Boolean {
+        return player.gold >= unit.cost
+    }
+
+    fun canAffordReroll(): Boolean {
+        return player.gold >= 1  // assuming reroll costs 1 gold
+    }
+
     fun endTurn() {
         player.shopController.endTurn()
+    }
+
+    fun getPlayerGold(): Int {
+        return player.gold
+    }
+
+    fun getUnitCost(unit: GameUnit): Int {
+        // Basic implementation returns the unit's cost
+        // This could be extended to apply discounts, bonuses, etc. based on game state
+        return unit.cost
     }
 }

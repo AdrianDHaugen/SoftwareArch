@@ -8,7 +8,7 @@ class Player {
         get() = _name
         set(value) { _name = value }
 
-    private var _gold: Int = 10
+    private var _gold: Int = 20
     var gold: Int
         get() = _gold
         set(value) { _gold = value }
@@ -17,6 +17,11 @@ class Player {
     var turn: Int
         get() = _turn
         set(value) { _turn = value }
+
+    private var _winStreak: Int = 0
+    var winStreak: Int
+        get() = _winStreak
+        set(value) { _winStreak = value }
 
     private var _team = Team()
     var team: Team
