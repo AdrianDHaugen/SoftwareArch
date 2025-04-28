@@ -28,10 +28,3 @@ jobs:
       
     - name: Run core tests
       run: ./gradlew core:test
-      
-    - name: Upload test results
-      if: always()  # Upload even if tests fail
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-results
-        path: core/build/reports/tests/
