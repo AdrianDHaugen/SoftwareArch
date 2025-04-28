@@ -35,6 +35,8 @@ Useful Gradle tasks and flags:
 - `lwjgl3:jar`: builds runnable jar.
 - `lwjgl3:run`: runs the desktop application.
 - `test`: runs unit tests (if any).
+- `./gradlew :core:clean :core:test :core:jacocoTestReport` : run test, and generate Jacoco test coverage
+
 
 ---
 
@@ -42,7 +44,7 @@ Useful Gradle tasks and flags:
 
 ```bash
 SuperRealisticPets/
-├── android/             # Android-specific code
+├── android/
 │   ├── AndroidManifest.xml
 │   ├── build.gradle
 │   └── src/
@@ -52,40 +54,67 @@ SuperRealisticPets/
 │           ├── GameScreen.kt
 │           ├── HighscoreScreen.kt
 │           ├── Main.kt
-│           ├── MainMenuScreen.kt
-├── core/                # Core game logic
+│           └── MainMenuScreen.kt
+├── core/
 │   ├── build.gradle
 │   └── src/
-│       └── io/github/super_auto_pets/
-│           ├── controller/
-│           │   ├── BattleController.kt
-│           │   ├── BuildPhase.kt
-│           │   ├── GameMode.kt
-│           │   ├── PlayerController.kt
-│           │   └── ShopController.kt
-│           ├── firebase/
-│           │   ├── FirebaseHighscoreService.kt
-│           │   └── HighscoreManager.kt
-│           ├── interfaces/
-│           │   └── HighscoreService.kt
-│           ├── models/
-│           │   ├── Battle.kt
-│           │   ├── HighscoreEntry.kt
-│           │   ├── Item.kt
-│           │   ├── Player.kt
-│           │   ├── Shop.kt
-│           │   └── Sprite.kt
-│           └── util/
-│               └── AudioManager.kt
-├── ios/                  # Not used
-├── lwjgl3/               # Not used
+│       ├── main/
+│       │   └── kotlin/
+│       │       └── io/github/super_auto_pets/
+│       │           ├── controller/
+│       │           │   ├── BattleController.kt
+│       │           │   ├── BuildPhase.kt
+│       │           │   ├── GameMode.kt
+│       │           │   ├── PlayerController.kt
+│       │           │   └── ShopController.kt
+│       │           ├── firebase/
+│       │           │   ├── FirebaseHighscoreService.kt
+│       │           │   └── HighscoreManager.kt
+│       │           ├── interfaces/
+│       │           │   └── HighscoreService.kt
+│       │           ├── models/
+│       │           │   ├── Battle.kt
+│       │           │   ├── HighscoreEntry.kt
+│       │           │   ├── Item.kt
+│       │           │   ├── Player.kt
+│       │           │   ├── Shop.kt
+│       │           │   └── Sprite.kt
+│       │           ├── util/
+│       │           │   └── AudioManager.kt
+│       │           └── utilities/
+│       │               └── JsonParser.kt
+│       ├── test/
+│       │   └── kotlin/
+│       │       └── io/github/super_auto_pets/unit/
+│       │           ├── CoreModelFactoryAndControllerBasicsTests.kt
+│       │           ├── MainLoopFactoryAndBuyTests.kt
+│       │           ├── ModelSettersJsonParserAndMainFlowTests.kt
+│       │           ├── TestAttackEvent.kt
+│       │           └── TestBattleController.kt
+│       └── integrationTest/
+│           ├── java/
+│           │   └── io/github/super_auto_pets/integration/
+│           │       ├── BattleIntegrationTest.kt
+│           │       ├── ItemFactoryIntegrationTest.kt
+│           │       ├── MainIntegrationTest.kt
+│           │       ├── PlayerControllerIntegrationTest.kt
+│           │       ├── ShopBattleIntegrationTest.kt
+│           │       ├── ShopControllerIntegrationTest.kt
+│           │       └── SpriteFactoryIntegrationTest.kt
+│           └── resources/
+│               └── units/
+│                   ├── items.json
+│                   └── sprites.json
+├── ios/ (not used)
+├── lwjgl3/ (not used)
 │   ├── build.gradle
 │   └── src/
 │       └── io/github/super_auto_pets/lwjgl3/
 │           └── Lwjgl3Launcher.kt
-├── build.gradle          # Root Gradle build script
-├── settings.gradle       # Gradle project settings
-└── README.md             # You're reading it now
+├── build.gradle
+├── settings.gradle
+└── README.md
+
 ```
 
 ---
@@ -113,12 +142,11 @@ Open the project in Android Studio and run the `android` module.
 
 ### Run tests
 - `./gradlew :core:clean :core:test :core:jacocoTestReport` : run tests, and generate Jacoco test coverage
+- `./gradlew :core:clean :core:test :core:jacocoIntegrationTestReport` :  run tests, and generate Jacoco test coverage
 
 
 ### Test reports
 - `core/build/reports/coverage/html/index.html` for code coverage report
--  `core/build/reports/tests/test/index.html` for test report
-
-
-
+- `core/build/reports/tests/test/index.html` for test report
+- `core/build/reports/coverage/integration/index.html` for integration coverage report
 
