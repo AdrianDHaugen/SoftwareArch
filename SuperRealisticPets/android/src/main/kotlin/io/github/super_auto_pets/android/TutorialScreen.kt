@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
+import io.github.super_auto_pets.android.ui.enableHoverPop
 
 class TutorialScreen(private val game: Main) : Screen {
 
@@ -106,6 +107,7 @@ class TutorialScreen(private val game: Main) : Screen {
                     game.screen = MainMenuScreen(game)
                 }
             })
+            enableHoverPop()
         }
         root.add(backBtn).width(btnW).height(btnH)
     }

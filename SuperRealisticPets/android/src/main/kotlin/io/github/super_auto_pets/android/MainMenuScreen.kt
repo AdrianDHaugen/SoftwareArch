@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
@@ -48,21 +49,32 @@ class MainMenuScreen(private val game: Main) : Screen {
         setupButtons()
     }
 
+
     private fun setupBackground() {
-        val bgTexture = loadTexture("backgrounds/main_menu_bg.png")
+        val bgTexture = loadTexture("backgrounds/new_bg_main.png")
         val bgImg = Image(TextureRegionDrawable(TextureRegion(bgTexture))).apply {
+            // full-screen, centered origin for smooth scaling
             setSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+            setOrigin(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2)
+            // forever: pan right & zoom in, then pan left & zoom out
             addAction(
                 Actions.forever(
                     Actions.sequence(
-                        Actions.moveBy(20f, 0f, 30f),
-                        Actions.moveBy(-20f, 0f, 30f)
+                        Actions.parallel(
+                            Actions.moveBy(20f, 0f, 10f),
+                            Actions.scaleTo(1.05f, 1.05f, 10f)
+                                ),
+                        Actions.parallel(
+                            Actions.moveBy(-20f, 0f, 10f),
+                            Actions.scaleTo(1f, 1f, 10f)
+                                )
+                            )
+                        )
                     )
-                )
-            )
         }
         stage.addActor(bgImg)
     }
+
 
     private fun setupLogo() {
         val logoTable = Table(skin).apply {
@@ -101,6 +113,17 @@ class MainMenuScreen(private val game: Main) : Screen {
         // Create and add button table to the main menu table
         val buttonTable = createButtonTable(btnWidth, btnHeight)
         menuTable.add(buttonTable).colspan(2).row()
+
+        buttonTable.children.toArray().forEachIndexed { i, actor ->
+            actor.color.a = 0f
+            actor.addAction(
+                Actions.sequence(
+                    Actions.delay(i * 0.1f),
+                    Actions.fadeIn(0.3f)
+                )
+            )
+        }
+
     }
 
     private fun createButtonTable(btnWidth: Float, btnHeight: Float): Table {
@@ -142,7 +165,7 @@ class MainMenuScreen(private val game: Main) : Screen {
     private fun addTutorialButton(table: Table, btnWidth: Float, btnHeight: Float) {
         val texture = loadTexture("buttons/tutorial.png")
         val button = createMenuButton(texture, btnWidth, btnHeight * 1.3f) {
-             game.screen = TutorialScreen(game)
+            game.screen = TutorialScreen(game)
         }
         table.add(button).width(btnWidth).height(btnHeight * 1.3f).padRight(BUTTON_HORIZONTAL_PADDING)
     }
@@ -169,7 +192,14 @@ class MainMenuScreen(private val game: Main) : Screen {
     private fun createMenuButton(texture: Texture, width: Float, height: Float, onClick: () -> Unit): Image {
         return Image(TextureRegionDrawable(TextureRegion(texture))).apply {
             setSize(width, height)
+            setOrigin(width / 2, height / 2)
             addListener(object : ClickListener() {
+                override fun enter(event: InputEvent?, x: Float, y: Float, pointer: Int, fromActor: Actor?) {
+                    addAction(Actions.scaleTo(1.1f, 1.1f, 0.1f))
+                }
+                override fun exit(event: InputEvent?, x: Float, y: Float, pointer: Int, toActor: Actor?) {
+                    addAction(Actions.scaleTo(1f, 1f, 0.1f))
+                }
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     onClick()
                 }

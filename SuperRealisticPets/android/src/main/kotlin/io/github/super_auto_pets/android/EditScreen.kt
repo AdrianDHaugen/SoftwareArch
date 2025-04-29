@@ -25,6 +25,7 @@ import io.github.super_auto_pets.models.Sprite
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
+import io.github.super_auto_pets.android.ui.enableHoverPop
 import io.github.super_auto_pets.controller.PlayerController
 import io.github.super_auto_pets.controller.ShopController
 import io.github.super_auto_pets.firebase.HighscoreManager
@@ -1050,6 +1051,7 @@ class EditScreen (
                 game.screen = MainMenuScreen(game)
             }
         })
+        cancelBtn.enableHoverPop()
 
 
         // === Button Table ===
@@ -1111,6 +1113,7 @@ class EditScreen (
                 rerollShop(shopUnitTable, boxSize)
             }
         })
+        rerollBtn.enableHoverPop()
 
         // Add to table
         rerollTable.add(rerollBtn).width(boxSize).height(boxSize).pad(30f)
@@ -1154,6 +1157,7 @@ class EditScreen (
                 }
             }
         })
+        startBattleBtn.enableHoverPop()
         buttonTable.add(startBattleBtn).width(400f).height(400f).pad(30f)
 
         // Add tables to the stage

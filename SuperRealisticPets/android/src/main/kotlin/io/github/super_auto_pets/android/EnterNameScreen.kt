@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.viewport.FitViewport
 import io.github.super_auto_pets.controller.GameMode
 import io.github.super_auto_pets.managers.PlayerManager
+import io.github.super_auto_pets.android.ui.enableHoverPop
 
 class EnterNameScreen(
     private val game: Main,
@@ -97,6 +98,7 @@ class EnterNameScreen(
                     }
                 }
             })
+            enableHoverPop()
         }
 
         table.add(continueButton)
